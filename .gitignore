@@ -1,0 +1,12 @@
+xcuserdata
+.idea
+Pods
+*.xcscmblueprint
+metadata
+screenshots
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+report.xml
+*.log
+tags
