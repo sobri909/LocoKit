@@ -398,6 +398,7 @@ class ViewController: UIViewController {
         
         button.backgroundColor = .white
         button.setTitle("Stop", for: .normal)
+        button.setTitleColor(.red, for: .normal)
         
         button.onControlEvent(.touchUpInside) { [weak self] in
             self?.tappedStop()
