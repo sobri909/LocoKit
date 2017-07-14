@@ -1,0 +1,21 @@
+PODS:
+  - ArcKit (0.1.0)
+  - Cartography (1.1.0)
+  - MGEvents (1.1.0)
+  - Upsurge (0.8.0)
+
+DEPENDENCIES:
+  - ArcKit
+  - Cartography
+  - MGEvents
+  - Upsurge
+
+SPEC CHECKSUMS:
+  ArcKit: 3f24934a57074d7a4fb1b0d25e6d860ac216c91e
+  Cartography: '0538ccb4044acbbda2266335fc58cb4228794d90'
+  MGEvents: 04c4c5b49a420a4895c5bb676ccc708311176d14
+  Upsurge: 614412863a3b5470b31636a004654b6ef3a34f47
+
+PODFILE CHECKSUM: 1d3d4499dab938406948db6f65cdf8098b74c9a3
+
+COCOAPODS: 1.2.1
