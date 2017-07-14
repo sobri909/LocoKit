@@ -231,34 +231,36 @@ class ViewController: UIViewController {
         var currentPath: [CLLocation]?
         var currentVisit: [CLLocation]?
         
-        for sample in samples where sample.location != nil {
+        for sample in samples {
+            guard let location = sample.location else {
+                continue
+            }
+            
             if sample.movingState == .stationary {
                 
                 // add the previous path to the map
-                if let path = currentPath {
+                if var path = currentPath {
+                    path.append(location)
+                    
                     addPath(locations: path, color: .blue)
                     currentPath = nil
                 }
                 
-                if currentVisit == nil {
-                    currentVisit = []
-                }
-                
-                currentVisit?.append(sample.location!)
+                currentVisit = currentVisit ?? []
+                currentVisit?.append(location)
                 
             } else { // movingState is either .moving or .uncertain
                 
                 // add the previous visit to the map
-                if let visit = currentVisit {
+                if var visit = currentVisit {
+                    visit.append(location)
+
                     addVisit(locations: visit)
                     currentVisit = nil
                 }
                 
-                if currentPath == nil {
-                    currentPath = []
-                }
-                
-                currentPath?.append(sample.location!)
+                currentPath = currentPath ?? []
+                currentPath?.append(location)
             }
         }
         
