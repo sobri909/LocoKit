@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ArcKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -24,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationWillResignActive(_ application: UIApplication) {
-//        LocomotionManager.highlander.requestLocationPermission(background: true)
+        LocomotionManager.highlander.requestLocationPermission(background: true)
     }
 
 }
