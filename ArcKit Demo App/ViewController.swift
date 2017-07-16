@@ -280,7 +280,7 @@ class ViewController: UIViewController {
             map.addAnnotation(VisitAnnotation(coordinate: center.coordinate))
            
             let radius = locations.radiusFrom(center: center)
-            let circle = VisitCircle(center: center.coordinate, radius: radius.mean + radius.sd)
+            let circle = VisitCircle(center: center.coordinate, radius: radius.mean + radius.sd * 2)
             circle.color = .orange
             map.add(circle, level: .aboveLabels)
         }
