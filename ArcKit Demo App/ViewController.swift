@@ -145,14 +145,14 @@ class ViewController: UIViewController {
     // MARK: tap actions
     
     func tappedStart() {
-        LocomotionManager.highlander.start()
+        LocomotionManager.highlander.startCoreLocation()
         
         startButton.isHidden = true
         stopButton.isHidden = false
     }
     
     func tappedStop() {
-        LocomotionManager.highlander.stop()
+        LocomotionManager.highlander.stopCoreLocation()
         
         stopButton.isHidden = true
         startButton.isHidden = false
