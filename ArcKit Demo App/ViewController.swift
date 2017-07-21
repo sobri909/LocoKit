@@ -102,10 +102,19 @@ class ViewController: UIViewController {
         
         if let location = sample.locations.last {
             achievedAccuracyLabel.text = String(format: "receiving %.0f metres", location.horizontalAccuracy)
+        } else {
+            achievedAccuracyLabel.text = "receiving nothing"
         }
         
         if let duration = sample.locations.dateInterval?.duration, duration > 0 {
             locationHertzLabel.text = String(format: " %.1f Hz ", Double(sample.locations.count) / duration)
+        } else {
+            locationHertzLabel.text = " 0.0 Hz "
+        }
+        
+        statusRowBackground.backgroundColor = .blue
+        UIView.animate(withDuration: 1) {
+            self.statusRowBackground.backgroundColor = UIColor(white: 0.85, alpha: 1)
         }
     }
     
@@ -249,9 +258,6 @@ class ViewController: UIViewController {
             statusRow.bottom == statusRow.superview!.bottom
             statusRow.height == 30
         }
-        
-        let statusRowBackground = UIView()
-        statusRowBackground.backgroundColor = UIColor(white: 0.85, alpha: 1)
         
         statusRow.addSubview(statusRowBackground)
         constrain(statusRowBackground) { background in
@@ -488,6 +494,12 @@ class ViewController: UIViewController {
         return button
     }()
     
+    lazy var statusRowBackground: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        return view
+    }()
+    
     lazy var desiredAccuracyLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .white
@@ -503,7 +515,6 @@ class ViewController: UIViewController {
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
         label.textColor = UIColor(white: 0.3, alpha: 1)
         label.textAlignment = .center
-
         return label
     }()
     
