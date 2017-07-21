@@ -37,7 +37,7 @@ class ViewController: UIViewController {
         let loco = LocomotionManager.highlander
         let centre = NotificationCenter.default
         
-        centre.addObserver(forName: .didUpdateLocations, object: loco, queue: OperationQueue.main) { note in
+        centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { note in
             self.didUpdateLocations(note: note)
         }
         
