@@ -22,7 +22,7 @@ class ViewController: UIViewController {
     var showRawLocations = true
     var showFilteredLocations = true
     var showSmoothedLocations = true
-    var showVisits = true
+    var showMovingStates = true
     
     var visitsToggleRow: UIView?
     var visitsToggle: UISwitch?
@@ -94,21 +94,21 @@ class ViewController: UIViewController {
         addUnderline()
         addGap(height: 16)
         
-        addToggleRow(color: .red, text: "Show raw locations") { isOn in
+        addToggleRow(dotColors: [.red], text: "Show raw locations") { isOn in
             self.showRawLocations = isOn
             self.updateTheMap()
         }
         
         addUnderline()
         
-        addToggleRow(color: .purple, text: "Show filtered locations") { isOn in
+        addToggleRow(dotColors: [.purple], text: "Show filtered locations") { isOn in
             self.showFilteredLocations = isOn
             self.updateTheMap()
         }
         
         addUnderline()
         
-        addToggleRow(color: .blue, text: "Show smoothed locations") { isOn in
+        addToggleRow(dotColors: [.blue], text: "Show smoothed locations") { isOn in
             self.showSmoothedLocations = isOn
             self.visitsToggle?.isEnabled = isOn
             self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }
@@ -117,8 +117,8 @@ class ViewController: UIViewController {
         
         addUnderline()
         
-        let bits = addToggleRow(color: .orange, text: "Show stationary periods") { isOn in
-            self.showVisits = isOn
+        let bits = addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show moving states") { isOn in
+            self.showMovingStates = isOn
             self.updateTheMap()
         }
         
@@ -183,7 +183,7 @@ class ViewController: UIViewController {
         if showSmoothedLocations {
             let smoothedLocations = locomotionSamples.flatMap { $0.location }
             
-            if showVisits {
+            if showMovingStates {
                 addPathsAndVisits(samples: locomotionSamples)
             
             } else {
@@ -228,50 +228,49 @@ class ViewController: UIViewController {
     }
     
     func addPathsAndVisits(samples: [LocomotionSample]) {
-        var currentPath: [CLLocation]?
-        var currentVisit: [CLLocation]?
+        var currentGrouping: [LocomotionSample]?
         
-        for sample in samples {
-            guard let location = sample.location else {
-                continue
+        for sample in samples where sample.location != nil {
+            let currentState = sample.movingState
+            
+            // state changed? close off the previous grouping, add to map, and start a new one
+            if let previousState = currentGrouping?.last?.movingState, previousState != currentState {
+                
+                // add new sample to previous grouping, to link them end to end
+                currentGrouping?.append(sample)
+              
+                // add it to the map
+                addGrouping(currentGrouping!)
+                
+                currentGrouping = nil
             }
             
-            if sample.movingState == .stationary {
-                
-                // add the previous path to the map
-                if var path = currentPath {
-                    path.append(location)
-                    
-                    addPath(locations: path, color: .blue)
-                    currentPath = nil
-                }
-                
-                currentVisit = currentVisit ?? []
-                currentVisit?.append(location)
-                
-            } else { // movingState is either .moving or .uncertain
-                
-                // add the previous visit to the map
-                if var visit = currentVisit {
-                    visit.append(location)
-
-                    addVisit(locations: visit)
-                    currentVisit = nil
-                }
-                
-                currentPath = currentPath ?? []
-                currentPath?.append(location)
-            }
+            currentGrouping = currentGrouping ?? []
+            currentGrouping?.append(sample)
         }
         
-        // add the final path to the map
-        if let path = currentPath {
-            addPath(locations: path, color: .blue)
+        // add the final grouping to the map
+        if let grouping = currentGrouping {
+            addGrouping(grouping)
+        }
+    }
+    
+    func addGrouping(_ samples: [LocomotionSample]) {
+        guard let movingState = samples.first?.movingState else {
+            return
         }
         
-        // add the final visit to the map
-        if let visit = currentVisit {
-            addVisit(locations: visit)
+        let locations = samples.flatMap { $0.location }
+        
+        switch movingState {
+        case .moving:
+            addPath(locations: locations, color: .blue)
+            
+        case .stationary:
+            addVisit(locations: locations)
+            
+        case .uncertain:
+            addPath(locations: locations, color: .magenta)
         }
     }
 
@@ -315,11 +314,37 @@ class ViewController: UIViewController {
     }
     
     @discardableResult
-    func addToggleRow(color: UIColor, text: String, onChange: @escaping ((Bool) -> Void))
+    func addToggleRow(dotColors: [UIColor], text: String, onChange: @escaping ((Bool) -> Void))
         -> (row: UIView, toggle: UISwitch)
     {
-        let dot = self.dot(color: color)
-        let dotWidth = dot.layer.cornerRadius * 2
+        let row = UIView()
+        row.backgroundColor = .white
+        rowsBox.addArrangedSubview(row)
+        
+        var lastDot: UIView?
+        for color in dotColors {
+            let dot = self.dot(color: color)
+            let dotWidth = dot.layer.cornerRadius * 2
+            row.addSubview(dot)
+       
+            constrain(dot) { dot in
+                dot.centerY == dot.superview!.centerY
+                dot.height == dotWidth
+                dot.width == dotWidth
+            }
+            
+            if let lastDot = lastDot {
+                constrain(dot, lastDot) { dot, lastDot in
+                    dot.left == lastDot.right + 8
+                }
+            } else {
+                constrain(dot) { dot in
+                    dot.left == dot.superview!.left + 8
+                }
+            }
+            
+            lastDot = dot
+        }
         
         let label = UILabel()
         label.text = text
@@ -333,23 +358,13 @@ class ViewController: UIViewController {
             onChange(toggle.isOn)
         }
         
-        let row = UIView()
-        row.backgroundColor = .white
-        rowsBox.addArrangedSubview(row)
-        
-        row.addSubview(dot)
         row.addSubview(label)
         row.addSubview(toggle)
         
-        constrain(dot, label, toggle) { dot, label, toggle in
-            dot.left == dot.superview!.left + 8
-            dot.centerY == dot.superview!.centerY
-            dot.height == dotWidth
-            dot.width == dotWidth
-            
+        constrain(lastDot!, label, toggle) { dot, label, toggle in
+            label.left == dot.right + 8
             label.top == label.superview!.top
             label.bottom == label.superview!.bottom
-            label.left == dot.right + 8
             label.height == 50
            
             toggle.centerY == toggle.superview!.centerY
