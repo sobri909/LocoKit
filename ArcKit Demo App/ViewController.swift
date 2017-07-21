@@ -45,7 +45,6 @@ class ViewController: UIViewController {
         
         loco.requestLocationPermission()
     }
-
   
     // MARK: process incoming locations
     
@@ -69,11 +68,15 @@ class ViewController: UIViewController {
     // MARK: tap actions
     
     func tappedStart() {
+        let loco = LocomotionManager.highlander
         
         // for demo purposes only. the default value already best balances accuracy with battery use
-        LocomotionManager.highlander.maximumDesiredLocationAccuracy = kCLLocationAccuracyBest
+        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyBest
         
-        LocomotionManager.highlander.startCoreLocation()
+        // this is independent of the user's setting, and will show a blue bar if user has denied "always"
+        loco.locationManager.allowsBackgroundLocationUpdates = true
+        
+        loco.startCoreLocation()
         
         startButton.isHidden = true
         stopButton.isHidden = false
