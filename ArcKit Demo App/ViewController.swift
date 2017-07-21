@@ -92,7 +92,7 @@ class ViewController: UIViewController {
         }
         
         addUnderline()
-        addGap(height: 16)
+        addGap(height: 12)
         
         addToggleRow(dotColors: [.red], text: "Show raw locations") { isOn in
             self.showRawLocations = isOn
@@ -124,6 +124,34 @@ class ViewController: UIViewController {
         
         visitsToggleRow = bits.row
         visitsToggle = bits.toggle
+        
+        let statusRow = UIView()
+        statusRow.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        view.addSubview(statusRow)
+        
+        constrain(statusRow) { statusRow in
+            statusRow.left == statusRow.superview!.left + 16
+            statusRow.right == statusRow.superview!.right - 16
+            statusRow.bottom == statusRow.superview!.bottom
+            statusRow.height == 30
+        }
+        
+        statusRow.addSubview(desiredAccuracyView)
+        statusRow.addSubview(achievedAccuracyView)
+        
+        constrain(desiredAccuracyView, achievedAccuracyView) { desired, achieved in
+            align(top: desired, achieved)
+            align(bottom: desired, achieved)
+            
+            desired.top == desired.superview!.top + 0.5
+            desired.bottom == desired.superview!.bottom
+            
+            desired.left == desired.superview!.left
+            desired.right == desired.superview!.centerX
+            
+            achieved.left == desired.right + 0.5
+            achieved.right == achieved.superview!.right
+        }
     }
   
     // MARK: process incoming locations
@@ -131,6 +159,8 @@ class ViewController: UIViewController {
     func didUpdateLocations(note: Notification) {
         if let location = note.userInfo?["location"] as? CLLocation {
             rawLocations.append(location)
+           
+            updateTheStatusBar(location: location)
         }
         
         if let location = note.userInfo?["filteredLocation"] as? CLLocation {
@@ -138,7 +168,7 @@ class ViewController: UIViewController {
         }
         
         locomotionSamples.append(LocomotionManager.highlander.locomotionSample)
-        
+       
         updateTheMap()
     }
     
@@ -166,7 +196,15 @@ class ViewController: UIViewController {
         updateTheMap()
     }
     
-    // MARK: updating and zooming the map
+    // MARK: updating the map and UI
+    
+    func updateTheStatusBar(location: CLLocation) {
+        let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
+        desiredAccuracyView.text = String(format: "requesting %.0f metres", desired)
+        
+        let achieved = location.horizontalAccuracy
+        achievedAccuracyView.text = String(format: "receiving %.0f metres", achieved)
+    }
     
     func updateTheMap() {
         map.removeOverlays(map.overlays)
@@ -433,6 +471,24 @@ class ViewController: UIViewController {
         }
         
         return button
+    }()
+    
+    lazy var desiredAccuracyView: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = .white
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.textColor = UIColor(white: 0.2, alpha: 1)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var achievedAccuracyView: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = .white
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.textColor = UIColor(white: 0.2, alpha: 1)
+        label.textAlignment = .center
+        return label
     }()
 }
 
