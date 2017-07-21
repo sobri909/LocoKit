@@ -136,10 +136,10 @@ class ViewController: UIViewController {
             statusRow.height == 30
         }
         
-        statusRow.addSubview(desiredAccuracyView)
-        statusRow.addSubview(achievedAccuracyView)
+        statusRow.addSubview(desiredAccuracyLabel)
+        statusRow.addSubview(achievedAccuracyLabel)
         
-        constrain(desiredAccuracyView, achievedAccuracyView) { desired, achieved in
+        constrain(desiredAccuracyLabel, achievedAccuracyLabel) { desired, achieved in
             align(top: desired, achieved)
             align(bottom: desired, achieved)
             
@@ -200,10 +200,10 @@ class ViewController: UIViewController {
     
     func updateTheStatusBar(location: CLLocation) {
         let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
-        desiredAccuracyView.text = String(format: "requesting %.0f metres", desired)
+        desiredAccuracyLabel.text = String(format: "requesting %.0f metres", desired)
         
         let achieved = location.horizontalAccuracy
-        achievedAccuracyView.text = String(format: "receiving %.0f metres", achieved)
+        achievedAccuracyLabel.text = String(format: "receiving %.0f metres", achieved)
     }
     
     func updateTheMap() {
@@ -473,7 +473,7 @@ class ViewController: UIViewController {
         return button
     }()
     
-    lazy var desiredAccuracyView: UILabel = {
+    lazy var desiredAccuracyLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .white
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
@@ -482,7 +482,7 @@ class ViewController: UIViewController {
         return label
     }()
     
-    lazy var achievedAccuracyView: UILabel = {
+    lazy var achievedAccuracyLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .white
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
