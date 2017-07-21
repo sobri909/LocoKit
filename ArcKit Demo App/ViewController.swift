@@ -27,6 +27,8 @@ class ViewController: UIViewController {
     var visitsToggleRow: UIView?
     var visitsToggle: UISwitch?
     
+    // MARK: controller lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -43,116 +45,7 @@ class ViewController: UIViewController {
         
         loco.requestLocationPermission()
     }
-    
-    func buildViewTree() {
-        view.addSubview(map)
-        constrain(map) { map in
-            map.top == map.superview!.top
-            map.left == map.superview!.left
-            map.right == map.superview!.right
-            map.height == map.superview!.height * 0.5
-        }
-        
-        view.addSubview(rowsBox)
-        constrain(map, rowsBox) { map, box in
-            box.top == map.bottom
-            box.left == box.superview!.left + 16
-            box.right == box.superview!.right - 16
-        }
 
-        let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        
-        rowsBox.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-
-        let topButtons = UIView()
-        rowsBox.addArrangedSubview(topButtons)
-        topButtons.addSubview(startButton)
-        topButtons.addSubview(stopButton)
-        topButtons.addSubview(clearButton)
-        
-        constrain(startButton, stopButton, clearButton) { startButton, stopButton, clearButton in
-            align(top: startButton, stopButton, clearButton)
-            align(bottom: startButton, stopButton, clearButton)
-            
-            startButton.top == startButton.superview!.top
-            startButton.bottom == startButton.superview!.bottom
-            startButton.height == 60
-            
-            startButton.left == startButton.superview!.left
-            startButton.right == startButton.superview!.centerX
-            
-            stopButton.edges == startButton.edges
-            
-            clearButton.left == startButton.right + 0.5
-            clearButton.right == clearButton.superview!.right
-        }
-        
-        addUnderline()
-        addGap(height: 12)
-        
-        addToggleRow(dotColors: [.red], text: "Show raw locations") { isOn in
-            self.showRawLocations = isOn
-            self.updateTheMap()
-        }
-        
-        addUnderline()
-        
-        addToggleRow(dotColors: [.purple], text: "Show filtered locations") { isOn in
-            self.showFilteredLocations = isOn
-            self.updateTheMap()
-        }
-        
-        addUnderline()
-        
-        addToggleRow(dotColors: [.blue], text: "Show smoothed locations") { isOn in
-            self.showSmoothedLocations = isOn
-            self.visitsToggle?.isEnabled = isOn
-            self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }
-            self.updateTheMap()
-        }
-        
-        addUnderline()
-        
-        let bits = addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show moving states") { isOn in
-            self.showMovingStates = isOn
-            self.updateTheMap()
-        }
-        
-        visitsToggleRow = bits.row
-        visitsToggle = bits.toggle
-        
-        let statusRow = UIView()
-        statusRow.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        view.addSubview(statusRow)
-        
-        constrain(statusRow) { statusRow in
-            statusRow.left == statusRow.superview!.left + 16
-            statusRow.right == statusRow.superview!.right - 16
-            statusRow.bottom == statusRow.superview!.bottom
-            statusRow.height == 30
-        }
-        
-        statusRow.addSubview(desiredAccuracyLabel)
-        statusRow.addSubview(achievedAccuracyLabel)
-        
-        constrain(desiredAccuracyLabel, achievedAccuracyLabel) { desired, achieved in
-            align(top: desired, achieved)
-            align(bottom: desired, achieved)
-            
-            desired.top == desired.superview!.top + 0.5
-            desired.bottom == desired.superview!.bottom
-            
-            desired.left == desired.superview!.left
-            desired.right == desired.superview!.centerX
-            
-            achieved.left == desired.right + 0.5
-            achieved.right == achieved.superview!.right
-        }
-    }
   
     // MARK: process incoming locations
     
@@ -160,15 +53,16 @@ class ViewController: UIViewController {
         if let location = note.userInfo?["location"] as? CLLocation {
             rawLocations.append(location)
            
-            updateTheStatusBar(location: location)
         }
         
         if let location = note.userInfo?["filteredLocation"] as? CLLocation {
             filteredLocations.append(location)
         }
-        
-        locomotionSamples.append(LocomotionManager.highlander.locomotionSample)
        
+        let sample = LocomotionManager.highlander.locomotionSample
+        locomotionSamples.append(sample)
+        
+        updateTheStatusBar(sample: sample)
         updateTheMap()
     }
     
@@ -200,14 +94,19 @@ class ViewController: UIViewController {
         updateTheMap()
     }
     
-    // MARK: updating the map and UI
+    // MARK: UI updating
     
-    func updateTheStatusBar(location: CLLocation) {
+    func updateTheStatusBar(sample: LocomotionSample) {
         let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
         desiredAccuracyLabel.text = String(format: "requesting %.0f metres", desired)
         
-        let achieved = location.horizontalAccuracy
-        achievedAccuracyLabel.text = String(format: "receiving %.0f metres", achieved)
+        if let location = sample.locations.last {
+            achievedAccuracyLabel.text = String(format: "receiving %.0f metres", location.horizontalAccuracy)
+        }
+        
+        if let duration = sample.locations.dateInterval?.duration, duration > 0 {
+            locationHertzLabel.text = String(format: " %.1f Hz ", Double(sample.locations.count) / duration)
+        }
     }
     
     func updateTheMap() {
@@ -254,8 +153,120 @@ class ViewController: UIViewController {
         
         map.setVisibleMapRect(mapRect!, edgePadding: padding, animated: true)
     }
+    
+    // MARK: view tree building
+    
+    func buildViewTree() {
+        view.addSubview(map)
+        constrain(map) { map in
+            map.top == map.superview!.top
+            map.left == map.superview!.left
+            map.right == map.superview!.right
+            map.height == map.superview!.height * 0.5
+        }
+        
+        view.addSubview(rowsBox)
+        constrain(map, rowsBox) { map, box in
+            box.top == map.bottom
+            box.left == box.superview!.left + 16
+            box.right == box.superview!.right - 16
+        }
+        
+        let background = UIView()
+        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        
+        rowsBox.addSubview(background)
+        constrain(background) { background in
+            background.edges == background.superview!.edges
+        }
+        
+        let topButtons = UIView()
+        rowsBox.addArrangedSubview(topButtons)
+        topButtons.addSubview(startButton)
+        topButtons.addSubview(stopButton)
+        topButtons.addSubview(clearButton)
+        
+        constrain(startButton, stopButton, clearButton) { startButton, stopButton, clearButton in
+            align(top: startButton, stopButton, clearButton)
+            align(bottom: startButton, stopButton, clearButton)
+            
+            startButton.top == startButton.superview!.top
+            startButton.bottom == startButton.superview!.bottom
+            startButton.height == 60
+            
+            startButton.left == startButton.superview!.left
+            startButton.right == startButton.superview!.centerX
+            
+            stopButton.edges == startButton.edges
+            
+            clearButton.left == startButton.right + 0.5
+            clearButton.right == clearButton.superview!.right
+        }
+        
+        addUnderline()
+        addGap(height: 16)
+        
+        addToggleRow(dotColors: [.red], text: "Show raw locations") { isOn in
+            self.showRawLocations = isOn
+            self.updateTheMap()
+        }
+        
+        addUnderline()
+        
+        addToggleRow(dotColors: [.purple], text: "Show filtered locations") { isOn in
+            self.showFilteredLocations = isOn
+            self.updateTheMap()
+        }
+        
+        addUnderline()
+        
+        addToggleRow(dotColors: [.blue], text: "Show smoothed locations") { isOn in
+            self.showSmoothedLocations = isOn
+            self.visitsToggle?.isEnabled = isOn
+            self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }
+            self.updateTheMap()
+        }
+        
+        addUnderline()
+        
+        let bits = addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show moving states") { isOn in
+            self.showMovingStates = isOn
+            self.updateTheMap()
+        }
+        
+        visitsToggleRow = bits.row
+        visitsToggle = bits.toggle
+        
+        let statusRow = UIStackView()
+        statusRow.distribution = .fillProportionally
+        statusRow.axis = .horizontal
+        statusRow.spacing = 0.5
+        
+        view.addSubview(statusRow)
+        constrain(statusRow) { statusRow in
+            statusRow.left == statusRow.superview!.left + 6
+            statusRow.right == statusRow.superview!.right - 6
+            statusRow.bottom == statusRow.superview!.bottom
+            statusRow.height == 30
+        }
+        
+        let statusRowBackground = UIView()
+        statusRowBackground.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        
+        statusRow.addSubview(statusRowBackground)
+        constrain(statusRowBackground) { background in
+            background.top == background.superview!.top - 0.5
+            background.bottom == background.superview!.bottom
+            background.left == background.superview!.left
+            background.right == background.superview!.right
+        }
+        
+        statusRow.addArrangedSubview(desiredAccuracyLabel)
+        statusRow.addArrangedSubview(achievedAccuracyLabel)
+        statusRow.addArrangedSubview(locationHertzLabel)
+    }
    
-    // MARK: adding map overlays and annotations
+    // MARK: map building
     
     func addPath(locations: [CLLocation], color: UIColor) {
         guard !locations.isEmpty else {
@@ -327,7 +338,7 @@ class ViewController: UIViewController {
         }
     }
 
-    // MARK: UI building helpers
+
     
     func addUnderline() {
         let underline = UIView()
@@ -481,7 +492,7 @@ class ViewController: UIViewController {
         let label = UILabel()
         label.backgroundColor = .white
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor(white: 0.2, alpha: 1)
+        label.textColor = UIColor(white: 0.3, alpha: 1)
         label.textAlignment = .center
         return label
     }()
@@ -490,7 +501,17 @@ class ViewController: UIViewController {
         let label = UILabel()
         label.backgroundColor = .white
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor(white: 0.2, alpha: 1)
+        label.textColor = UIColor(white: 0.3, alpha: 1)
+        label.textAlignment = .center
+
+        return label
+    }()
+    
+    lazy var locationHertzLabel: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = .white
+        label.font = UIFont.preferredFont(forTextStyle: .footnote)
+        label.textColor = UIColor(white: 0.3, alpha: 1)
         label.textAlignment = .center
         return label
     }()
