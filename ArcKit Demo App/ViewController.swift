@@ -175,6 +175,10 @@ class ViewController: UIViewController {
     // MARK: tap actions
     
     func tappedStart() {
+        
+        // for demo purposes only. the default value already best balances accuracy with battery use
+        LocomotionManager.highlander.maximumDesiredLocationAccuracy = kCLLocationAccuracyBest
+        
         LocomotionManager.highlander.startCoreLocation()
         
         startButton.isHidden = true
