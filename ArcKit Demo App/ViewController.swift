@@ -21,8 +21,8 @@ class ViewController: UIViewController {
     
     var showRawLocations = true
     var showFilteredLocations = true
-    var showSmoothedLocations = true
-    var showMovingStates = true
+    var showLocomotionSamples = true
+    var showStationaryCircles = true
     
     var visitsToggleRow: UIView?
     var visitsToggle: UISwitch?
@@ -133,15 +133,8 @@ class ViewController: UIViewController {
             addPath(locations: filteredLocations, color: .purple)
         }
         
-        if showSmoothedLocations {
-            let smoothedLocations = locomotionSamples.flatMap { $0.location }
-            
-            if showMovingStates {
-                addPathsAndVisits(samples: locomotionSamples)
-            
-            } else {
-                addPath(locations: smoothedLocations, color: .blue)
-            }
+        if showLocomotionSamples {
+            addSamples(samples: locomotionSamples)
         }
         
         zoomToShow(overlays: map.overlays)
@@ -232,8 +225,8 @@ class ViewController: UIViewController {
         
         addUnderline()
         
-        addToggleRow(dotColors: [.blue], text: "Show smoothed locations") { isOn in
-            self.showSmoothedLocations = isOn
+        addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show locomotion samples") { isOn in
+            self.showLocomotionSamples = isOn
             self.visitsToggle?.isEnabled = isOn
             self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }
             self.updateTheMap()
@@ -241,8 +234,8 @@ class ViewController: UIViewController {
         
         addUnderline()
         
-        let bits = addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show moving states") { isOn in
-            self.showMovingStates = isOn
+        let bits = addToggleRow(dotColors: [.orange], text: "Show stationary circles") { isOn in
+            self.showStationaryCircles = isOn
             self.updateTheMap()
         }
         
@@ -289,7 +282,7 @@ class ViewController: UIViewController {
         map.add(path)
     }
     
-    func addPathsAndVisits(samples: [LocomotionSample]) {
+    func addSamples(samples: [LocomotionSample]) {
         var currentGrouping: [LocomotionSample]?
         
         for sample in samples where sample.location != nil {
@@ -329,7 +322,11 @@ class ViewController: UIViewController {
             addPath(locations: locations, color: .blue)
             
         case .stationary:
-            addVisit(locations: locations)
+            if showStationaryCircles {
+                addVisit(locations: locations)
+            } else {
+                addPath(locations: locations, color: .orange)
+            }
             
         case .uncertain:
             addPath(locations: locations, color: .magenta)
