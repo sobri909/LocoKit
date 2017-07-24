@@ -40,7 +40,7 @@ class ViewController: UIViewController {
         let centre = NotificationCenter.default
         
         centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { note in
-            self.didUpdateLocations(note: note)
+            self.locomotionSampleUpdated(note: note)
         }
         
         loco.requestLocationPermission()
@@ -48,10 +48,9 @@ class ViewController: UIViewController {
   
     // MARK: process incoming locations
     
-    func didUpdateLocations(note: Notification) {
-        if let location = note.userInfo?["location"] as? CLLocation {
+    func locomotionSampleUpdated(note: Notification) {
+        if let location = note.userInfo?["rawLocation"] as? CLLocation {
             rawLocations.append(location)
-           
         }
         
         if let location = note.userInfo?["filteredLocation"] as? CLLocation {
@@ -225,7 +224,7 @@ class ViewController: UIViewController {
         
         addUnderline()
         
-        addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show locomotion samples") { isOn in
+        addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show smoothed samples") { isOn in
             self.showLocomotionSamples = isOn
             self.visitsToggle?.isEnabled = isOn
             self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }

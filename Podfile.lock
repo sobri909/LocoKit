@@ -1,5 +1,5 @@
 PODS:
-  - ArcKit (0.1.4)
+  - ArcKit (0.1.5)
   - Cartography (1.1.0)
   - MGEvents (1.1.0)
   - Upsurge (0.8.0)
@@ -11,7 +11,7 @@ DEPENDENCIES:
   - Upsurge
 
 SPEC CHECKSUMS:
-  ArcKit: bc3cf8f3de5d6dfe71fe0cdeacbc17ff3f3f2dbd
+  ArcKit: 19ee4dd06cfdfcdec7df2d711d53c2f306a66a3c
   Cartography: 0538ccb4044acbbda2266335fc58cb4228794d90
   MGEvents: 04c4c5b49a420a4895c5bb676ccc708311176d14
   Upsurge: 614412863a3b5470b31636a004654b6ef3a34f47
