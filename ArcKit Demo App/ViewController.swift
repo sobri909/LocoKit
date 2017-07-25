@@ -57,7 +57,8 @@ class ViewController: UIViewController {
             filteredLocations.append(location)
         }
        
-        let sample = LocomotionManager.highlander.locomotionSample
+        let sample = LocomotionManager.highlander.locomotionSample()
+        
         locomotionSamples.append(sample)
         
         updateTheStatusBar(sample: sample)
