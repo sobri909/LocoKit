@@ -1,0 +1,145 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/DateTools.swift",
+      "line": 10,
+      "symbol": "Date.startOfDay",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/DateTools.swift",
+      "line": 14,
+      "symbol": "Date.sinceStartOfDay",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/DateTools.swift",
+      "line": 18,
+      "symbol": "Date.age",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocationTools.swift",
+      "line": 113,
+      "symbol": "Array.dateInterval",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 11,
+      "symbol": "NSNotification.Name.didChangeAuthorizationStatus",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 12,
+      "symbol": "NSNotification.Name.locomotionSampleUpdated",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 585,
+      "symbol": "LocomotionManager.locationManager(_:didChangeAuthorization:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 590,
+      "symbol": "LocomotionManager.locationManager(_:didUpdateLocations:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 11,
+      "symbol": "MovingState",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 12,
+      "symbol": "MovingState.moving",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 13,
+      "symbol": "MovingState.stationary",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 14,
+      "symbol": "MovingState.uncertain",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 17,
+      "symbol": "LocomotionMagicValue",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 18,
+      "symbol": "LocomotionMagicValue.nilCourse",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 19,
+      "symbol": "LocomotionMagicValue.nilAltitude",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 48,
+      "symbol": "LocomotionSample.stepHz",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 49,
+      "symbol": "LocomotionSample.courseVariance",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 50,
+      "symbol": "LocomotionSample.xyAcceleration",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 51,
+      "symbol": "LocomotionSample.zAcceleration",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
+      "line": 55,
+      "symbol": "LocomotionSample.coreMotionActivityType",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/matt/Projects/ArcKitPrivate"
+}
