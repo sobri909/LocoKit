@@ -10,3 +10,4 @@ screenshots
 report.xml
 *.log
 tags
+build
