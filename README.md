@@ -14,6 +14,13 @@ easily clustered into "visits".
 | --------------------------- | --------------------------------- | --------------------------------- |
 | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
 
+#### Tuk-tuk Ride Through Traffic in Built-up City Area  
+
+| Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
+| ------------- | -------------------------------- | -------------------------------- |
+| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_raw.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_smoothed.png) |
+
+
 ## Features
 
 - Kalman filtered and dynamically smoothed location, motion and activity data
