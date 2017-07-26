@@ -2,9 +2,7 @@
 
 A location and activity recording framework for iOS.
 
-## Demo App Examples 
-
-### Short Walk Between Nearby Buildings
+## Demo App: Short Walk Between Nearby Buildings
 
 | Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Visits (orange) |
 | --------------------------- | --------------------------------- | --------------------------------- |
@@ -14,7 +12,7 @@ The blue segments indicate locations that ArcKit determined to be moving. The or
 that locations inside buildings are more likely to classified as stationary, thus allowing location data to be more 
 easily clustered into "visits".
 
-### Tuk-tuk Ride Through Traffic in Built-up City Area 
+## Demo App: Tuk-tuk Ride Through Traffic in Built-up City Area 
 
 | Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
 | ------------- | -------------------------------- | -------------------------------- |
