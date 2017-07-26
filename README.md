@@ -20,9 +20,11 @@ Location accuracy for this trip ranged from 30 to 100 metres, with minimal GPS l
 significant "urban canyon" effects (GPS blocked on both sides by tall buildings and blocked from above by an elevated 
 rail line). However stationary / moving state detection was achieved to an accuracy of 5 to 10 metres. 
 
-The filtered and smoothed locations also removed significant noise from the raw locations path. 
+Although difficult to see at this zoom level, the filtered and smoothed locations also removed significant noise and 
+jitter from the low accuracy raw locations path. 
 
-The orange dots incidate "stuck in traffic". 
+Note: The orange dots in the second screenshot incidate "stuck in traffic". The third screenshot shows the "stuck" 
+segments as paths. 
 
 | Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
 | ------------- | -------------------------------- | -------------------------------- |
