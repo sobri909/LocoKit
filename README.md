@@ -2,18 +2,15 @@
 
 Location and activity recording framework for iOS.
 
-## Location Smoothing Examples 
+## Examples 
 
-### 200 Metre Walk Between Buildings
+#### 200 Metre Walk Between Buildings
 
-This example shows location data smoothing, as well as stationary / moving detection for a short outdoor walk between 
-nearby buildings. For the indoor segments, peak attainable location accuracy ranged from 30 to 65 metres. Accuracy 
-peaked at 5 metres accuracy during the outdoor segment. 
+A short outdoor walk between nearby buildings. The orange segments are locations that ArcKit determined to be 
+stationary. The blue segments indicate moving.
 
-The orange segments are locations that ArcKit determined to be stationary, while the blue segments indicate moving.
-
-Note that locations inside buildings are more likely to classified as stationary. This has the benefit of allowing 
-location data to be more easily clustered into "visits".  
+Note that locations inside buildings are more likely to classified as stationary. This allows location data to be more 
+easily clustered into "visits".  
 
 | Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Visits (orange) |
 | --------------------------- | --------------------------------- | --------------------------------- |
