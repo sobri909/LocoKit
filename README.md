@@ -2,11 +2,11 @@
 
 Location and activity recording framework for iOS.
 
-## Core Location Demo 
+## Location Smoothing Examples 
 
-| Raw + Smoothed Locations | Smoothed Locations Only |
-| ------------------------ | ----------------------- |
-| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) |
+| Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Stationary / Indoors (orange) |
+| --------------------------- | --------------------------------- | ----------------------------------------------- |
+| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
 
 ## Features
 
