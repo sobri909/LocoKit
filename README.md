@@ -1,30 +1,27 @@
 # ArcKit
 
-Location and activity recording framework for iOS.
+A location and activity recording framework for iOS.
 
 ## Examples 
 
-### Short Walk Between Nearby Buildings
+### A Short Walk Between Nearby Buildings
 
-The orange segments are locations that ArcKit determined to be stationary. The blue segments indicate moving. Note that 
-locations inside buildings are more likely to classified as stationary. This allows location data to be more 
-easily clustered into "visits".  
+The blue segments indicate locations that ArcKit determined to be moving. The orange segments indicate stationary. Note
+that locations inside buildings are more likely to classified as stationary, thus allowing location data to be more 
+easily clustered into "visits".
 
 | Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Visits (orange) |
 | --------------------------- | --------------------------------- | --------------------------------- |
 | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
 
-### Tuk-tuk Ride Through Traffic in Built-up City Area 
+### A Tuk-tuk Ride Through Traffic in Built-up City Area 
 
 Location accuracy for this trip ranged from 30 to 100 metres, with minimal GPS line of sight and
 significant "urban canyon" effects (GPS blocked on both sides by tall buildings and blocked from above by an elevated 
-rail line). However stationary / moving state detection was achieved to an accuracy of 5 to 10 metres. 
-
-Although difficult to see at this zoom level, the filtered and smoothed locations also removed significant noise and 
-jitter from the low accuracy raw locations path. 
+rail line). However stationary / moving state detection was still achieved to an accuracy of 5 to 10 metres. 
 
 Note: The orange dots in the second screenshot incidate "stuck in traffic". The third screenshot shows the "stuck" 
-segments as paths. 
+segments as paths, for easier inspection. 
 
 | Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
 | ------------- | -------------------------------- | -------------------------------- |
@@ -33,10 +30,14 @@ segments as paths.
 
 ## Features
 
-- Kalman filtered and dynamically smoothed location, motion and activity data
-- High resolution, near real time stationary / moving state detection, with accuracy up to 5 metres, and reporting 
-delay between 6 and 60 seconds
-- Lots more I need to fill in here…
+- Raw locations, [Kalman filtered](https://en.wikipedia.org/wiki/Kalman_filter) locations, and dynamically smoothed 
+location / motion / activity samples
+- High resolution, near real time stationary / moving state detection (with accuracy up to 5 metres, and reporting 
+delay between 6 and 60 seconds)
+- Dynamic energy use management, to achieve best possible accuracy without wasteful battery consumption
+- Filtered and sanitised Core Motion accelerometer, pedometer, and activity type data
+- Coming in the next release: Machine learning based activity type detection with significantly higher accuracy than 
+Core Motion, and ability to distinguish between more activity types (car, train, bus, and more). 
 
 ## Installation
 
@@ -45,8 +46,8 @@ delay between 6 and 60 seconds
 ## Demo Apps
 
 - To run the demo app from this repository, do a `pod install` before building
-- To see the full SDK features in action, including as yet unreleased machine learning 
-features, try [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) on the App 
+- To see the full SDK features in action in a production app (including as yet unreleased machine learning 
+features) try [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) on the App 
 Store
 
 ## Example 
