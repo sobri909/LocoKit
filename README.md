@@ -14,7 +14,11 @@ easily clustered into "visits".
 | --------------------------- | --------------------------------- | --------------------------------- |
 | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
 
-#### Tuk-tuk Ride Through Traffic in Built-up City Area  
+#### Tuk-tuk Ride Through Traffic in Built-up City Area 
+
+Peak attainable location accuracy for this trip ranged from 30 to 100 metres, with minimal GPS line of sight and
+significant "urban canyon" effects (GPS blocked on both sides by tall buildings and blocked from above by an elevated 
+rail line). However stationary / moving state detection was achieved to an accuracy of 5 to 10 metres. 
 
 | Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
 | ------------- | -------------------------------- | -------------------------------- |
