@@ -37,7 +37,7 @@ activity state objects)
 delay between 6 and 60 seconds)
 - Dynamic energy use management, to achieve best possible accuracy without wasteful battery consumption
 - Filtered and sanitised Core Motion accelerometer, pedometer, and activity type data
-- Coming in the next release: Machine learning based activity type detection with significantly higher accuracy than 
+- **Coming in next release:** Machine learning based activity type detection with significantly higher accuracy than 
 Core Motion, and ability to distinguish between more activity types (car, train, bus, and more). 
 
 ## Installation
