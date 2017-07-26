@@ -53,6 +53,8 @@ Store
 
 ## Code Example 
 
+See the demo app source in this repo for more complete code examples.
+
 ```swift
 let locoManager = LocomotionManager.highlander
 let noteCenter = NotificationCenter.default
@@ -68,8 +70,6 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: qu
 // start recording
 locoManager.startCoreLocation()
 ```
-
-See the demo app source in this repo for more complete code examples.
 
 ## Documentation 
 
