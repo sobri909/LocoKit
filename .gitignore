@@ -3,7 +3,6 @@ xcuserdata
 Pods
 *.xcscmblueprint
 metadata
-screenshots
 *.ipa
 *.dSYM.zip
 *.mobileprovision
