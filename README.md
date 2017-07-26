@@ -54,9 +54,9 @@ Store
 ## Code Example 
 
 ```swift
-let queue = OperationQueue.main 
-let noteCenter = NotificationCenter.default
 let locoManager = LocomotionManager.highlander
+let noteCenter = NotificationCenter.default
+let queue = OperationQueue.main 
 
 noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: queue) { _ in
     print("rawLocation: \(locoManager.rawLocation)")
