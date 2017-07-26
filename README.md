@@ -2,9 +2,9 @@
 
 A location and activity recording framework for iOS.
 
-## Examples 
+## Demo App Examples 
 
-### A Short Walk Between Nearby Buildings
+### Short Walk Between Nearby Buildings
 
 The blue segments indicate locations that ArcKit determined to be moving. The orange segments indicate stationary. Note
 that locations inside buildings are more likely to classified as stationary, thus allowing location data to be more 
@@ -14,13 +14,13 @@ easily clustered into "visits".
 | --------------------------- | --------------------------------- | --------------------------------- |
 | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
 
-### A Tuk-tuk Ride Through Traffic in Built-up City Area 
+### Tuk-tuk Ride Through Traffic in Built-up City Area 
 
 Location accuracy for this trip ranged from 30 to 100 metres, with minimal GPS line of sight and
 significant "urban canyon" effects (GPS blocked on both sides by tall buildings and blocked from above by an elevated 
 rail line). However stationary / moving state detection was still achieved to an accuracy of 5 to 10 metres. 
 
-Note: The orange dots in the second screenshot incidate "stuck in traffic". The third screenshot shows the "stuck" 
+**Note:** The orange dots in the second screenshot incidate "stuck in traffic". The third screenshot shows the "stuck" 
 segments as paths, for easier inspection. 
 
 | Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
@@ -31,7 +31,8 @@ segments as paths, for easier inspection.
 ## Features
 
 - Raw locations, [Kalman filtered](https://en.wikipedia.org/wiki/Kalman_filter) locations, and dynamically smoothed 
-location / motion / activity samples
+[LocomotionSamples](https://sobri909.github.io/ArcKit/Classes/LocomotionSample.html) (combined location / motion / 
+activity state objects)
 - High resolution, near real time stationary / moving state detection (with accuracy up to 5 metres, and reporting 
 delay between 6 and 60 seconds)
 - Dynamic energy use management, to achieve best possible accuracy without wasteful battery consumption
@@ -52,7 +53,18 @@ Store
 
 ## Example 
 
-[code snippet goes here]
+```swift
+let locoManager = LocomotionManager.highlander
+let noteCenter = NotificationCenter.default
+
+noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: OperationQueue.main) { _ in
+    print("rawLocation: \(locoManager.rawLocation)")
+    print("filteredLocation: \(locoManager.filteredLocation)")
+    print("locomotionSample: \(locoManager.locomotionSample())")
+}
+
+locoManager.startCoreLocation()
+```
 
 ## Documentation 
 
