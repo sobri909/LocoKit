@@ -4,7 +4,9 @@ Location and activity recording framework for iOS.
 
 ## Core Location Demo 
 
-[screenshots go here]
+| Raw + Smoothed Locations | Smoothed Locations Only |
+| ------------------------ | ----------------------- |
+| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) |
 
 ## Features
 
