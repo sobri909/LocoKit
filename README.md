@@ -4,11 +4,10 @@ Location and activity recording framework for iOS.
 
 ## Examples 
 
-#### A 200 Metre Walk Between Nearby Buildings
+#### Short 200 Metre Walk Between Nearby Buildings
 
-The orange segments are locations that ArcKit determined to be stationary. The blue segments indicate moving.
-
-Note that locations inside buildings are more likely to classified as stationary. This allows location data to be more 
+The orange segments are locations that ArcKit determined to be stationary. The blue segments indicate moving. Note that 
+locations inside buildings are more likely to classified as stationary. This allows location data to be more 
 easily clustered into "visits".  
 
 | Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Visits (orange) |
