@@ -51,13 +51,14 @@ Core Motion, and ability to distinguish between more activity types (car, train,
 features) try [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) on the App 
 Store
 
-## Example 
+## Code Example 
 
 ```swift
-let locoManager = LocomotionManager.highlander
+let queue = OperationQueue.main 
 let noteCenter = NotificationCenter.default
+let locoManager = LocomotionManager.highlander
 
-noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: OperationQueue.main) { _ in
+noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: queue) { _ in
     print("rawLocation: \(locoManager.rawLocation)")
     print("filteredLocation: \(locoManager.filteredLocation)")
     print("locomotionSample: \(locoManager.locomotionSample())")
@@ -65,6 +66,8 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: Op
 
 locoManager.startCoreLocation()
 ```
+
+See the demo app source in this repo for more complete code examples.
 
 ## Documentation 
 
