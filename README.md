@@ -58,12 +58,14 @@ let locoManager = LocomotionManager.highlander
 let noteCenter = NotificationCenter.default
 let queue = OperationQueue.main 
 
+// watch for location updates
 noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: queue) { _ in
     print("rawLocation: \(locoManager.rawLocation)")
     print("filteredLocation: \(locoManager.filteredLocation)")
     print("locomotionSample: \(locoManager.locomotionSample())")
 }
 
+// start recording
 locoManager.startCoreLocation()
 ```
 
