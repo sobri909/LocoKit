@@ -58,86 +58,23 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 11,
-      "symbol": "MovingState",
-      "symbol_kind": "source.lang.swift.decl.enum",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 12,
-      "symbol": "MovingState.moving",
-      "symbol_kind": "source.lang.swift.decl.enumelement",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 13,
-      "symbol": "MovingState.stationary",
-      "symbol_kind": "source.lang.swift.decl.enumelement",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 14,
-      "symbol": "MovingState.uncertain",
-      "symbol_kind": "source.lang.swift.decl.enumelement",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 17,
+      "line": 36,
       "symbol": "LocomotionMagicValue",
       "symbol_kind": "source.lang.swift.decl.struct",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 18,
+      "line": 37,
       "symbol": "LocomotionMagicValue.nilCourse",
       "symbol_kind": "source.lang.swift.decl.var.static",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 19,
+      "line": 38,
       "symbol": "LocomotionMagicValue.nilAltitude",
       "symbol_kind": "source.lang.swift.decl.var.static",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 48,
-      "symbol": "LocomotionSample.stepHz",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 49,
-      "symbol": "LocomotionSample.courseVariance",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 50,
-      "symbol": "LocomotionSample.xyAcceleration",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 51,
-      "symbol": "LocomotionSample.zAcceleration",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 55,
-      "symbol": "LocomotionSample.coreMotionActivityType",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     }
   ],
