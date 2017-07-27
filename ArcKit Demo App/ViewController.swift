@@ -103,14 +103,14 @@ class ViewController: UIViewController {
         let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
         desiredAccuracyLabel.text = String(format: "requesting %.0f metres", desired)
         
-        if let location = sample.locations.last {
+        if let location = sample.filteredLocations.last {
             achievedAccuracyLabel.text = String(format: "receiving %.0f metres", location.horizontalAccuracy)
         } else {
             achievedAccuracyLabel.text = "receiving nothing"
         }
         
-        if let duration = sample.locations.dateInterval?.duration, duration > 0 {
-            locationHertzLabel.text = String(format: " %.1f Hz ", Double(sample.locations.count) / duration)
+        if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
+            locationHertzLabel.text = String(format: " %.1f Hz ", Double(sample.filteredLocations.count) / duration)
         } else {
             locationHertzLabel.text = " 0.0 Hz "
         }
