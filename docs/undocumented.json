@@ -58,21 +58,21 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 36,
+      "line": 52,
       "symbol": "LocomotionMagicValue",
       "symbol_kind": "source.lang.swift.decl.struct",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 37,
+      "line": 53,
       "symbol": "LocomotionMagicValue.nilCourse",
       "symbol_kind": "source.lang.swift.decl.var.static",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 38,
+      "line": 54,
       "symbol": "LocomotionMagicValue.nilAltitude",
       "symbol_kind": "source.lang.swift.decl.var.static",
       "warning": "undocumented"
