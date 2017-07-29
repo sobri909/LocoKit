@@ -23,8 +23,10 @@ class ViewController: UIViewController {
     var showFilteredLocations = true
     var showLocomotionSamples = true
     var showStationaryCircles = true
+    var showSatelliteMap = false
+    var autoZoomMap = true
     
-    var visitsToggleRow: UIView?
+    var visitsToggleBox: UIView?
     var visitsToggle: UISwitch?
     
     // MARK: controller lifecycle
@@ -103,16 +105,15 @@ class ViewController: UIViewController {
         let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
         desiredAccuracyLabel.text = String(format: "requesting %.0f metres", desired)
         
-        if let location = sample.filteredLocations.last {
-            achievedAccuracyLabel.text = String(format: "receiving %.0f metres", location.horizontalAccuracy)
-        } else {
-            achievedAccuracyLabel.text = "receiving nothing"
+        var hertz = 0.0
+        if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
+            hertz = Double(sample.filteredLocations.count) / duration
         }
         
-        if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
-            locationHertzLabel.text = String(format: " %.1f Hz ", Double(sample.filteredLocations.count) / duration)
+        if let location = sample.filteredLocations.last {
+            achievedAccuracyLabel.text = String(format: "receiving %.0f metres @ %.1f Hz", location.horizontalAccuracy, hertz)
         } else {
-            locationHertzLabel.text = " 0.0 Hz "
+            achievedAccuracyLabel.text = "receiving nothing"
         }
         
         statusRowBackground.backgroundColor = .blue
@@ -124,6 +125,8 @@ class ViewController: UIViewController {
     func updateTheMap() {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
+        
+        map.mapType = showSatelliteMap ? .hybrid : .standard
         
         if showRawLocations {
             addPath(locations: rawLocations, color: .red)
@@ -137,7 +140,9 @@ class ViewController: UIViewController {
             addSamples(samples: locomotionSamples)
         }
         
-        zoomToShow(overlays: map.overlays)
+        if autoZoomMap {
+            zoomToShow(overlays: map.overlays)
+        }
     }
     
     func zoomToShow(overlays: [MKOverlay]) {
@@ -173,8 +178,8 @@ class ViewController: UIViewController {
         view.addSubview(rowsBox)
         constrain(map, rowsBox) { map, box in
             box.top == map.bottom
-            box.left == box.superview!.left + 16
-            box.right == box.superview!.right - 16
+            box.left == box.superview!.left + 6
+            box.right == box.superview!.right - 6
         }
         
         let background = UIView()
@@ -209,43 +214,50 @@ class ViewController: UIViewController {
         }
         
         addUnderline()
-        addGap(height: 16)
+        addGap(height: 30)
         
-        addToggleRow(dotColors: [.red], text: "Show raw locations") { isOn in
+        let satellite = toggleBox(text: "Satellite map", toggleDefault: false) { isOn in
+            self.showSatelliteMap = isOn
+            self.updateTheMap()
+        }
+        let zoom = toggleBox(text: "Auto zoom") { isOn in
+            self.autoZoomMap = isOn
+            self.updateTheMap()
+        }
+        addRow([satellite.box, zoom.box])
+
+        addGap(height: 30)
+        
+        let raw = toggleBox(dotColors: [.red], text: "Raw") { isOn in
             self.showRawLocations = isOn
             self.updateTheMap()
         }
+        let smoothed = toggleBox(dotColors: [.blue, .magenta], text: "Samples") { isOn in
+            self.showLocomotionSamples = isOn
+            self.visitsToggle?.isEnabled = isOn
+            self.visitsToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
+            self.updateTheMap()
+        }
+        addRow([raw.box, smoothed.box])
         
         addUnderline()
         
-        addToggleRow(dotColors: [.purple], text: "Show filtered locations") { isOn in
+        let filtered = toggleBox(dotColors: [.purple], text: "Filtered") { isOn in
             self.showFilteredLocations = isOn
             self.updateTheMap()
         }
-        
-        addUnderline()
-        
-        addToggleRow(dotColors: [.blue, .magenta, .orange], text: "Show smoothed samples") { isOn in
-            self.showLocomotionSamples = isOn
-            self.visitsToggle?.isEnabled = isOn
-            self.visitsToggleRow?.subviews.forEach { $0.alpha = isOn ? 1 : 0.4 }
-            self.updateTheMap()
-        }
-        
-        addUnderline()
-        
-        let bits = addToggleRow(dotColors: [.orange], text: "Show stationary circles") { isOn in
+        let visits = toggleBox(dotColors: [.orange], text: "Visits") { isOn in
             self.showStationaryCircles = isOn
             self.updateTheMap()
         }
+        addRow([filtered.box, visits.box])
         
-        visitsToggleRow = bits.row
-        visitsToggle = bits.toggle
-        
+        visitsToggleBox = visits.box
+        visitsToggle = visits.toggle
+
         let statusRow = UIStackView()
         statusRow.distribution = .fillProportionally
         statusRow.axis = .horizontal
-        statusRow.spacing = 0.5
         
         view.addSubview(statusRow)
         constrain(statusRow) { statusRow in
@@ -344,8 +356,6 @@ class ViewController: UIViewController {
         }
     }
 
-
-    
     func addUnderline() {
         let underline = UIView()
         rowsBox.addArrangedSubview(underline)
@@ -365,27 +375,45 @@ class ViewController: UIViewController {
         }
     }
     
+    func addRow(_ views: [UIView]) {
+        let row = UIStackView()
+        row.distribution = .fillEqually
+        row.spacing = 0.5
+        
+        for view in views {
+            row.addArrangedSubview(view)
+        }
+        
+        rowsBox.addArrangedSubview(row)
+    }
+    
+    // MARK: view factories
+    
     func dot(color: UIColor) -> UIView {
-        let dot = UIView()
-        dot.backgroundColor = color
-        dot.layer.cornerRadius = 7
+        let dot = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 14))
+        
+        let shape = CAShapeLayer()
+        shape.fillColor = color.cgColor
+        shape.path = UIBezierPath(roundedRect: dot.bounds, cornerRadius: 7).cgPath
+        shape.strokeColor = UIColor.white.cgColor
+        shape.lineWidth = 2
+        dot.layer.addSublayer(shape)
+        
         return dot
     }
     
-    @discardableResult
-    func addToggleRow(dotColors: [UIColor], text: String, onChange: @escaping ((Bool) -> Void))
-        -> (row: UIView, toggle: UISwitch)
+    func toggleBox(dotColors: [UIColor] = [], text: String, toggleDefault: Bool = true, onChange: @escaping ((Bool) -> Void))
+        -> (box: UIView, toggle: UISwitch)
     {
-        let row = UIView()
-        row.backgroundColor = .white
-        rowsBox.addArrangedSubview(row)
+        let box = UIView()
+        box.backgroundColor = .white
         
         var lastDot: UIView?
         for color in dotColors {
             let dot = self.dot(color: color)
-            let dotWidth = dot.layer.cornerRadius * 2
-            row.addSubview(dot)
-       
+            let dotWidth = dot.frame.size.width
+            box.addSubview(dot)
+            
             constrain(dot) { dot in
                 dot.centerY == dot.superview!.centerY
                 dot.height == dotWidth
@@ -394,7 +422,7 @@ class ViewController: UIViewController {
             
             if let lastDot = lastDot {
                 constrain(dot, lastDot) { dot, lastDot in
-                    dot.left == lastDot.right + 8
+                    dot.left == lastDot.right - 4
                 }
             } else {
                 constrain(dot) { dot in
@@ -411,30 +439,40 @@ class ViewController: UIViewController {
         label.textColor = UIColor(white: 0.1, alpha: 1)
         
         let toggle = UISwitch()
-        toggle.isOn = true
+        toggle.isOn = toggleDefault
         
         toggle.onControlEvent(.valueChanged) {
             onChange(toggle.isOn)
         }
         
-        row.addSubview(label)
-        row.addSubview(toggle)
+        box.addSubview(label)
+        box.addSubview(toggle)
         
-        constrain(lastDot!, label, toggle) { dot, label, toggle in
-            label.left == dot.right + 8
+        if let lastDot = lastDot {
+            constrain(lastDot, label) { dot, label in
+                label.left == dot.right + 5
+            }
+            
+        } else {
+            constrain(label, toggle) { label, toggle in
+                label.left == label.superview!.left + 9
+            }
+        }
+        
+        constrain(label, toggle) { label, toggle in
             label.top == label.superview!.top
             label.bottom == label.superview!.bottom
             label.height == 50
-           
+            
             toggle.centerY == toggle.superview!.centerY
-            toggle.right == toggle.superview!.right - 8
+            toggle.right == toggle.superview!.right - 10
             toggle.left == label.right
         }
         
-        return (row: row, toggle: toggle)
+        return (box: box, toggle: toggle)
     }
 
-    // MARK: view getters
+    // MARK: view property getters
     
     lazy var map: MKMapView = {
         let map = MKMapView()
