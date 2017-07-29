@@ -47,6 +47,10 @@ class ViewController: UIViewController {
         
         loco.requestLocationPermission()
     }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return map.mapType == .standard ? .default : .lightContent
+    }
   
     // MARK: process incoming locations
     
@@ -125,8 +129,12 @@ class ViewController: UIViewController {
     func updateTheMap() {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
-        
-        map.mapType = showSatelliteMap ? .hybrid : .standard
+
+        let mapType: MKMapType = showSatelliteMap ? .hybrid : .standard
+        if mapType != map.mapType {
+            map.mapType = mapType
+            setNeedsStatusBarAppearanceUpdate()
+        }
         
         if showRawLocations {
             addPath(locations: rawLocations, color: .red)
