@@ -24,6 +24,8 @@
 	<string>Location is used to demonstrate ArcKit's functionality</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Location is used to demonstrate ArcKit's functionality</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion data is used to demonstrate ArcKit's functionality</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
