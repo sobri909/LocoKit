@@ -14,7 +14,7 @@
     <a title="LocomotionManager Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">ArcKit Docs</a> (78% documented)</p>
+        <p><a href="../index.html">ArcKit Docs</a> (52% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="../img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -47,31 +47,6 @@
               </li>
             </ul>
           </li>
-          <li class="nav-group-name">
-            <a href="../Extensions.html">Extensions</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a href="../Extensions/Array.html">Array</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/Date.html">Date</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/NSNotification.html">NSNotification</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/NSNotification/Name.html">– Name</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a href="../Structs.html">Structs</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a href="../Structs/LocomotionMagicValue.html">LocomotionMagicValue</a>
-              </li>
-            </ul>
-          </li>
         </ul>
       </nav>
       <article class="main-content">
@@ -85,7 +60,7 @@
                 </div>
               </div>
             <p>The central class for interacting with ArcKit location and activity recording. All actions should be performed on
-the <code><a href="../Classes/LocomotionManager.html#/s:ZvC6ArcKit17LocomotionManager10highlanderS0_">LocomotionManager.highlander</a></code> singleton.</p>
+the <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC10highlanderACvZ">LocomotionManager.highlander</a></code> singleton.</p>
 <h2 id='overview' class='heading'>Overview</h2>
 
 <p>LocomotionManager monitors raw device location and motion data and applies filtering and smoothing algorithms to 
@@ -145,9 +120,9 @@ you so desire. Doing so will result in extra <code><a href="../Classes/Locomotio
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:ZvC6ArcKit17LocomotionManager10highlanderS0_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC10highlanderACvZ"></a>
                     <a name="//apple_ref/swift/Variable/highlander" class="dashAnchor"></a>
-                    <a class="token" href="#/s:ZvC6ArcKit17LocomotionManager10highlanderS0_">highlander</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC10highlanderACvZ">highlander</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -173,19 +148,19 @@ you so desire. Doing so will result in extra <code><a href="../Classes/Locomotio
             </div>
             <div class="task-group">
               <div class="task-name-container">
-                <a name="/Desired%20Accuracy%20Setting"></a>
-                <a name="//apple_ref/swift/Section/Desired Accuracy Setting" class="dashAnchor"></a>
-                <a href="#/Desired%20Accuracy%20Setting">
-                  <h3 class="section-name">Desired Accuracy Setting</h3>
+                <a name="/Settings"></a>
+                <a name="//apple_ref/swift/Section/Settings" class="dashAnchor"></a>
+                <a href="#/Settings">
+                  <h3 class="section-name">Settings</h3>
                 </a>
               </div>
               <ul>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager30maximumDesiredLocationAccuracySd"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC30maximumDesiredLocationAccuracySdv"></a>
                     <a name="//apple_ref/swift/Property/maximumDesiredLocationAccuracy" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager30maximumDesiredLocationAccuracySd">maximumDesiredLocationAccuracy</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC30maximumDesiredLocationAccuracySdv">maximumDesiredLocationAccuracy</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -214,7 +189,7 @@ requesting 50 metres or even 100 metres. However the higher the desired accuracy
 iOS will put into achieving peak possible accuracy.</p></li>
 <li><p>Under some conditions, setting a value of 65 metres may allow the device to use wifi triangulation alone, without
 engaging GPS, thus reducing energy consumption. Wifi triangulation is typically more energy efficient than GPS.</p></li>
-<li><p>Setting a value above 100 metres will greatly reduce the <code><a href="../Classes/LocomotionManager.html#/s:vC6ArcKit17LocomotionManager11movingStateOS_11MovingState">movingState</a></code> accuracy, and is thus not recommended.</p></li>
+<li><p>Setting a value above 100 metres will greatly reduce the <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC11movingStateAA06MovingF0Ov">movingState</a></code> accuracy, and is thus not recommended.</p></li>
 </ul>
 
                       </div>
@@ -222,7 +197,36 @@ engaging GPS, thus reducing energy consumption. Wifi triangulation is typically 
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">maximumDesiredLocationAccuracy</span><span class="p">:</span> <span class="kt">CLLocationAccuracy</span> <span class="o">=</span> <span class="mi">50</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">maximumDesiredLocationAccuracy</span><span class="p">:</span> <span class="kt">CLLocationAccuracy</span> <span class="o">=</span> <span class="mi">30</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit17LocomotionManagerC6apiKeySSSgv"></a>
+                    <a name="//apple_ref/swift/Property/apiKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC6apiKeySSSgv">apiKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Your ArcKit API key.</p>
+
+<p>This value is only required if you want to use request limited functionality, such as <code>ActivityType</code> detection.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">apiKey</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
 
                         </div>
                       </div>
@@ -243,9 +247,9 @@ engaging GPS, thus reducing energy consumption. Wifi triangulation is typically 
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager11rawLocationGSqCSo10CLLocation_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC11rawLocationSo10CLLocationCSgv"></a>
                     <a name="//apple_ref/swift/Property/rawLocation" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager11rawLocationGSqCSo10CLLocation_">rawLocation</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC11rawLocationSo10CLLocationCSgv">rawLocation</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -270,9 +274,9 @@ engaging GPS, thus reducing energy consumption. Wifi triangulation is typically 
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager16filteredLocationGSqCSo10CLLocation_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC16filteredLocationSo10CLLocationCSgv"></a>
                     <a name="//apple_ref/swift/Property/filteredLocation" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager16filteredLocationGSqCSo10CLLocation_">filteredLocation</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC16filteredLocationSo10CLLocationCSgv">filteredLocation</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -288,7 +292,7 @@ state between the raw data and the fully smoothed locomotion samples, with coord
 <div class="aside aside-note">
     <p class="aside-title">Note</p>
     Both the location coordinate and location altitude are Kalman filtered, however all other CLLocation 
-properties (course, speed, etc) are identical to the values in <code><a href="../Classes/LocomotionManager.html#/s:vC6ArcKit17LocomotionManager11rawLocationGSqCSo10CLLocation_">rawLocation</a></code>. For fully smoothed and denoised 
+properties (course, speed, etc) are identical to the values in <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC11rawLocationSo10CLLocationCSgv">rawLocation</a></code>. For fully smoothed and denoised 
 motion properties you should use <code>locomotionSample</code> instead.
 
 </div>
@@ -308,9 +312,9 @@ motion properties you should use <code>locomotionSample</code> instead.
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager16locomotionSampleFT_CS_16LocomotionSample"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC16locomotionSampleAA0cF0CyF"></a>
                     <a name="//apple_ref/swift/Method/locomotionSample()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager16locomotionSampleFT_CS_16LocomotionSample">locomotionSample()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC16locomotionSampleAA0cF0CyF">locomotionSample()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -347,9 +351,9 @@ combined location, motion, and activity properties.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager11movingStateOS_11MovingState"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC11movingStateAA06MovingF0Ov"></a>
                     <a name="//apple_ref/swift/Property/movingState" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager11movingStateOS_11MovingState">movingState</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC11movingStateAA06MovingF0Ov">movingState</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -394,9 +398,9 @@ to know an exact timestamp to match the moving state, you should instead take a 
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager17startCoreLocationFT_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC17startCoreLocationyyF"></a>
                     <a name="//apple_ref/swift/Method/startCoreLocation()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager17startCoreLocationFT_T_">startCoreLocation()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC17startCoreLocationyyF">startCoreLocation()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -426,9 +430,9 @@ each location arrives.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager16stopCoreLocationFT_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC16stopCoreLocationyyF"></a>
                     <a name="//apple_ref/swift/Method/stopCoreLocation()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager16stopCoreLocationFT_T_">stopCoreLocation()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC16stopCoreLocationyyF">stopCoreLocation()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -455,9 +459,9 @@ each location arrives.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager19resetLocationFilterFT_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC19resetLocationFilteryyF"></a>
                     <a name="//apple_ref/swift/Method/resetLocationFilter()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager19resetLocationFilterFT_T_">resetLocationFilter()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC19resetLocationFilteryyF">resetLocationFilter()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -465,7 +469,7 @@ each location arrives.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Reset the internal state of the location Kalman filters. When the next raw location arrives, <code><a href="../Classes/LocomotionManager.html#/s:vC6ArcKit17LocomotionManager16filteredLocationGSqCSo10CLLocation_">filteredLocation</a></code> 
+                        <p>Reset the internal state of the location Kalman filters. When the next raw location arrives, <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC16filteredLocationSo10CLLocationCSgv">filteredLocation</a></code> 
 will be identical to the raw location.</p>
 
                       </div>
@@ -494,9 +498,9 @@ will be identical to the raw location.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager15startCoreMotionFT_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC15startCoreMotionyyF"></a>
                     <a name="//apple_ref/swift/Method/startCoreMotion()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager15startCoreMotionFT_T_">startCoreMotion()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC15startCoreMotionyyF">startCoreMotion()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -529,9 +533,9 @@ notifications are currently only started and stopped by the Core Location record
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager14stopCoreMotionFT_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC14stopCoreMotionyyF"></a>
                     <a name="//apple_ref/swift/Method/stopCoreMotion()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager14stopCoreMotionFT_T_">stopCoreMotion()</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC14stopCoreMotionyyF">stopCoreMotion()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -567,9 +571,9 @@ notifications are currently only started and stopped by the Core Location record
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager21locationServicesAreOnSb"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC21locationServicesAreOnSbv"></a>
                     <a name="//apple_ref/swift/Property/locationServicesAreOn" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager21locationServicesAreOnSb">locationServicesAreOn</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC21locationServicesAreOnSbv">locationServicesAreOn</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -594,9 +598,9 @@ notifications are currently only started and stopped by the Core Location record
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager25requestLocationPermissionFT10backgroundSb_T_"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC25requestLocationPermissionySb10background_tF"></a>
                     <a name="//apple_ref/swift/Method/requestLocationPermission(background:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager25requestLocationPermissionFT10backgroundSb_T_">requestLocationPermission(background:)</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC25requestLocationPermissionySb10background_tF">requestLocationPermission(background:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -606,7 +610,7 @@ notifications are currently only started and stopped by the Core Location record
                       <div class="abstract">
                         <p>A convenience wrapper for the <code>CLLocationManager</code> authorisation request methods.</p>
 
-<p>You can also interact directly with the internal <code><a href="../Classes/LocomotionManager.html#/s:vC6ArcKit17LocomotionManager15locationManagerCSo17CLLocationManager">locationManager</a></code> to perform these tasks.</p>
+<p>You can also interact directly with the internal <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC08locationD0So010CLLocationD0Cv">locationManager</a></code> to perform these tasks.</p>
 
 <ul>
 <li>background: If <code>true</code>, will call <code>requestAlwaysAuthorization()</code>, otherwise <code>requestWhenInUseAuthorization()</code>
@@ -628,9 +632,9 @@ will be called. Default value is <code>false</code>.</li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager24haveCoreMotionPermissionSb"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC24haveCoreMotionPermissionSbv"></a>
                     <a name="//apple_ref/swift/Property/haveCoreMotionPermission" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager24haveCoreMotionPermissionSb">haveCoreMotionPermission</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC24haveCoreMotionPermissionSbv">haveCoreMotionPermission</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -668,9 +672,9 @@ authorisation state is to go ahead and turn on monitoring and see if it fails or
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager22haveLocationPermissionSb"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC22haveLocationPermissionSbv"></a>
                     <a name="//apple_ref/swift/Property/haveLocationPermission" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager22haveLocationPermissionSb">haveLocationPermission</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC22haveLocationPermissionSbv">haveLocationPermission</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -697,9 +701,9 @@ authorisation state is to go ahead and turn on monitoring and see if it fails or
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager32haveBackgroundLocationPermissionSb"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC32haveBackgroundLocationPermissionSbv"></a>
                     <a name="//apple_ref/swift/Property/haveBackgroundLocationPermission" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager32haveBackgroundLocationPermissionSb">haveBackgroundLocationPermission</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC32haveBackgroundLocationPermissionSbv">haveBackgroundLocationPermission</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -737,9 +741,9 @@ authorisation state is to go ahead and turn on monitoring and see if it fails or
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit17LocomotionManager15locationManagerCSo17CLLocationManager"></a>
+                    <a name="/s:6ArcKit17LocomotionManagerC08locationD0So010CLLocationD0Cv"></a>
                     <a name="//apple_ref/swift/Property/locationManager" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit17LocomotionManager15locationManagerCSo17CLLocationManager">locationManager</a>
+                    <a class="token" href="#/s:6ArcKit17LocomotionManagerC08locationD0So010CLLocationD0Cv">locationManager</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -750,11 +754,11 @@ authorisation state is to go ahead and turn on monitoring and see if it fails or
                         <p>The internal CLLocationManager manager.</p>
 
 <p>Direct interaction with this should be avoided. Starting and stopping location monitoring should instead be done
-through LocomotionManager&rsquo;s <code><a href="../Classes/LocomotionManager.html#/s:FC6ArcKit17LocomotionManager17startCoreLocationFT_T_">startCoreLocation()</a></code> and <code><a href="../Classes/LocomotionManager.html#/s:FC6ArcKit17LocomotionManager16stopCoreLocationFT_T_">stopCoreLocation()</a></code> methods.</p>
+through LocomotionManager&rsquo;s <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC17startCoreLocationyyF">startCoreLocation()</a></code> and <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC16stopCoreLocationyyF">stopCoreLocation()</a></code> methods.</p>
 <div class="aside aside-warning">
     <p class="aside-title">Warning</p>
     The CLLocationManager&rsquo;s <code>desiredAccuracy</code> and <code>distanceFilter</code> properties are managed internally.
-Changes to them will be overriden, and may interfere with LocomotionManager&rsquo;s <code><a href="../Classes/LocomotionManager.html#/s:vC6ArcKit17LocomotionManager11movingStateOS_11MovingState">movingState</a></code> detection. The
+Changes to them will be overriden, and may interfere with LocomotionManager&rsquo;s <code><a href="../Classes/LocomotionManager.html#/s:6ArcKit17LocomotionManagerC11movingStateAA06MovingF0Ov">movingState</a></code> detection. The
 <code>delegate</code> should also not be changed, as this will disable LocomotionManager, and potentially result in the
 untimely deaths of small cute animals in Madagascar.
 
@@ -774,75 +778,10 @@ untimely deaths of small cute animals in Madagascar.
                 </li>
               </ul>
             </div>
-            <div class="task-group">
-              <div class="task-name-container">
-                <a name="/Internal%20CLLocationManagerDelegate%20Bits"></a>
-                <a name="//apple_ref/swift/Section/Internal CLLocationManagerDelegate Bits" class="dashAnchor"></a>
-                <a href="#/Internal%20CLLocationManagerDelegate%20Bits">
-                  <h3 class="section-name">Internal CLLocationManagerDelegate Bits</h3>
-                </a>
-              </div>
-              <ul>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager15locationManagerFTCSo17CLLocationManager22didChangeAuthorizationOSC21CLAuthorizationStatus_T_"></a>
-                    <a name="//apple_ref/swift/Method/locationManager(_:didChangeAuthorization:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager15locationManagerFTCSo17CLLocationManager22didChangeAuthorizationOSC21CLAuthorizationStatus_T_">locationManager(_:didChangeAuthorization:)</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Undocumented</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LocomotionManager</span><span class="p">:</span> <span class="kt">NSObject</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:FC6ArcKit17LocomotionManager15locationManagerFTCSo17CLLocationManager18didUpdateLocationsGSaCSo10CLLocation__T_"></a>
-                    <a name="//apple_ref/swift/Method/locationManager(_:didUpdateLocations:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:FC6ArcKit17LocomotionManager15locationManagerFTCSo17CLLocationManager18didUpdateLocationsGSaCSo10CLLocation__T_">locationManager(_:didUpdateLocations:)</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Undocumented</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LocomotionManager</span><span class="p">:</span> <span class="kt">NSObject</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-07-28)</p>
+          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-09-15)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -14,7 +14,7 @@
     <a title="LocomotionSample Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">ArcKit Docs</a> (78% documented)</p>
+        <p><a href="../index.html">ArcKit Docs</a> (52% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="../img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -47,31 +47,6 @@
               </li>
             </ul>
           </li>
-          <li class="nav-group-name">
-            <a href="../Extensions.html">Extensions</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a href="../Extensions/Array.html">Array</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/Date.html">Date</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/NSNotification.html">NSNotification</a>
-              </li>
-              <li class="nav-group-task">
-                <a href="../Extensions/NSNotification/Name.html">– Name</a>
-              </li>
-            </ul>
-          </li>
-          <li class="nav-group-name">
-            <a href="../Structs.html">Structs</a>
-            <ul class="nav-group-tasks">
-              <li class="nav-group-task">
-                <a href="../Structs/LocomotionMagicValue.html">LocomotionMagicValue</a>
-              </li>
-            </ul>
-          </li>
         </ul>
       </nav>
       <article class="main-content">
@@ -80,7 +55,7 @@
             <h1>LocomotionSample</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LocomotionSample</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LocomotionSample</span><span class="p">:</span> <span class="kt">NSObject</span><span class="p">,</span> <span class="kt">ActivityTypeClassifiable</span></code></pre>
 
                 </div>
               </div>
@@ -107,9 +82,9 @@ common states and location over the sample period instead of a single specific m
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample4dateV10Foundation4Date"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC4date10Foundation4DateVv"></a>
                     <a name="//apple_ref/swift/Property/date" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample4dateV10Foundation4Date">date</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC4date10Foundation4DateVv">date</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -145,9 +120,9 @@ common states and location over the sample period instead of a single specific m
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample8locationGSqCSo10CLLocation_"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC8locationSo10CLLocationCSgv"></a>
                     <a name="//apple_ref/swift/Property/location" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample8locationGSqCSo10CLLocation_">location</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC8locationSo10CLLocationCSgv">location</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -155,7 +130,7 @@ common states and location over the sample period instead of a single specific m
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The sample&rsquo;s smoothed location, equivalent to the weighted centre of the sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:vC6ArcKit16LocomotionSample17filteredLocationsGSaCSo10CLLocation_">filteredLocations</a></code>.</p>
+                        <p>The sample&rsquo;s smoothed location, equivalent to the weighted centre of the sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:6ArcKit16LocomotionSampleC17filteredLocationsSaySo10CLLocationCGv">filteredLocations</a></code>.</p>
 
 <p>This is the most high level location value, representing the final result of all available filtering and smoothing
 algorithms. This value is most useful for drawing smooth, coherent paths on a map for end user consumption.</p>
@@ -175,9 +150,9 @@ algorithms. This value is most useful for drawing smooth, coherent paths on a ma
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample12rawLocationsGSaCSo10CLLocation_"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC12rawLocationsSaySo10CLLocationCGv"></a>
                     <a name="//apple_ref/swift/Property/rawLocations" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample12rawLocationsGSaCSo10CLLocation_">rawLocations</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC12rawLocationsSaySo10CLLocationCGv">rawLocations</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -202,9 +177,9 @@ algorithms. This value is most useful for drawing smooth, coherent paths on a ma
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample17filteredLocationsGSaCSo10CLLocation_"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC17filteredLocationsSaySo10CLLocationCGv"></a>
                     <a name="//apple_ref/swift/Property/filteredLocations" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample17filteredLocationsGSaCSo10CLLocation_">filteredLocations</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC17filteredLocationsSaySo10CLLocationCGv">filteredLocations</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -229,9 +204,9 @@ algorithms. This value is most useful for drawing smooth, coherent paths on a ma
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample11movingStateOS_11MovingState"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC11movingStateAA06MovingF0Ov"></a>
                     <a name="//apple_ref/swift/Property/movingState" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample11movingStateOS_11MovingState">movingState</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC11movingStateAA06MovingF0Ov">movingState</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -267,9 +242,9 @@ algorithms. This value is most useful for drawing smooth, coherent paths on a ma
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample6stepHzSd"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC6stepHzSdv"></a>
                     <a name="//apple_ref/swift/Property/stepHz" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample6stepHzSd">stepHz</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC6stepHzSdv">stepHz</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -303,9 +278,9 @@ misinterpreted as steps by CMPedometer.
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample14courseVarianceSd"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC14courseVarianceSdv"></a>
                     <a name="//apple_ref/swift/Property/courseVariance" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample14courseVarianceSd">courseVariance</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC14courseVarianceSdv">courseVariance</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -338,9 +313,9 @@ isolation from other factors - no firm conclusions can be drawn from it alone.</
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample14xyAccelerationSd"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC14xyAccelerationSdv"></a>
                     <a name="//apple_ref/swift/Property/xyAcceleration" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample14xyAccelerationSd">xyAcceleration</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC14xyAccelerationSdv">xyAcceleration</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -369,9 +344,9 @@ mean + 3SD of the unsigned acceleration values.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample13zAccelerationSd"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC13zAccelerationSdv"></a>
                     <a name="//apple_ref/swift/Property/zAcceleration" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample13zAccelerationSd">zAcceleration</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC13zAccelerationSdv">zAcceleration</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -411,9 +386,9 @@ mean + 3SD of the unsigned acceleration values.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample22coreMotionActivityTypeGSqSS_"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC22coreMotionActivityTypeAA04CorefgH4NameOSgv"></a>
                     <a name="//apple_ref/swift/Property/coreMotionActivityType" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample22coreMotionActivityTypeGSqSS_">coreMotionActivityType</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC22coreMotionActivityTypeAA04CorefgH4NameOSgv">coreMotionActivityType</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -423,14 +398,14 @@ mean + 3SD of the unsigned acceleration values.</p>
                       <div class="abstract">
                         <p>The highest scoring Core Motion activity type 
 (<a href="https://developer.apple.com/documentation/coremotion/cmmotionactivity">CMMotionActivity</a>) at the time of the 
-sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:vC6ArcKit16LocomotionSample4dateV10Foundation4Date">date</a></code>.</p>
+sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:6ArcKit16LocomotionSampleC4date10Foundation4DateVv">date</a></code>.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">coreMotionActivityType</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">coreMotionActivityType</span><span class="p">:</span> <span class="kt">CoreMotionActivityTypeName</span><span class="p">?</span></code></pre>
 
                         </div>
                       </div>
@@ -451,9 +426,9 @@ sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:vC6ArcKit16Loc
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:vC6ArcKit16LocomotionSample9timeOfDaySd"></a>
+                    <a name="/s:6ArcKit16LocomotionSampleC9timeOfDaySdv"></a>
                     <a name="//apple_ref/swift/Property/timeOfDay" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vC6ArcKit16LocomotionSample9timeOfDaySd">timeOfDay</a>
+                    <a class="token" href="#/s:6ArcKit16LocomotionSampleC9timeOfDaySdv">timeOfDay</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -477,47 +452,10 @@ sample&rsquo;s <code><a href="../Classes/LocomotionSample.html#/s:vC6ArcKit16Loc
                 </li>
               </ul>
             </div>
-            <div class="task-group">
-              <div class="task-name-container">
-                <a name="/CustomStringConvertible"></a>
-                <a name="//apple_ref/swift/Section/CustomStringConvertible" class="dashAnchor"></a>
-                <a href="#/CustomStringConvertible">
-                  <h3 class="section-name">CustomStringConvertible</h3>
-                </a>
-              </div>
-              <ul>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:vPs23CustomStringConvertible11descriptionSS"></a>
-                    <a name="//apple_ref/swift/Property/description" class="dashAnchor"></a>
-                    <a class="token" href="#/s:vPs23CustomStringConvertible11descriptionSS">description</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">description</span><span class="p">:</span> <span class="kt">String</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-07-28)</p>
+          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-09-15)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.3</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

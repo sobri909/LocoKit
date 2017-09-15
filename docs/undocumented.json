@@ -1,6 +1,139 @@
 {
   "warnings": [
     {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": null,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": null,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": null,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": null,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": null,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 9,
+      "symbol": "ActivityTypeName",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 33,
+      "symbol": "CoreMotionActivityTypeName",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 45,
+      "symbol": "ActivityType",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifiable.swift",
+      "line": 11,
+      "symbol": "ActivityTypeClassifiable",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": null,
+      "symbol": "ActivityTypeClassifier",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": null,
+      "symbol": "ActivityTypeClassifier",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": null,
+      "symbol": "ActivityTypeClassifier",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": 12,
+      "symbol": "ActivityTypeClassifier",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeTrainable.swift",
+      "line": 9,
+      "symbol": "ActivityTypeTrainable",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypesCache.swift",
+      "line": 12,
+      "symbol": "ActivityTypesCache",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
+      "line": 9,
+      "symbol": "ClassifierResults",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
+      "line": 50,
+      "symbol": "ClassifierResultItem",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
+      "line": 68,
+      "symbol": "+(_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.free",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
+      "line": 72,
+      "symbol": "-(_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.free",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/DateTools.swift",
       "line": 10,
       "symbol": "Date.startOfDay",
@@ -23,7 +156,7 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocationTools.swift",
-      "line": 113,
+      "line": 117,
       "symbol": "Array.dateInterval",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
@@ -44,14 +177,28 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
-      "line": 585,
+      "line": 92,
+      "symbol": "LocomotionManager.recordingCoreLocation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 93,
+      "symbol": "LocomotionManager.recordingCoreMotion",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
+      "line": 615,
       "symbol": "LocomotionManager.locationManager(_:didChangeAuthorization:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionManager.swift",
-      "line": 590,
+      "line": 620,
       "symbol": "LocomotionManager.locationManager(_:didUpdateLocations:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
@@ -65,16 +212,37 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 53,
-      "symbol": "LocomotionMagicValue.nilCourse",
-      "symbol_kind": "source.lang.swift.decl.var.static",
+      "line": 194,
+      "symbol": "LocomotionSample.description",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/LocomotionSample.swift",
-      "line": 54,
-      "symbol": "LocomotionMagicValue.nilAltitude",
-      "symbol_kind": "source.lang.swift.decl.var.static",
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/MLModel.swift",
+      "line": 11,
+      "symbol": "MLModel",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/MLModelSource.swift",
+      "line": 11,
+      "symbol": "MLModelSource",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/MutableActivityType.swift",
+      "line": null,
+      "symbol": "MutableActivityType",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/MutableActivityType.swift",
+      "line": 13,
+      "symbol": "MutableActivityType",
+      "symbol_kind": "source.lang.swift.decl.class",
       "warning": "undocumented"
     }
   ],
