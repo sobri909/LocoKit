@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/sobri909/ArcKit"
   s.author       = { "Matt Greenfield" => "matt@bigpaua.com" }
   s.license      = { :text => "Copyright 2017 Matt Greenfield. All rights reserved.", :type => "Commercial" }
-  s.source       = { :http => "https://github.com/sobri909/ArcKit/raw/develop/ArcKit.zip" }
+  s.source       = { :http => "https://github.com/sobri909/ArcKit/raw/2.0.0/ArcKit.zip" }
   s.frameworks   = 'CoreLocation', 'CoreMotion'
   s.ios.deployment_target = '10.0'
   s.ios.vendored_frameworks = 'ArcKit.framework'
