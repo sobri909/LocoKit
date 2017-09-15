@@ -20,12 +20,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window?.rootViewController = ViewController()
         window?.makeKeyAndVisible()
+       
+        // API key is needed for ActivityTypeClassifier
+        LocomotionManager.highlander.apiKey = "ArcKitDemoAppKey"
         
         return true
     }
     
     func applicationWillResignActive(_ application: UIApplication) {
         LocomotionManager.highlander.requestLocationPermission(background: true)
+    }
+    
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        guard let controller = window?.rootViewController as? ViewController else {
+            return
+        }
+        
+        // update the map and UI on appear
+        controller.updateTheMap()
+        controller.buildResultsViewTree()
     }
 
 }

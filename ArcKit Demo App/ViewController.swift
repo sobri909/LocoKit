@@ -6,9 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import UIKit
-import MapKit
 import ArcKit
+import MapKit
 import MGEvents
 import Cartography
 import CoreLocation
@@ -18,7 +17,9 @@ class ViewController: UIViewController {
     var rawLocations: [CLLocation] = []
     var filteredLocations: [CLLocation] = []
     var locomotionSamples: [LocomotionSample] = []
-    
+    var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
+    var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
+   
     var showRawLocations = true
     var showFilteredLocations = true
     var showLocomotionSamples = true
@@ -26,8 +27,14 @@ class ViewController: UIViewController {
     var showSatelliteMap = false
     var autoZoomMap = true
     
+    var enableTheClassifier = true
+    var enableTransportClassifier = true
+    
     var visitsToggleBox: UIView?
     var visitsToggle: UISwitch?
+    
+    var transportClassifierToggleBox: UIView?
+    var transportClassifierToggle: UISwitch?
     
     // MARK: controller lifecycle
     
@@ -37,6 +44,8 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
        
         buildViewTree()
+        buildSettingsViewTree()
+        buildResultsViewTree()
 
         let loco = LocomotionManager.highlander
         let centre = NotificationCenter.default
@@ -67,8 +76,49 @@ class ViewController: UIViewController {
         
         locomotionSamples.append(sample)
         
-        updateTheStatusBar(sample: sample)
+        updateTheBaseClassifier()
+        updateTheTransportClassifier()
+        
+        buildResultsViewTree(sample: sample)
         updateTheMap()
+    }
+    
+    func updateTheBaseClassifier() {
+        guard enableTheClassifier else {
+            return
+        }
+       
+        // need a coordinate to know what classifier to fetch (there's thousands of them)
+        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
+            return
+        }
+       
+        // no need to update anything if the current classifier is still valid
+        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate) {
+            return
+        }
+        
+        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
+        baseClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate)
+    }
+    
+    func updateTheTransportClassifier() {
+        guard enableTheClassifier && enableTransportClassifier else {
+            return
+        }
+        
+        // need a coordinate to know what classifier to fetch (there's thousands of them)
+        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
+            return
+        }
+        
+        // no need to update anything if the current classifier is still valid
+        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate) {
+            return
+        }
+        
+        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
+        transportClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate)
     }
     
     // MARK: tap actions
@@ -83,13 +133,17 @@ class ViewController: UIViewController {
         loco.locationManager.allowsBackgroundLocationUpdates = true
         
         loco.startCoreLocation()
+        loco.startCoreMotion()
         
         startButton.isHidden = true
         stopButton.isHidden = false
     }
     
     func tappedStop() {
-        LocomotionManager.highlander.stopCoreLocation()
+        let loco = LocomotionManager.highlander
+        
+        loco.stopCoreLocation()
+        loco.stopCoreMotion()
         
         stopButton.isHidden = true
         startButton.isHidden = false
@@ -101,32 +155,30 @@ class ViewController: UIViewController {
         locomotionSamples.removeAll()
         
         updateTheMap()
+        buildResultsViewTree()
+    }
+    
+    @objc func tappedViewToggle() {
+        switch viewToggle.selectedSegmentIndex {
+        case 0:
+            settingsRows.isHidden = true
+            resultsScroller.isHidden = false
+            resultsScroller.flashScrollIndicators()
+        default:
+            settingsRows.isHidden = false
+            resultsScroller.isHidden = true
+        }
     }
     
     // MARK: UI updating
     
-    func updateTheStatusBar(sample: LocomotionSample) {
-        let desired = LocomotionManager.highlander.locationManager.desiredAccuracy
-        desiredAccuracyLabel.text = String(format: "requesting %.0f metres", desired)
-        
-        var hertz = 0.0
-        if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
-            hertz = Double(sample.filteredLocations.count) / duration
-        }
-        
-        if let location = sample.filteredLocations.last {
-            achievedAccuracyLabel.text = String(format: "receiving %.0f metres @ %.1f Hz", location.horizontalAccuracy, hertz)
-        } else {
-            achievedAccuracyLabel.text = "receiving nothing"
-        }
-        
-        statusRowBackground.backgroundColor = .blue
-        UIView.animate(withDuration: 1) {
-            self.statusRowBackground.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        }
-    }
-    
     func updateTheMap() {
+        
+        // don't bother updating the map when we're not in the foreground
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+        
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
 
@@ -180,38 +232,26 @@ class ViewController: UIViewController {
             map.top == map.superview!.top
             map.left == map.superview!.left
             map.right == map.superview!.right
-            map.height == map.superview!.height * 0.5
+            map.height == map.superview!.height * 0.35
+        }
+
+        view.addSubview(topButtons)
+        constrain(map, topButtons) { map, topButtons in
+            topButtons.top == map.bottom
+            topButtons.left == topButtons.superview!.left
+            topButtons.right == topButtons.superview!.right
+            topButtons.height == 56
         }
         
-        view.addSubview(rowsBox)
-        constrain(map, rowsBox) { map, box in
-            box.top == map.bottom
-            box.left == box.superview!.left + 6
-            box.right == box.superview!.right - 6
-        }
-        
-        let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        
-        rowsBox.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-        
-        let topButtons = UIView()
-        rowsBox.addArrangedSubview(topButtons)
         topButtons.addSubview(startButton)
         topButtons.addSubview(stopButton)
         topButtons.addSubview(clearButton)
-        
         constrain(startButton, stopButton, clearButton) { startButton, stopButton, clearButton in
             align(top: startButton, stopButton, clearButton)
             align(bottom: startButton, stopButton, clearButton)
             
             startButton.top == startButton.superview!.top
-            startButton.bottom == startButton.superview!.bottom
-            startButton.height == 60
-            
+            startButton.bottom == startButton.superview!.bottom - 0.5
             startButton.left == startButton.superview!.left
             startButton.right == startButton.superview!.centerX
             
@@ -220,72 +260,227 @@ class ViewController: UIViewController {
             clearButton.left == startButton.right + 0.5
             clearButton.right == clearButton.superview!.right
         }
+       
+        view.addSubview(settingsRows)
+        view.addSubview(resultsScroller)
+        view.addSubview(viewToggleBar)
         
-        addUnderline()
-        addGap(height: 30)
+        constrain(viewToggleBar) { bar in
+            bar.bottom == bar.superview!.bottom
+            bar.left == bar.superview!.left
+            bar.right == bar.superview!.right
+        }
         
-        let satellite = toggleBox(text: "Satellite map", toggleDefault: false) { isOn in
+        constrain(topButtons, settingsRows) { topButtons, box in
+            box.top == topButtons.bottom
+            box.left == box.superview!.left + 8
+            box.right == box.superview!.right - 8
+        }
+
+        constrain(topButtons, resultsScroller, viewToggleBar) { topButtons, scroller, viewToggleBar in
+            scroller.top == topButtons.bottom
+            scroller.left == scroller.superview!.left
+            scroller.right == scroller.superview!.right
+            scroller.bottom == viewToggleBar.top
+        }
+        
+        resultsScroller.addSubview(resultsRows)
+        constrain(resultsRows, view) { box, view in
+            box.top == box.superview!.top
+            box.bottom == box.superview!.bottom
+            box.left == box.superview!.left + 16
+            box.right == box.superview!.right - 16
+            box.right == view.right - 16
+        }
+    }
+    
+    func buildSettingsViewTree() {
+        settingsRows.addGap(height: 24)
+        settingsRows.addHeading(title: "Map Style", alignment: .center)
+        settingsRows.addGap(height: 6)
+        settingsRows.addUnderline()
+        
+        let satellite = ToggleBox(text: "Satellite map", toggleDefault: false) { isOn in
             self.showSatelliteMap = isOn
             self.updateTheMap()
         }
-        let zoom = toggleBox(text: "Auto zoom") { isOn in
+        let zoom = ToggleBox(text: "Auto zoom") { isOn in
             self.autoZoomMap = isOn
             self.updateTheMap()
         }
-        addRow([satellite.box, zoom.box])
-
-        addGap(height: 30)
+        settingsRows.addRow(views: [satellite, zoom])
         
-        let raw = toggleBox(dotColors: [.red], text: "Raw") { isOn in
+        settingsRows.addGap(height: 18)
+        settingsRows.addHeading(title: "Map Data Overlays", alignment: .center)
+        settingsRows.addGap(height: 6)
+        settingsRows.addUnderline()
+        
+        let raw = ToggleBox(dotColors: [.red], text: "Raw") { isOn in
             self.showRawLocations = isOn
             self.updateTheMap()
         }
-        let smoothed = toggleBox(dotColors: [.blue, .magenta], text: "Samples") { isOn in
+        let smoothed = ToggleBox(dotColors: [.blue, .magenta], text: "Samples") { isOn in
             self.showLocomotionSamples = isOn
             self.visitsToggle?.isEnabled = isOn
             self.visitsToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
             self.updateTheMap()
         }
-        addRow([raw.box, smoothed.box])
+        settingsRows.addRow(views: [raw, smoothed])
         
-        addUnderline()
+        settingsRows.addUnderline()
         
-        let filtered = toggleBox(dotColors: [.purple], text: "Filtered") { isOn in
+        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered") { isOn in
             self.showFilteredLocations = isOn
             self.updateTheMap()
         }
-        let visits = toggleBox(dotColors: [.orange], text: "Visits") { isOn in
+        let visits = ToggleBox(dotColors: [.orange], text: "Visits") { isOn in
             self.showStationaryCircles = isOn
             self.updateTheMap()
         }
-        addRow([filtered.box, visits.box])
+        settingsRows.addRow(views: [filtered, visits])
         
-        visitsToggleBox = visits.box
+        visitsToggleBox = visits
         visitsToggle = visits.toggle
+        
+        settingsRows.addGap(height: 18)
+        settingsRows.addHeading(title: "Activity Type Classifiers", alignment: .center)
+        settingsRows.addGap(height: 6)
+        settingsRows.addUnderline()
+        
+        let classifierBox = ToggleBox(text: "Base types") { isOn in
+            self.baseClassifier = nil
+            self.transportClassifier = nil
+            self.enableTheClassifier = isOn
+            self.transportClassifierToggle?.isEnabled = isOn
+            self.transportClassifierToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
+            self.updateTheBaseClassifier()
+            self.updateTheTransportClassifier()
+        }
+        let extended = ToggleBox(text: "Transport") { isOn in
+            self.transportClassifier = nil
+            self.enableTransportClassifier = isOn
+            self.updateTheTransportClassifier()
+        }
+        settingsRows.addRow(views: [classifierBox, extended])
+        
+        transportClassifierToggleBox = extended
+        transportClassifierToggle = extended.toggle
+    }
+    
+    func buildResultsViewTree(sample: LocomotionSample? = nil) {
+        
+        // don't bother updating the UI when we're not in the foreground
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+        
+        let loco = LocomotionManager.highlander
+        
+        resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
-        let statusRow = UIStackView()
-        statusRow.distribution = .fillProportionally
-        statusRow.axis = .horizontal
+        resultsRows.addGap(height: 22)
+        resultsRows.addHeading(title: "Core Location")
+        resultsRows.addGap(height: 10)
         
-        view.addSubview(statusRow)
-        constrain(statusRow) { statusRow in
-            statusRow.left == statusRow.superview!.left + 6
-            statusRow.right == statusRow.superview!.right - 6
-            statusRow.bottom == statusRow.superview!.bottom
-            statusRow.height == 30
+        if loco.recordingCoreLocation {
+            let requesting = LocomotionManager.highlander.locationManager.desiredAccuracy
+            if requesting == kCLLocationAccuracyBest {
+                resultsRows.addRow(leftText: "Requesting accuracy", rightText: "kCLLocationAccuracyBest")
+            } else {
+                resultsRows.addRow(leftText: "Requesting accuracy", rightText: String(format: "%.0f metres", requesting))
+            }
+        } else {
+            resultsRows.addRow(leftText: "Requesting accuracy", rightText: "-")
         }
         
-        statusRow.addSubview(statusRowBackground)
-        constrain(statusRowBackground) { background in
-            background.top == background.superview!.top - 0.5
-            background.bottom == background.superview!.bottom
-            background.left == background.superview!.left
-            background.right == background.superview!.right
+        var receivingString = "-"
+        if loco.recordingCoreLocation, let sample = sample {
+            var receivingHertz = 0.0
+            if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
+                receivingHertz = Double(sample.filteredLocations.count) / duration
+            }
+            
+            if let location = sample.filteredLocations.last {
+                receivingString = String(format: "%.0f metres @ %.1f Hz", location.horizontalAccuracy, receivingHertz)
+            }
+        }
+        resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
+        
+        resultsRows.addGap(height: 18)
+        resultsRows.addHeading(title: "Locomotion Sample")
+        resultsRows.addGap(height: 10)
+        
+        if let sample = sample {
+            resultsRows.addRow(leftText: "Latest sample", rightText: sample.description)
+            resultsRows.addRow(leftText: "Behind now", rightText: String(duration: sample.date.age))
+        } else {
+            resultsRows.addRow(leftText: "Latest sample", rightText: "-")
+            resultsRows.addRow(leftText: "Behind now", rightText: "-")
         }
         
-        statusRow.addArrangedSubview(desiredAccuracyLabel)
-        statusRow.addArrangedSubview(achievedAccuracyLabel)
-        statusRow.addArrangedSubview(locationHertzLabel)
+        resultsRows.addGap(height: 18)
+        resultsRows.addHeading(title: "Activity Type Classifier (baseTypes)")
+        resultsRows.addGap(height: 10)
+        
+        if loco.recordingCoreLocation, let sample = sample {
+            if let classifier = baseClassifier {
+                let results = classifier.classify(sample)
+                
+                for result in results {
+                    let row = resultsRows.addRow(leftText: result.name.rawValue.capitalized,
+                                                 rightText: String(format: "%.4f", result.score))
+                    
+                    if result.score < 0.01 {
+                        row.subviews.forEach { subview in
+                            if let label = subview as? UILabel {
+                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
+                            }
+                        }
+                    }
+                }
+                
+            } else if enableTheClassifier {
+                resultsRows.addRow(leftText: "Fetching ML models...")
+            } else {
+                resultsRows.addRow(leftText: "Classifier is turned off")
+            }
+            
+        } else {
+            resultsRows.addRow(leftText: "Unknown", rightText: "-")
+        }
+        
+        resultsRows.addGap(height: 18)
+        resultsRows.addHeading(title: "Activity Type Classifier (transportTypes)")
+        resultsRows.addGap(height: 10)
+        
+        if loco.recordingCoreLocation, let sample = sample {
+            if let classifier = transportClassifier {
+                let results = classifier.classify(sample)
+                
+                for result in results {
+                    let row = resultsRows.addRow(leftText: result.name.rawValue.capitalized,
+                                                 rightText: String(format: "%.4f", result.score))
+                    
+                    if result.score < 0.01 {
+                        row.subviews.forEach { subview in
+                            if let label = subview as? UILabel {
+                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
+                            }
+                        }
+                    }
+                }
+                
+            } else if enableTheClassifier && enableTransportClassifier {
+                resultsRows.addRow(leftText: "Fetching ML models...")
+            } else {
+                resultsRows.addRow(leftText: "Classifier is turned off")
+            }
+            
+        } else {
+            resultsRows.addRow(leftText: "Unknown", rightText: "-")
+        }
+
+        resultsRows.addGap(height: 12)
     }
    
     // MARK: map building
@@ -363,123 +558,7 @@ class ViewController: UIViewController {
             map.add(circle, level: .aboveLabels)
         }
     }
-
-    func addUnderline() {
-        let underline = UIView()
-        rowsBox.addArrangedSubview(underline)
-        
-        constrain(underline) { underline in
-            underline.height == 0.5
-        }
-    }
     
-    func addGap(height: CGFloat) {
-        let gap = UIView()
-        gap.backgroundColor = .white
-        rowsBox.addArrangedSubview(gap)
-        
-        constrain(gap) { gap in
-            gap.height == height
-        }
-    }
-    
-    func addRow(_ views: [UIView]) {
-        let row = UIStackView()
-        row.distribution = .fillEqually
-        row.spacing = 0.5
-        
-        for view in views {
-            row.addArrangedSubview(view)
-        }
-        
-        rowsBox.addArrangedSubview(row)
-    }
-    
-    // MARK: view factories
-    
-    func dot(color: UIColor) -> UIView {
-        let dot = UIView(frame: CGRect(x: 0, y: 0, width: 14, height: 14))
-        
-        let shape = CAShapeLayer()
-        shape.fillColor = color.cgColor
-        shape.path = UIBezierPath(roundedRect: dot.bounds, cornerRadius: 7).cgPath
-        shape.strokeColor = UIColor.white.cgColor
-        shape.lineWidth = 2
-        dot.layer.addSublayer(shape)
-        
-        return dot
-    }
-    
-    func toggleBox(dotColors: [UIColor] = [], text: String, toggleDefault: Bool = true, onChange: @escaping ((Bool) -> Void))
-        -> (box: UIView, toggle: UISwitch)
-    {
-        let box = UIView()
-        box.backgroundColor = .white
-        
-        var lastDot: UIView?
-        for color in dotColors {
-            let dot = self.dot(color: color)
-            let dotWidth = dot.frame.size.width
-            box.addSubview(dot)
-            
-            constrain(dot) { dot in
-                dot.centerY == dot.superview!.centerY
-                dot.height == dotWidth
-                dot.width == dotWidth
-            }
-            
-            if let lastDot = lastDot {
-                constrain(dot, lastDot) { dot, lastDot in
-                    dot.left == lastDot.right - 4
-                }
-            } else {
-                constrain(dot) { dot in
-                    dot.left == dot.superview!.left + 8
-                }
-            }
-            
-            lastDot = dot
-        }
-        
-        let label = UILabel()
-        label.text = text
-        label.font = UIFont.preferredFont(forTextStyle: .body)
-        label.textColor = UIColor(white: 0.1, alpha: 1)
-        
-        let toggle = UISwitch()
-        toggle.isOn = toggleDefault
-        
-        toggle.onControlEvent(.valueChanged) {
-            onChange(toggle.isOn)
-        }
-        
-        box.addSubview(label)
-        box.addSubview(toggle)
-        
-        if let lastDot = lastDot {
-            constrain(lastDot, label) { dot, label in
-                label.left == dot.right + 5
-            }
-            
-        } else {
-            constrain(label, toggle) { label, toggle in
-                label.left == label.superview!.left + 9
-            }
-        }
-        
-        constrain(label, toggle) { label, toggle in
-            label.top == label.superview!.top
-            label.bottom == label.superview!.bottom
-            label.height == 50
-            
-            toggle.centerY == toggle.superview!.centerY
-            toggle.right == toggle.superview!.right - 10
-            toggle.left == label.right
-        }
-        
-        return (box: box, toggle: toggle)
-    }
-
     // MARK: view property getters
     
     lazy var map: MKMapView = {
@@ -493,10 +572,47 @@ class ViewController: UIViewController {
         return map
     }()
     
-    lazy var rowsBox: UIStackView = {
+    lazy var topButtons: UIView = {
+        let box = UIView()
+        box.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        return box
+    }()
+    
+    lazy var settingsRows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
+        box.isHidden = true
+        
+        let background = UIView()
+        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        
+        box.addSubview(background)
+        constrain(background) { background in
+            background.edges == background.superview!.edges
+        }
+        
         return box
+    }()
+    
+    lazy var resultsRows: UIStackView = {
+        let box = UIStackView()
+        box.axis = .vertical
+        
+        let background = UIView()
+        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        
+        box.addSubview(background)
+        constrain(background) { background in
+            background.edges == background.superview!.edges
+        }
+        
+        return box
+    }()
+    
+    lazy var resultsScroller: UIScrollView = {
+        let scroller = UIScrollView()
+        scroller.alwaysBounceVertical = true
+        return scroller
     }()
     
     lazy var startButton: UIButton = {
@@ -540,37 +656,24 @@ class ViewController: UIViewController {
         return button
     }()
     
-    lazy var statusRowBackground: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        return view
+    lazy var viewToggleBar: UIToolbar = {
+        let bar = UIToolbar()
+        bar.isTranslucent = false
+        bar.items = [
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(customView: self.viewToggle),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        ]
+        return bar
     }()
     
-    lazy var desiredAccuracyLabel: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = .white
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor(white: 0.3, alpha: 1)
-        label.textAlignment = .center
-        return label
-    }()
-    
-    lazy var achievedAccuracyLabel: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = .white
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor(white: 0.3, alpha: 1)
-        label.textAlignment = .center
-        return label
-    }()
-    
-    lazy var locationHertzLabel: UILabel = {
-        let label = UILabel()
-        label.backgroundColor = .white
-        label.font = UIFont.preferredFont(forTextStyle: .footnote)
-        label.textColor = UIColor(white: 0.3, alpha: 1)
-        label.textAlignment = .center
-        return label
+    lazy var viewToggle: UISegmentedControl = {
+        let toggle = UISegmentedControl(items: ["Results", "Settings"])
+        toggle.setWidth(120, forSegmentAt: 0)
+        toggle.setWidth(120, forSegmentAt: 1)
+        toggle.selectedSegmentIndex = 0
+        toggle.addTarget(self, action: #selector(tappedViewToggle), for: .valueChanged)
+        return toggle
     }()
 }
 
@@ -598,4 +701,3 @@ extension ViewController: MKMapViewDelegate {
     }
     
 }
-

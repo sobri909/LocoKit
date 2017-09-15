@@ -15,11 +15,13 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.0</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Location is used to demonstrate ArcKit's functionality</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Location is used to demonstrate ArcKit's functionality</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

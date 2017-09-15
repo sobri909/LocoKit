@@ -1,9 +1,9 @@
 target 'ArcKit Demo App'
-platform :ios, '10.0'
+platform :ios, '11.0'
 use_frameworks!
 
 pod 'ArcKit'
-pod 'Upsurge', :inhibit_warnings => true
-pod 'MGEvents'
-pod 'Cartography'
+
+pod 'MGEvents', :inhibit_warnings => true
+pod 'Cartography', :inhibit_warnings => true
 

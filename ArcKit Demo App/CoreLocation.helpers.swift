@@ -7,9 +7,8 @@
 //
 
 import CoreLocation
-import Upsurge
 
-public typealias Radians = Double
+typealias Radians = Double
 
 extension CLLocation {
     
@@ -32,17 +31,17 @@ extension CLLocation {
             let lat = location.coordinate.latitude.radiansValue
             let lng = location.coordinate.longitude.radiansValue
             
-            x.append(Upsurge.cos(lat) * Upsurge.cos(lng))
-            y.append(Upsurge.cos(lat) * Upsurge.sin(lng))
-            z.append(Upsurge.sin(lat))
+            x.append(cos(lat) * cos(lng))
+            y.append(cos(lat) * sin(lng))
+            z.append(sin(lat))
         }
         
-        let meanx = Upsurge.mean(x)
-        let meany = Upsurge.mean(y)
-        let meanz = Upsurge.mean(z)
+        let meanx = x.mean
+        let meany = y.mean
+        let meanz = z.mean
         
         let finalLng: Radians = atan2(meany, meanx)
-        let hyp = Upsurge.sqrt(meanx * meanx + meany * meany)
+        let hyp = (meanx * meanx + meany * meany).squareRoot()
         let finalLat: Radians = atan2(meanz, hyp)
         
         self.init(latitude: finalLat.degreesValue, longitude: finalLng.degreesValue)
@@ -59,7 +58,7 @@ extension Array where Element: CLLocation {
         
         let distances = self.map { $0.distance(from: center) }
         
-        return (mean(distances), std(distances))
+        return (distances.mean, distances.standardDeviation)
     }
     
 }
