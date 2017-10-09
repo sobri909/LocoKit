@@ -94,7 +94,7 @@ class ViewController: UIViewController {
         }
        
         // no need to update anything if the current classifier is still valid
-        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate) {
+        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
             return
         }
         
@@ -113,7 +113,7 @@ class ViewController: UIViewController {
         }
         
         // no need to update anything if the current classifier is still valid
-        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate) {
+        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
             return
         }
         
