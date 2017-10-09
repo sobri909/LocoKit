@@ -156,6 +156,7 @@ class ViewController: UIViewController {
         default:
             settings.settingsRows.isHidden = false
             resultsScroller.isHidden = true
+            settings.flashScrollIndicators()
         }
     }
     
