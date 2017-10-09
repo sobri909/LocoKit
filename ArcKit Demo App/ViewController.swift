@@ -422,6 +422,13 @@ class ViewController: UIViewController {
         resultsRows.addHeading(title: "Activity Type Classifier (baseTypes)")
         resultsRows.addGap(height: 10)
         
+        if let classifier = baseClassifier {
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: String(format: "%.2f", classifier.coverageScore))
+        } else {
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
+        }
+        resultsRows.addGap(height: 10)
+        
         if loco.recordingCoreLocation, let sample = sample {
             if let classifier = baseClassifier {
                 let results = classifier.classify(sample)
@@ -444,13 +451,17 @@ class ViewController: UIViewController {
             } else {
                 resultsRows.addRow(leftText: "Classifier is turned off")
             }
-            
-        } else {
-            resultsRows.addRow(leftText: "Unknown", rightText: "-")
         }
         
         resultsRows.addGap(height: 18)
         resultsRows.addHeading(title: "Activity Type Classifier (transportTypes)")
+        resultsRows.addGap(height: 10)
+        
+        if let classifier = transportClassifier {
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: String(format: "%.2f", classifier.coverageScore))
+        } else {
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
+        }
         resultsRows.addGap(height: 10)
         
         if loco.recordingCoreLocation, let sample = sample {
@@ -475,9 +486,6 @@ class ViewController: UIViewController {
             } else {
                 resultsRows.addRow(leftText: "Classifier is turned off")
             }
-            
-        } else {
-            resultsRows.addRow(leftText: "Unknown", rightText: "-")
         }
 
         resultsRows.addGap(height: 12)
