@@ -423,7 +423,7 @@ class ViewController: UIViewController {
         resultsRows.addGap(height: 10)
         
         if let classifier = baseClassifier {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: String(format: "%.2f", classifier.coverageScore))
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
         } else {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
         }
@@ -458,7 +458,7 @@ class ViewController: UIViewController {
         resultsRows.addGap(height: 10)
         
         if let classifier = transportClassifier {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: String(format: "%.2f", classifier.coverageScore))
+            resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
         } else {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
         }
