@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6CEEBA77AB545A262DBEC1DB /* Pods_ArcKit_Demo_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ADE405D96DF172351942B3A /* Pods_ArcKit_Demo_App.framework */; };
+		C91CAF4B1F8B88A300416418 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91CAF4A1F8B88A300416418 /* SettingsView.swift */; };
 		C95644241F5EAABF00E9F428 /* Array.helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95644231F5EAABF00E9F428 /* Array.helpers.swift */; };
 		C96981A71F3605860021238C /* ToggleBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96981A61F3605860021238C /* ToggleBox.swift */; };
 		C96981A91F360ADF0021238C /* String.helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96981A81F360ADF0021238C /* String.helpers.swift */; };
@@ -40,6 +41,7 @@
 		8ADE405D96DF172351942B3A /* Pods_ArcKit_Demo_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ArcKit_Demo_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D09140A3DB2FF40D0A7B469 /* Pods-ArcKit Demo App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArcKit Demo App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ArcKit Demo App/Pods-ArcKit Demo App.debug.xcconfig"; sourceTree = "<group>"; };
 		C321DBC330016E56B038DACF /* Pods-ArcKit Demo App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArcKit Demo App.release.xcconfig"; path = "Pods/Target Support Files/Pods-ArcKit Demo App/Pods-ArcKit Demo App.release.xcconfig"; sourceTree = "<group>"; };
+		C91CAF4A1F8B88A300416418 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C95644231F5EAABF00E9F428 /* Array.helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.helpers.swift; sourceTree = "<group>"; };
 		C96981A61F3605860021238C /* ToggleBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToggleBox.swift; sourceTree = "<group>"; };
 		C96981A81F360ADF0021238C /* String.helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.helpers.swift; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 			children = (
 				C9FE56671F18A35500F941FE /* AppDelegate.swift */,
 				C9FE56691F18A35500F941FE /* ViewController.swift */,
+				C91CAF4A1F8B88A300416418 /* SettingsView.swift */,
 				C96981AA1F360B160021238C /* Helpers */,
 				C9A023DE1F18A51900DFFEBD /* Views */,
 				C9FE56731F18A35500F941FE /* Info.plist */,
@@ -281,6 +284,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C91CAF4B1F8B88A300416418 /* SettingsView.swift in Sources */,
 				C96981A71F3605860021238C /* ToggleBox.swift in Sources */,
 				C95644241F5EAABF00E9F428 /* Array.helpers.swift in Sources */,
 				C9A023DD1F18A50D00DFFEBD /* VisitCircle.swift in Sources */,

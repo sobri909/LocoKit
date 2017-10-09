@@ -20,22 +20,7 @@ class ViewController: UIViewController {
     var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
     var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
    
-    var showRawLocations = true
-    var showFilteredLocations = true
-    var showLocomotionSamples = true
-    var showStationaryCircles = true
-    var showSatelliteMap = false
-    var showUserLocation = true
-    var autoZoomMap = true
-    
-    var enableTheClassifier = true
-    var enableTransportClassifier = true
-    
-    var visitsToggleBox: UIView?
-    var visitsToggle: UISwitch?
-    
-    var transportClassifierToggleBox: UIView?
-    var transportClassifierToggle: UISwitch?
+    var settings = SettingsView()
     
     // MARK: controller lifecycle
     
@@ -45,7 +30,6 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
        
         buildViewTree()
-        buildSettingsViewTree()
         buildResultsViewTree()
 
         let loco = LocomotionManager.highlander
@@ -53,6 +37,10 @@ class ViewController: UIViewController {
         
         centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { note in
             self.locomotionSampleUpdated(note: note)
+        }
+        
+        centre.addObserver(forName: .settingsChanged, object: settings, queue: OperationQueue.main) { _ in
+            self.updateTheMap()
         }
         
         loco.requestLocationPermission()
@@ -85,7 +73,7 @@ class ViewController: UIViewController {
     }
     
     func updateTheBaseClassifier() {
-        guard enableTheClassifier else {
+        guard settings.enableTheClassifier else {
             return
         }
        
@@ -104,7 +92,7 @@ class ViewController: UIViewController {
     }
     
     func updateTheTransportClassifier() {
-        guard enableTheClassifier && enableTransportClassifier else {
+        guard settings.enableTheClassifier && settings.enableTransportClassifier else {
             return
         }
         
@@ -162,11 +150,11 @@ class ViewController: UIViewController {
     @objc func tappedViewToggle() {
         switch viewToggle.selectedSegmentIndex {
         case 0:
-            settingsRows.isHidden = true
+            settings.settingsRows.isHidden = true
             resultsScroller.isHidden = false
             resultsScroller.flashScrollIndicators()
         default:
-            settingsRows.isHidden = false
+            settings.settingsRows.isHidden = false
             resultsScroller.isHidden = true
         }
     }
@@ -183,27 +171,27 @@ class ViewController: UIViewController {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
 
-        map.showsUserLocation = showUserLocation && LocomotionManager.highlander.recordingCoreLocation
+        map.showsUserLocation = settings.showUserLocation && LocomotionManager.highlander.recordingCoreLocation
 
-        let mapType: MKMapType = showSatelliteMap ? .hybrid : .standard
+        let mapType: MKMapType = settings.showSatelliteMap ? .hybrid : .standard
         if mapType != map.mapType {
             map.mapType = mapType
             setNeedsStatusBarAppearanceUpdate()
         }
         
-        if showRawLocations {
+        if settings.showRawLocations {
             addPath(locations: rawLocations, color: .red)
         }
         
-        if showFilteredLocations {
+        if settings.showFilteredLocations {
             addPath(locations: filteredLocations, color: .purple)
         }
         
-        if showLocomotionSamples {
+        if settings.showLocomotionSamples {
             addSamples(samples: locomotionSamples)
         }
         
-        if autoZoomMap {
+        if settings.autoZoomMap {
             zoomToShow(overlays: map.overlays)
         }
     }
@@ -229,7 +217,7 @@ class ViewController: UIViewController {
     
     // MARK: view tree building
     
-    func buildViewTree() {
+    func buildViewTree() {        
         view.addSubview(map)
         constrain(map) { map in
             map.top == map.superview!.top
@@ -264,7 +252,7 @@ class ViewController: UIViewController {
             clearButton.right == clearButton.superview!.right
         }
        
-        view.addSubview(settingsScroller)
+        view.addSubview(settings)
         view.addSubview(resultsScroller)
         view.addSubview(viewToggleBar)
         
@@ -281,7 +269,7 @@ class ViewController: UIViewController {
             scroller.bottom == viewToggleBar.top
         }
         
-        constrain(resultsScroller, settingsScroller) { resultsScroller, settingsScroller in
+        constrain(resultsScroller, settings) { resultsScroller, settingsScroller in
             settingsScroller.edges == resultsScroller.edges
         }
         
@@ -293,98 +281,6 @@ class ViewController: UIViewController {
             box.right == box.superview!.right - 16
             box.right == view.right - 16
         }
-        
-        settingsScroller.addSubview(settingsRows)
-        constrain(settingsRows, view) { box, view in
-            box.top == box.superview!.top
-            box.bottom == box.superview!.bottom
-            box.left == box.superview!.left + 8
-            box.right == box.superview!.right - 8
-            box.right == view.right - 8
-        }
-    }
-    
-    func buildSettingsViewTree() {
-        settingsRows.addGap(height: 24)
-        settingsRows.addHeading(title: "Map Style", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
-        
-        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: true) { isOn in
-            self.showUserLocation = isOn
-            self.updateTheMap()
-        }
-        settingsRows.addRow(views: [currentLocation])
-        
-        settingsRows.addUnderline()
-        
-        let satellite = ToggleBox(text: "Satellite map", toggleDefault: false) { isOn in
-            self.showSatelliteMap = isOn
-            self.updateTheMap()
-        }
-        let zoom = ToggleBox(text: "Auto zoom") { isOn in
-            self.autoZoomMap = isOn
-            self.updateTheMap()
-        }
-        settingsRows.addRow(views: [satellite, zoom])
-        
-        settingsRows.addGap(height: 18)
-        settingsRows.addHeading(title: "Map Data Overlays", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
-        
-        let raw = ToggleBox(dotColors: [.red], text: "Raw") { isOn in
-            self.showRawLocations = isOn
-            self.updateTheMap()
-        }
-        let smoothed = ToggleBox(dotColors: [.blue, .magenta], text: "Samples") { isOn in
-            self.showLocomotionSamples = isOn
-            self.visitsToggle?.isEnabled = isOn
-            self.visitsToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
-            self.updateTheMap()
-        }
-        settingsRows.addRow(views: [raw, smoothed])
-        
-        settingsRows.addUnderline()
-        
-        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered") { isOn in
-            self.showFilteredLocations = isOn
-            self.updateTheMap()
-        }
-        let visits = ToggleBox(dotColors: [.orange], text: "Visits") { isOn in
-            self.showStationaryCircles = isOn
-            self.updateTheMap()
-        }
-        settingsRows.addRow(views: [filtered, visits])
-        
-        visitsToggleBox = visits
-        visitsToggle = visits.toggle
-        
-        settingsRows.addGap(height: 18)
-        settingsRows.addHeading(title: "Activity Type Classifiers", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
-        
-        let classifierBox = ToggleBox(text: "Base types") { isOn in
-            self.baseClassifier = nil
-            self.transportClassifier = nil
-            self.enableTheClassifier = isOn
-            self.transportClassifierToggle?.isEnabled = isOn
-            self.transportClassifierToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
-            self.updateTheBaseClassifier()
-            self.updateTheTransportClassifier()
-        }
-        let extended = ToggleBox(text: "Transport") { isOn in
-            self.transportClassifier = nil
-            self.enableTransportClassifier = isOn
-            self.updateTheTransportClassifier()
-        }
-        settingsRows.addRow(views: [classifierBox, extended])
-        
-        transportClassifierToggleBox = extended
-        transportClassifierToggle = extended.toggle
-        
-        settingsRows.addGap(height: 18)
     }
     
     func buildResultsViewTree(sample: LocomotionSample? = nil) {
@@ -466,7 +362,7 @@ class ViewController: UIViewController {
                     }
                 }
                 
-            } else if enableTheClassifier {
+            } else if settings.enableTheClassifier {
                 resultsRows.addRow(leftText: "Fetching ML models...")
             } else {
                 resultsRows.addRow(leftText: "Classifier is turned off")
@@ -501,7 +397,7 @@ class ViewController: UIViewController {
                     }
                 }
                 
-            } else if enableTheClassifier && enableTransportClassifier {
+            } else if settings.enableTheClassifier && settings.enableTransportClassifier {
                 resultsRows.addRow(leftText: "Fetching ML models...")
             } else {
                 resultsRows.addRow(leftText: "Classifier is turned off")
@@ -565,7 +461,7 @@ class ViewController: UIViewController {
             addPath(locations: locations, color: .blue)
             
         case .stationary:
-            if showStationaryCircles {
+            if settings.showStationaryCircles {
                 addVisit(locations: locations)
             } else {
                 addPath(locations: locations, color: .orange)
@@ -604,28 +500,6 @@ class ViewController: UIViewController {
         let box = UIView()
         box.backgroundColor = UIColor(white: 0.85, alpha: 1)
         return box
-    }()
-    
-    lazy var settingsRows: UIStackView = {
-        let box = UIStackView()
-        box.axis = .vertical
-        box.isHidden = true
-        
-        let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        
-        box.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-        
-        return box
-    }()
-    
-    lazy var settingsScroller: UIScrollView = {
-        let scroller = UIScrollView()
-        scroller.alwaysBounceVertical = true
-        return scroller
     }()
     
     lazy var resultsRows: UIStackView = {
