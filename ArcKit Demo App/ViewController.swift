@@ -25,6 +25,7 @@ class ViewController: UIViewController {
     var showLocomotionSamples = true
     var showStationaryCircles = true
     var showSatelliteMap = false
+    var showUserLocation = true
     var autoZoomMap = true
     
     var enableTheClassifier = true
@@ -182,6 +183,8 @@ class ViewController: UIViewController {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
 
+        map.showsUserLocation = showUserLocation && LocomotionManager.highlander.recordingCoreLocation
+
         let mapType: MKMapType = showSatelliteMap ? .hybrid : .standard
         if mapType != map.mapType {
             map.mapType = mapType
@@ -261,7 +264,7 @@ class ViewController: UIViewController {
             clearButton.right == clearButton.superview!.right
         }
        
-        view.addSubview(settingsRows)
+        view.addSubview(settingsScroller)
         view.addSubview(resultsScroller)
         view.addSubview(viewToggleBar)
         
@@ -270,18 +273,16 @@ class ViewController: UIViewController {
             bar.left == bar.superview!.left
             bar.right == bar.superview!.right
         }
-        
-        constrain(topButtons, settingsRows) { topButtons, box in
-            box.top == topButtons.bottom
-            box.left == box.superview!.left + 8
-            box.right == box.superview!.right - 8
-        }
 
         constrain(topButtons, resultsScroller, viewToggleBar) { topButtons, scroller, viewToggleBar in
             scroller.top == topButtons.bottom
             scroller.left == scroller.superview!.left
             scroller.right == scroller.superview!.right
             scroller.bottom == viewToggleBar.top
+        }
+        
+        constrain(resultsScroller, settingsScroller) { resultsScroller, settingsScroller in
+            settingsScroller.edges == resultsScroller.edges
         }
         
         resultsScroller.addSubview(resultsRows)
@@ -292,12 +293,29 @@ class ViewController: UIViewController {
             box.right == box.superview!.right - 16
             box.right == view.right - 16
         }
+        
+        settingsScroller.addSubview(settingsRows)
+        constrain(settingsRows, view) { box, view in
+            box.top == box.superview!.top
+            box.bottom == box.superview!.bottom
+            box.left == box.superview!.left + 8
+            box.right == box.superview!.right - 8
+            box.right == view.right - 8
+        }
     }
     
     func buildSettingsViewTree() {
         settingsRows.addGap(height: 24)
         settingsRows.addHeading(title: "Map Style", alignment: .center)
         settingsRows.addGap(height: 6)
+        settingsRows.addUnderline()
+        
+        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: true) { isOn in
+            self.showUserLocation = isOn
+            self.updateTheMap()
+        }
+        settingsRows.addRow(views: [currentLocation])
+        
         settingsRows.addUnderline()
         
         let satellite = ToggleBox(text: "Satellite map", toggleDefault: false) { isOn in
@@ -365,6 +383,8 @@ class ViewController: UIViewController {
         
         transportClassifierToggleBox = extended
         transportClassifierToggle = extended.toggle
+        
+        settingsRows.addGap(height: 18)
     }
     
     func buildResultsViewTree(sample: LocomotionSample? = nil) {
@@ -600,6 +620,12 @@ class ViewController: UIViewController {
         }
         
         return box
+    }()
+    
+    lazy var settingsScroller: UIScrollView = {
+        let scroller = UIScrollView()
+        scroller.alwaysBounceVertical = true
+        return scroller
     }()
     
     lazy var resultsRows: UIStackView = {
