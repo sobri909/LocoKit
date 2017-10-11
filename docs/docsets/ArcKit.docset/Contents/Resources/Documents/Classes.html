@@ -13,7 +13,7 @@
     <a title="Classes  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">ArcKit Docs</a> (52% documented)</p>
+        <p><a href="index.html">ArcKit Docs</a> (59% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -31,6 +31,9 @@
             <a href="Classes.html">Classes</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Classes/ActivityTypeClassifier.html">ActivityTypeClassifier</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Classes/LocomotionManager.html">LocomotionManager</a>
               </li>
               <li class="nav-group-task">
@@ -41,6 +44,9 @@
           <li class="nav-group-name">
             <a href="Enums.html">Enumerations</a>
             <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Enums/ActivityTypeName.html">ActivityTypeName</a>
+              </li>
               <li class="nav-group-task">
                 <a href="Enums/MovingState.html">MovingState</a>
               </li>
@@ -94,6 +100,82 @@ common states and location over the sample period instead of a single specific m
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">LocomotionSample</span><span class="p">:</span> <span class="kt">NSObject</span><span class="p">,</span> <span class="kt">ActivityTypeClassifiable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit22ActivityTypeClassifierC"></a>
+                    <a name="//apple_ref/swift/Class/ActivityTypeClassifier" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC">ActivityTypeClassifier</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Activity Type Classifiers are Machine Learning Classifiers. Use an Activity Type Classifier to determine the
+<code><a href="Enums/ActivityTypeName.html">ActivityTypeName</a></code> of a <code><a href="Classes/LocomotionSample.html">LocomotionSample</a></code>.</p>
+<h2 id='supported-activity-types' class='heading'>Supported Activity Types</h2>
+<h4 id='base-types' class='heading'>Base Types</h4>
+<pre class="highlight plaintext"><code>stationary, transport, walking, running, cycling
+</code></pre>
+
+<p>Base types match one-to-one with <a href="https://developer.apple.com/documentation/coremotion/cmmotionactivity">Core Motion activity types</a>,
+with the exception of Core Motion&rsquo;s <q>automotive</q> being renamed to <q>transport</q> in ArcKit.</p>
+<h4 id='extended-types' class='heading'>Extended Types</h4>
+<pre class="highlight plaintext"><code>car, train, bus, motorcycle, airplane, boat
+</code></pre>
+
+<p>Extended types are a subset of the base <q>transport</q> type, allowing for more specific classification when enough
+local data is available.</p>
+<h2 id='region-specific-classifiers' class='heading'>Region Specific Classifiers</h2>
+
+<p>ArcKit provides geographical region specific machine learning data, with each classifier containing the data for a
+single region.</p>
+
+<p>Region specific classifiers allow for detecting activity types based on region specific characteristics, with much
+higher accuracy than iOS&rsquo;s built in Core Motion types detection. It also makes it possible to detect a greater number
+of activity types, for example distinguishing between travel by car or train.</p>
+
+<p>ArcKit&rsquo;s data regions are 0.1 by 0.1 lat/long degrees in size. Or in other words, roughly 100 kilometres by 100
+kilometres, or about the size of a small town or city or a single neighbourhood in a larger city.</p>
+
+<p>Larger cities might encompass anywhere from four to ten or more regions, thus allowing the classifers to accurately
+detect activity type differences within different areas of a single city.</p>
+<h2 id='multi-layered-model-data' class='heading'>Multi Layered Model Data</h2>
+
+<p>Because it is not possible to provide complete model data for every individual 100 km^2 region in the entire world,
+including oceans and deserts, ArcKit uses overlapping layers of model data, each with a different geographical range.</p>
+
+<p>It&rsquo;s easiest to think of the layers as map zoom levels, from whole world zoom level, to country/state zoom level, to
+town/neighbourhood zoom level.</p>
+
+<p>For an example of the model layers in use, consider a user going for a walk in a remote village that ArcKit lacks any
+town/neighbourhood level data for. Due to the lack of local data, the classifier will instead classify the walking
+samples against model data at country/state level. And if even that level of model data is unavailable, the classifier
+will fall back to using global scale model data. The end result being that the walking samples will still be
+accurately detected, even though no local walking data was available.</p>
+
+<p>Classifiers internally manage the model layers transparently, so in practice there is no need to have any awareness of
+them.</p>
+
+                        <a href="Classes/ActivityTypeClassifier.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ActivityTypeClassifier</span><span class="o">&lt;</span><span class="kt">C</span><span class="p">:</span> <span class="kt">MLModelSource</span><span class="o">&gt;</span><span class="p">:</span> <span class="kt">NSObject</span></code></pre>
 
                         </div>
                       </div>
@@ -182,7 +264,7 @@ you so desire. Doing so will result in extra <code><a href="Classes/LocomotionSa
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-10-09)</p>
+          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-10-11)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

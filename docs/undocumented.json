@@ -37,21 +37,42 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
-      "line": 9,
-      "symbol": "ActivityTypeName",
-      "symbol_kind": "source.lang.swift.decl.enum",
+      "line": 56,
+      "symbol": "ActivityTypeName.automotive",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
-      "line": 33,
+      "line": 83,
+      "symbol": "ActivityTypeName.baseTypes",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 84,
+      "symbol": "ActivityTypeName.transportTypes",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 85,
+      "symbol": "ActivityTypeName.allTypes",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
+      "line": 89,
       "symbol": "CoreMotionActivityTypeName",
       "symbol_kind": "source.lang.swift.decl.enum",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
-      "line": 45,
+      "line": 101,
       "symbol": "ActivityType",
       "symbol_kind": "source.lang.swift.decl.class",
       "warning": "undocumented"
@@ -65,30 +86,51 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": null,
-      "symbol": "ActivityTypeClassifier",
-      "symbol_kind": "source.lang.swift.decl.extension",
+      "line": 78,
+      "symbol": "ActivityTypeClassifier.parent",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": null,
-      "symbol": "ActivityTypeClassifier",
-      "symbol_kind": "source.lang.swift.decl.extension",
+      "line": 246,
+      "symbol": "ActivityTypeClassifier.lastUpdated",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": null,
-      "symbol": "ActivityTypeClassifier",
-      "symbol_kind": "source.lang.swift.decl.extension",
+      "line": 256,
+      "symbol": "ActivityTypeClassifier.lastFetched",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 12,
-      "symbol": "ActivityTypeClassifier",
-      "symbol_kind": "source.lang.swift.decl.class",
+      "line": 266,
+      "symbol": "ActivityTypeClassifier.isStale",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": 294,
+      "symbol": "ActivityTypeClassifier.classify(_:types:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": 370,
+      "symbol": "ActivityTypeClassifier.coverageScoreString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
+      "line": 392,
+      "symbol": "ActivityTypeClassifier.completenessScoreString",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
