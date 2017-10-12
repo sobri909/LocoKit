@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Enumerations  Reference</title>
+    <title>Structures  Reference</title>
     <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="css/highlight.css" />
     <meta charset='utf-8'>
@@ -10,7 +10,7 @@
     
   </head>
   <body>
-    <a title="Enumerations  Reference"></a>
+    <a title="Structures  Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="index.html">ArcKit Docs</a> (61% documented)</p>
@@ -21,7 +21,7 @@
       <p id="breadcrumbs">
         <a href="index.html">ArcKit Reference</a>
         <img id="carat" src="img/carat.png" />
-        Enumerations  Reference
+        Structures  Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -65,8 +65,8 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>Enumerations</h1>
-            <p>The following enumerations are available globally.</p>
+            <h1>Structures</h1>
+            <p>The following structures are available globally.</p>
 
           </section>
           <section class="section task-group-section">
@@ -75,9 +75,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:6ArcKit11MovingStateO"></a>
-                    <a name="//apple_ref/swift/Enum/MovingState" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit11MovingStateO">MovingState</a>
+                    <a name="/s:6ArcKit17ClassifierResultsV"></a>
+                    <a name="//apple_ref/swift/Struct/ClassifierResults" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit17ClassifierResultsV">ClassifierResults</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -85,61 +85,25 @@
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The device&rsquo;s location moving / stationary state at a point in time.</p>
-<h3 id='outdoor-accuracy' class='heading'>Outdoor Accuracy</h3>
+                        <p>The results of a call to <code>classify(_:types:)</code> on an <code><a href="Classes/ActivityTypeClassifier.html">ActivityTypeClassifier</a></code>.</p>
 
-<p>The slowest detectable moving speed varies depending on the accuracy of available location data, however under typical
-conditions the slowest detected moving speed is a slow walk (~3 km/h) while outdoors.</p>
-<h3 id='indoor-accuracy' class='heading'>Indoor Accuracy</h3>
+<p>Classifier Results are an iterable sequence of result rows (<code>ClassifierResultItem</code>), with each row representing a
+single <code><a href="Enums/ActivityTypeName.html">ActivityTypeName</a></code> and its match probability score.</p>
 
-<p>Most normal indoor movement will be classified as stationary, due to lack of GPS line of sight resulting in available
-location accuracy of 65 metres or worse. This has the side benefit of allowing indoor events to be clustered into
-distinct <q>visits</q>.</p>
-<h3 id='ibeacons' class='heading'>iBeacons</h3>
+<p>The results are ordered from best match to worst match, thus the first result row represents the best match activity
+type for the given sample. The simplest way to use the results is to take first result row and ignore the rest.</p>
+<h2 id='interpreting-classifier-results' class='heading'>Interpreting Classifier Results</h2>
 
-<p>A building fitted with multiple iBeacons may increase the available indoor location accuracy to as high as 5
-metres. In such an environment, indoor movement may be detectable with similar accuracy to outdoor movement.</p>
+<p>The probability scores of each result row range from 0.0 to 1.0, with 0.0 representing 0% match and 1.0 representing
+a 100% match.</p>
 
-                        <a href="Enums/MovingState.html" class="slightly-smaller">See more</a>
+                        <a href="Structs/ClassifierResults.html" class="slightly-smaller">See more</a>
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">MovingState</span><span class="p">:</span> <span class="kt">String</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:6ArcKit16ActivityTypeNameO"></a>
-                    <a name="//apple_ref/swift/Enum/ActivityTypeName" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit16ActivityTypeNameO">ActivityTypeName</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>The possible Activity Types for a Locomotion Sample. Use an <code><a href="Classes/ActivityTypeClassifier.html">ActivityTypeClassifier</a></code> to determine the type of a
-<code><a href="Classes/LocomotionSample.html">LocomotionSample</a></code>.</p>
-
-                        <a href="Enums/ActivityTypeName.html" class="slightly-smaller">See more</a>
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">ActivityTypeName</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ClassifierResults</span><span class="p">:</span> <span class="kt">Sequence</span><span class="p">,</span> <span class="kt">IteratorProtocol</span></code></pre>
 
                         </div>
                       </div>

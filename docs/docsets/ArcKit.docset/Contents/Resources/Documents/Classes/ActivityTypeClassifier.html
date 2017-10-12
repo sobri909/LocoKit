@@ -14,7 +14,7 @@
     <a title="ActivityTypeClassifier Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">ArcKit Docs</a> (60% documented)</p>
+        <p><a href="../index.html">ArcKit Docs</a> (61% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="../img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -53,6 +53,14 @@
               </li>
             </ul>
           </li>
+          <li class="nav-group-name">
+            <a href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ClassifierResults.html">ClassifierResults</a>
+              </li>
+            </ul>
+          </li>
         </ul>
       </nav>
       <article class="main-content">
@@ -85,30 +93,42 @@ local data is available.</p>
 <p>ArcKit provides geographical region specific machine learning data, with each classifier containing the data for a
 single region.</p>
 
-<p>Region specific classifiers allow for detecting activity types based on region specific characteristics, with much
-higher accuracy than iOS&rsquo;s built in Core Motion types detection. It also makes it possible to detect a greater number
-of activity types, for example distinguishing between travel by car or train.</p>
+<p>This allows for detecting activity types based on region specific characteristics, with much higher accuracy than
+iOS&rsquo;s built in Core Motion types detection. It also makes it possible to detect a greater number of activity types,
+for example distinguishing between travel by car or train.</p>
 
-<p>ArcKit&rsquo;s data regions are 0.1 by 0.1 lat/long degrees in size. Or in other words, roughly 100 kilometres by 100
-kilometres, or about the size of a small town or city or a single neighbourhood in a larger city.</p>
+<p>ArcKit&rsquo;s data regions are roughly 100 kilometres by 100 kilometres squared (0.1 by 0.1 degrees squared), or about the
+size of a small town or city or a single neighbourhood in a larger city.</p>
 
 <p>Larger cities might encompass anywhere from four to ten or more regions, thus allowing the classifers to accurately
 detect activity type differences within different areas of a single city.</p>
-<h2 id='multi-layered-model-data' class='heading'>Multi Layered Model Data</h2>
+<h2 id='determining-regional-coverage' class='heading'>Determining Regional Coverage</h2>
+<h4 id='stationary-transport-walking-running' class='heading'>Stationary, Transport, Walking, Running</h4>
 
-<p>Because it is not possible to provide complete model data for every individual 100 km^2 region in the entire world,
-including oceans and deserts, ArcKit uses overlapping layers of model data, each with a different geographical range.</p>
+<p>The base activity types of stationary, transport, walking, and running do not significantly differ by geographical
+region, thus should achieve high detection accuracy everywhere in the world, regardless of local data availability.</p>
 
-<p>It&rsquo;s easiest to think of the layers as map zoom levels, from entire world zoom level, to country/state zoom level, to
-town/neighbourhood zoom level.</p>
+<p>These types can be considered to have global coverage.</p>
+<h4 id='cycling' class='heading'>Cycling</h4>
 
-<p>For an example of the model layers in use, consider a user going for a walk in a remote village that ArcKit lacks any
-town/neighbourhood level data for. Due to the lack of local data, the classifier will instead classify the walking
-samples against model data at country/state level. And if even that level of model data is unavailable, the classifier
-will fall back to using global scale model data. The end result being that the walking samples will still be
-accurately detected, even though no local walking data was available.</p>
+<p>Cycling has enough regional variance in locomotive characteristics that detection accuracy can range from reasonable
+to excellent to depending on the availability of local model data.</p>
 
-<p>Classifiers internally manage the model layers, so in practice there is no need to have any awareness of them.</p>
+<p>If highly accurate cycling detection is important to your application, you should check the cycling coverage map for
+the regions you require. However if cycling detection is not a core function of your app, then the results from even
+low coverage classifiers should achieve adequate accuracy.</p>
+
+<ul>
+<li><a href="https://arc-web.herokuapp.com/coverage/cycling">https://arc-web.herokuapp.com/coverage/cycling</a></li>
+</ul>
+<h4 id='car-train-bus-motorcycle-airplane-boat' class='heading'>Car, Train, Bus, Motorcycle, Airplane, Boat</h4>
+
+<p>While the base <q>transport</q> type can be detected anywhere in the world with high accuracy, determining the specific
+mode of transport requires local knowledge.</p>
+
+<ul>
+<li><a href="https://arc-web.herokuapp.com/coverage/transport">https://arc-web.herokuapp.com/coverage/transport</a></li>
+</ul>
 
           </section>
           <section class="section task-group-section">
@@ -204,7 +224,7 @@ and classifying potentially hours of data each day.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">classify</span><span class="p">(</span><span class="n">_</span> <span class="nv">classifiable</span><span class="p">:</span> <span class="kt">ActivityTypeClassifiable</span><span class="p">,</span> <span class="nv">types</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">ClassifierResults</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">classify</span><span class="p">(</span><span class="n">_</span> <span class="nv">classifiable</span><span class="p">:</span> <span class="kt">ActivityTypeClassifiable</span><span class="p">,</span> <span class="nv">types</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/ClassifierResults.html">ClassifierResults</a></span></code></pre>
 
                         </div>
                       </div>
@@ -318,8 +338,9 @@ used to classify a sample, or whether a fresh classifier should instead be used.
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Coverage Score is the result of <code>completenessScore * accuracyScore</code>. This value is best used to get a general
-sense of the expected quality and usability of the classifier&rsquo;s results.</p>
+                        <p>Coverage Score is the result of <code>completenessScore * accuracyScore</code>, in the range of 0.0 to 1.0.</p>
+
+<p>This value is best used to get a general sense of the expected quality and usability of the classifier&rsquo;s results.</p>
 
 <p>In practice, any score above 0.15 indicates a usable classifier in terms of local model data, however you should
 experiment with a range of thresholds to determine a best fit minimum for your app&rsquo;s accuracy requirements.</p>
@@ -339,41 +360,6 @@ experiment with a range of thresholds to determine a best fit minimum for your a
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:6ArcKit22ActivityTypeClassifierC17completenessScoreSdv"></a>
-                    <a name="//apple_ref/swift/Property/completenessScore" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC17completenessScoreSdv">completenessScore</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Completeness Score is a measure of the number of individual samples used to compose the model data versus
-the minimum sample count necessary to produce reasonable machine learning classifying results.</p>
-
-<p>The value is the average <code>completenessScore</code> of each activity type in the classifier. Thus a classifier that
-contains three activity types with individual completenessScores of <code>1.0</code>, <code>0.5</code>, and <code>0.0</code> will have a
-completenessScore of <code>0.5</code>.</p>
-
-<p>A perfect 1.0 classifier completenessScore is rarely possible. For example a <code>baseTypes</code> classifier in a region
-where people rarely ever run or cycle might have</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">lazy</span> <span class="k">var</span> <span class="nv">completenessScore</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
                     <a name="/s:6ArcKit22ActivityTypeClassifierC13accuracyScoreSdSgv"></a>
                     <a name="//apple_ref/swift/Property/accuracyScore" class="dashAnchor"></a>
                     <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC13accuracyScoreSdSgv">accuracyScore</a>
@@ -384,7 +370,17 @@ where people rarely ever run or cycle might have</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Accuracy Score is the expected minimum accuracy of the clasifier&rsquo;s results.</p>
+                        <p>Accuracy Score is the expected minimum accuracy of the clasifier&rsquo;s results, in the range of 0.0 to 1.0.</p>
+
+<p>This value should not be used directly. Instead you should use <code>coverageStore</code> to determine the usability of a
+classifier.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    This number represents the worst case accuracy, so in practice, the achieved accuracy will typically be
+considerably higher than this value. A classifier with an Accuracy Score above 0.75 should appear to give
+essentially perfect results in most cases.
+
+</div>
 
                       </div>
                       <div class="declaration">
@@ -392,6 +388,37 @@ where people rarely ever run or cycle might have</p>
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight"><code><span class="kd">public</span> <span class="kd">lazy</span> <span class="k">var</span> <span class="nv">accuracyScore</span><span class="p">:</span> <span class="kt">Double</span><span class="p">?</span> <span class="o">=</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit22ActivityTypeClassifierC17completenessScoreSdv"></a>
+                    <a name="//apple_ref/swift/Property/completenessScore" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC17completenessScoreSdv">completenessScore</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Completeness Score is an internal measure of the number of training samples used to compose the model versus
+a threshold sample count.</p>
+
+<p>This value should not be used directly. Instead you should use <code>coverageStore</code> to determine the usability of a
+classifier.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">lazy</span> <span class="k">var</span> <span class="nv">completenessScore</span><span class="p">:</span> <span class="kt">Double</span> <span class="o">=</span></code></pre>
 
                         </div>
                       </div>
