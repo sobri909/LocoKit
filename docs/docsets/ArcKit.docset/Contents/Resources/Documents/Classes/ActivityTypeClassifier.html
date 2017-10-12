@@ -14,7 +14,7 @@
     <a title="ActivityTypeClassifier Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">ArcKit Docs</a> (59% documented)</p>
+        <p><a href="../index.html">ArcKit Docs</a> (60% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="../img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -99,7 +99,7 @@ detect activity type differences within different areas of a single city.</p>
 <p>Because it is not possible to provide complete model data for every individual 100 km^2 region in the entire world,
 including oceans and deserts, ArcKit uses overlapping layers of model data, each with a different geographical range.</p>
 
-<p>It&rsquo;s easiest to think of the layers as map zoom levels, from whole world zoom level, to country/state zoom level, to
+<p>It&rsquo;s easiest to think of the layers as map zoom levels, from entire world zoom level, to country/state zoom level, to
 town/neighbourhood zoom level.</p>
 
 <p>For an example of the model layers in use, consider a user going for a walk in a remote village that ArcKit lacks any
@@ -108,8 +108,7 @@ samples against model data at country/state level. And if even that level of mod
 will fall back to using global scale model data. The end result being that the walking samples will still be
 accurately detected, even though no local walking data was available.</p>
 
-<p>Classifiers internally manage the model layers transparently, so in practice there is no need to have any awareness of
-them.</p>
+<p>Classifiers internally manage the model layers, so in practice there is no need to have any awareness of them.</p>
 
           </section>
           <section class="section task-group-section">
@@ -136,6 +135,11 @@ them.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Use this init method to create a new classifier.</p>
+
+<p>The classifier will be created from locally cached model data. If no appropriate model data is found in cache,
+a fetch request will be made to the server, and the init will immediately return nil. Assuming an internet
+connection is available, a second attempt to create the classifier, a second later, should return a valid
+classifier.</p>
 <div class="aside aside-note">
     <p class="aside-title">Note</p>
     Classifiers should be retained and reused. Classifier creation requires potentially expensive cache
@@ -151,6 +155,139 @@ basis, and existing classifiers should be reused while still valid.
                           <p class="aside-title">Swift</p>
                           <pre class="highlight"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">requestedTypes</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span><span class="p">]</span> <span class="o">=</span> <span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span><span class="o">.</span><span class="n">baseTypes</span><span class="p">,</span>
                              <span class="nv">coordinate</span><span class="p">:</span> <span class="kt">CLLocationCoordinate2D</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Classifying%20Samples"></a>
+                <a name="//apple_ref/swift/Section/Classifying Samples" class="dashAnchor"></a>
+                <a href="#/Classifying%20Samples">
+                  <h3 class="section-name">Classifying Samples</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit22ActivityTypeClassifierC8classifyAA0E7ResultsVAA0cD12Classifiable_p_SayAA0cD4NameOGSg5typestF"></a>
+                    <a name="//apple_ref/swift/Method/classify(_:types:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC8classifyAA0E7ResultsVAA0cD12Classifiable_p_SayAA0cD4NameOGSg5typestF">classify(_:types:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Classify a <code><a href="../Classes/LocomotionSample.html">LocomotionSample</a></code> to determine its most likely <code><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></code>.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    <p>This method is the main purpose of classifiers, and is optimised with the expectation that it will called
+repeatedly during an app session. Although there is unavoidably some energy cost to classifying samples,
+so the frequency of classifications should be considered carefully, especially in long running apps.</p>
+
+<p>For example, the ArcKit Demo App calls a classifier every time a new location is received, thus up to about
+once every second. On the other hand, <a href="https://itunes.apple.com/us/app/arc-app-location-activity-tracker/id1063151918?mt=8">Arc App</a>
+classifies samples only once every six seconds at most, due to the expectation that the app will be recording
+and classifying potentially hours of data each day.</p>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">classify</span><span class="p">(</span><span class="n">_</span> <span class="nv">classifiable</span><span class="p">:</span> <span class="kt">ActivityTypeClassifiable</span><span class="p">,</span> <span class="nv">types</span><span class="p">:</span> <span class="p">[</span><span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span><span class="p">]?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">ClassifierResults</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Classifier%20Validity"></a>
+                <a name="//apple_ref/swift/Section/Classifier Validity" class="dashAnchor"></a>
+                <a href="#/Classifier%20Validity">
+                  <h3 class="section-name">Classifier Validity</h3>
+                </a>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit22ActivityTypeClassifierC8containsSbSC22CLLocationCoordinate2DV10coordinate_tF"></a>
+                    <a name="//apple_ref/swift/Method/contains(coordinate:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC8containsSbSC22CLLocationCoordinate2DV10coordinate_tF">contains(coordinate:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Determine whether the given coordinate is inside the classifier&rsquo;s geographical region.</p>
+
+<p>This method works well in combination with <code><a href="../Classes/ActivityTypeClassifier.html#/s:6ArcKit22ActivityTypeClassifierC7isStaleSbv">isStale</a></code> as a test for whether a classifier should be used to classify
+a sample, or whether a fresh classifier should instead be requested.</p>
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    <p>Ideally classifiers should only be used to classify samples that fall inside the classifier&rsquo;s region.
+However if relevant model data is in the local cache and no internet connection is available, thus a fresh
+classifier cannot be fetched, a stale and/or geographically inappropriate classifier may continue to be used,
+albeit with potentially reduced accuracy.</p>
+
+<p>Extended transport activity types (car, train, etc) will have especially inaccurate results when classified
+by a geographically inappropriate classifier. However base types (walking, running, etc) should receive
+adequately accurate results in any classifier, regardless of geographical appropriateness.</p>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">contains</span><span class="p">(</span><span class="nv">coordinate</span><span class="p">:</span> <span class="kt">CLLocationCoordinate2D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6ArcKit22ActivityTypeClassifierC7isStaleSbv"></a>
+                    <a name="//apple_ref/swift/Property/isStale" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC7isStaleSbv">isStale</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Whether the classifier&rsquo;s model data is old enough to justify requesting a new classifier with fresh model data.</p>
+
+<p>This bool works well in combination with <code><a href="../Classes/ActivityTypeClassifier.html#/s:6ArcKit22ActivityTypeClassifierC8containsSbSC22CLLocationCoordinate2DV10coordinate_tF">contains(coordinate:)</a></code> as a test for whether a classifier should be
+used to classify a sample, or whether a fresh classifier should instead be used.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isStale</span><span class="p">:</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
                       </div>
@@ -182,10 +319,10 @@ basis, and existing classifiers should be reused while still valid.
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Coverage Score is the result of <code>completenessScore * accuracyScore</code>. This value is best used to get a general
-sense of the quality and usability of the classifier&rsquo;s data.</p>
+sense of the expected quality and usability of the classifier&rsquo;s results.</p>
 
-<p>In practice, any score above 0.15 indicates a usable classifier, however you should experiment with a range of
-thresholds to determine a best fit minimum for your app&rsquo;s accuracy requirements.</p>
+<p>In practice, any score above 0.15 indicates a usable classifier in terms of local model data, however you should
+experiment with a range of thresholds to determine a best fit minimum for your app&rsquo;s accuracy requirements.</p>
 
                       </div>
                       <div class="declaration">
@@ -212,7 +349,7 @@ thresholds to determine a best fit minimum for your app&rsquo;s accuracy require
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>Completeness Score is a measure of the number of individual samples used to compose the model versus
+                        <p>Completeness Score is a measure of the number of individual samples used to compose the model data versus
 the minimum sample count necessary to produce reasonable machine learning classifying results.</p>
 
 <p>The value is the average <code>completenessScore</code> of each activity type in the classifier. Thus a classifier that
@@ -263,51 +400,10 @@ where people rarely ever run or cycle might have</p>
                 </li>
               </ul>
             </div>
-            <div class="task-group">
-              <ul>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:6ArcKit22ActivityTypeClassifierC8containsSbSC22CLLocationCoordinate2DV10coordinate_tF"></a>
-                    <a name="//apple_ref/swift/Method/contains(coordinate:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit22ActivityTypeClassifierC8containsSbSC22CLLocationCoordinate2DV10coordinate_tF">contains(coordinate:)</a>
-                    </code>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Determine whether the given coordinate is inside the classifier&rsquo;s geographical region.</p>
-<div class="aside aside-note">
-    <p class="aside-title">Note</p>
-    <p>Ideally, classifiers should only be used to classify samples that fall inside the classifier&rsquo;s region.
-However classifiers will still return usable results for samples outside of their region, albeit with
-potentially reduced accuracy.</p>
-
-<p>Extended transport activity types (car, train, etc) will have especially inaccurate results when classified
-by a geographically inappropriate classifier. However base types (walking, running, etc) will fair better.</p>
-
-</div>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">contains</span><span class="p">(</span><span class="nv">coordinate</span><span class="p">:</span> <span class="kt">CLLocationCoordinate2D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
-
-                        </div>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-10-11)</p>
+          <p>&copy; 2017 <a class="link" href="https://github.com/sobri909/ArcKit" target="_blank" rel="external">Matt Greenfield</a>. All rights reserved. (Last updated: 2017-10-12)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.8.4</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

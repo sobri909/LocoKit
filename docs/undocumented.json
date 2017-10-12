@@ -86,49 +86,35 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 78,
+      "line": 77,
       "symbol": "ActivityTypeClassifier.parent",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 246,
+      "line": 277,
       "symbol": "ActivityTypeClassifier.lastUpdated",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 256,
+      "line": 287,
       "symbol": "ActivityTypeClassifier.lastFetched",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 266,
-      "symbol": "ActivityTypeClassifier.isStale",
-      "symbol_kind": "source.lang.swift.decl.var.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 294,
-      "symbol": "ActivityTypeClassifier.classify(_:types:)",
-      "symbol_kind": "source.lang.swift.decl.function.method.instance",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 370,
+      "line": 393,
       "symbol": "ActivityTypeClassifier.coverageScoreString",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 392,
+      "line": 415,
       "symbol": "ActivityTypeClassifier.completenessScoreString",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
