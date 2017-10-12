@@ -58,35 +58,35 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 88,
+      "line": 90,
       "symbol": "ActivityTypeClassifier.parent",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 288,
+      "line": 290,
       "symbol": "ActivityTypeClassifier.lastUpdated",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 298,
+      "line": 300,
       "symbol": "ActivityTypeClassifier.lastFetched",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 407,
+      "line": 409,
       "symbol": "ActivityTypeClassifier.coverageScoreString",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeClassifier.swift",
-      "line": 429,
+      "line": 431,
       "symbol": "ActivityTypeClassifier.completenessScoreString",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
@@ -114,56 +114,56 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 29,
+      "line": 38,
       "symbol": "ClassifierResults.moreComing",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 31,
+      "line": 40,
       "symbol": "ClassifierResults.init(results:moreComing:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 40,
+      "line": 49,
       "symbol": "ClassifierResults.array",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 44,
+      "line": 53,
       "symbol": "ClassifierResults.count",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 48,
+      "line": 57,
       "symbol": "ClassifierResults.first",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 66,
+      "line": 75,
       "symbol": "ClassifierResultItem",
       "symbol_kind": "source.lang.swift.decl.struct",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 84,
+      "line": 93,
       "symbol": "+(_:_:)",
       "symbol_kind": "source.lang.swift.decl.function.free",
       "warning": "undocumented"
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ClassifierResults.swift",
-      "line": 88,
+      "line": 97,
       "symbol": "-(_:_:)",
       "symbol_kind": "source.lang.swift.decl.function.free",
       "warning": "undocumented"
