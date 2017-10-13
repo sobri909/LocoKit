@@ -10,5 +10,4 @@ classifiers correctly detecting that I'm stationary at home, then walking around
 
 | Stationary | Walking | 
 | ---------- | ------- |
-| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/stationary.png) 
- | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/walking.png) | 
+| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/stationary.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/walking.png) | 

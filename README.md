@@ -5,8 +5,8 @@ A location and activity recording framework for iOS.
 ## Features
 
 - Dynamic location data [filtering](https://en.wikipedia.org/wiki/Kalman_filter) and smoothing 
-- High resolution, near real time stationary / moving state detection 
 - Core Motion data filtering and sanitising
+- Near real time stationary / moving state detection 
 - High accuracy activity type detection (stationary, walking, running, cycling, car, train, bus,
   motorcycle, airplane, boat)
 - Dynamic GPS energy use management
