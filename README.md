@@ -2,42 +2,23 @@
 
 A location and activity recording framework for iOS.
 
-## Demo App Examples 
-
-### Short Walk Between Nearby Buildings
-
-| Raw (red) + Smoothed (blue) | Smoothed (blue) + Visits (orange) | Smoothed (blue) + Visits (orange) |
-| --------------------------- | --------------------------------- | --------------------------------- |
-| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/raw_plus_smoothed.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/smoothed_only.png) |
-
-The blue segments indicate locations that ArcKit determined to be moving. The orange segments indicate stationary. Note
-that locations inside buildings are more likely to classified as stationary, thus allowing location data to be more 
-easily clustered into "visits".
-
-### Tuk-tuk Ride Through Traffic in Built-up City Area 
-
-| Raw Locations | Smoothed (blue) + Stuck (orange) | Smoothed (blue) + Stuck (orange) |
-| ------------- | -------------------------------- | -------------------------------- |
-| ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_raw.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_smoothed_plus_visits.png) | ![](https://raw.githubusercontent.com/sobri909/ArcKit/master/Screenshots/tuktuk_smoothed.png) |
-
-Location accuracy for this trip ranged from 30 to 100 metres, with minimal GPS line of sight and
-significant "urban canyon" effects (GPS blocked on both sides by tall buildings and blocked from above by an elevated 
-rail line). However stationary / moving state detection was still achieved to an accuracy of 5 to 10 metres. 
-
-**Note:** The orange dots in the second screenshot indicate "stuck in traffic". The third screenshot shows the "stuck" 
-segments as paths, for easier inspection. 
-
 ## Features
 
-- Raw locations, [Kalman filtered](https://en.wikipedia.org/wiki/Kalman_filter) locations, and dynamically smoothed 
-[LocomotionSamples](https://sobri909.github.io/ArcKit/Classes/LocomotionSample.html) (combined location / motion / 
-activity state objects)
-- High resolution, near real time stationary / moving state detection (with accuracy up to 5 metres, and reporting 
-delay between 6 and 60 seconds)
-- Dynamic energy use management, to achieve best possible accuracy without wasteful battery consumption
-- Filtered and sanitised Core Motion accelerometer, pedometer, and activity type data
-- **Coming in next release:** Machine learning based activity type detection with significantly higher accuracy than 
-Core Motion, and ability to distinguish between more activity types (car, train, bus, and more). 
+- Dynamic location data [filtering](https://en.wikipedia.org/wiki/Kalman_filter) and smoothing 
+- High resolution, near real time stationary / moving state detection 
+- Core Motion data filtering and sanitising
+- High accuracy activity type detection (stationary, walking, running, cycling, car, train, bus,
+  motorcycle, airplane, boat)
+- Dynamic GPS energy use management
+
+## Documentation 
+
+- [ArcKit API Reference](https://sobri909.github.io/ArcKit/)
+
+## Examples
+
+- [Location filtering 
+  examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
 
 ## Installation
 
@@ -46,13 +27,13 @@ Core Motion, and ability to distinguish between more activity types (car, train,
 ## Demo Apps
 
 - To run the demo app from this repository, do a `pod install` before building
-- To see the full SDK features in action in a production app (including as yet unreleased machine learning 
-features) try [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) on the App 
-Store
+- To see the full SDK features in action in a production app try
+  [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) 
+  on the App Store
 
 ## Code Example 
 
-See the demo app source in this repo for more complete code examples.
+See the ArcKit Demo App source in this repo for more complete code examples.
 
 ```swift
 let locoManager = LocomotionManager.highlander
@@ -68,9 +49,6 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: qu
 
 // start recording
 locoManager.startCoreLocation()
+locoManager.startCoreMotion()
 ```
-
-## Documentation 
-
-- [ArcKit API Reference](https://sobri909.github.io/ArcKit/)
 
