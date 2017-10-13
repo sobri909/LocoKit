@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>MovingState Enumeration Reference</title>
+    <title>ClassifierResultItem Structure Reference</title>
     <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
     <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
     <meta charset='utf-8'>
@@ -10,8 +10,8 @@
     
   </head>
   <body>
-    <a name="//apple_ref/swift/Enum/MovingState" class="dashAnchor"></a>
-    <a title="MovingState Enumeration Reference"></a>
+    <a name="//apple_ref/swift/Struct/ClassifierResultItem" class="dashAnchor"></a>
+    <a title="ClassifierResultItem Structure Reference"></a>
     <header>
       <div class="content-wrapper">
         <p><a href="../index.html">ArcKit Docs</a> (64% documented)</p>
@@ -22,7 +22,7 @@
       <p id="breadcrumbs">
         <a href="../index.html">ArcKit Reference</a>
         <img id="carat" src="../img/carat.png" />
-        MovingState Enumeration Reference
+        ClassifierResultItem Structure Reference
       </p>
     </div>
     <div class="content-wrapper">
@@ -69,27 +69,14 @@
       <article class="main-content">
         <section>
           <section class="section">
-            <h1>MovingState</h1>
+            <h1>ClassifierResultItem</h1>
               <div class="declaration">
                 <div class="language">
-                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">MovingState</span><span class="p">:</span> <span class="kt">String</span></code></pre>
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ClassifierResultItem</span><span class="p">:</span> <span class="kt">Equatable</span></code></pre>
 
                 </div>
               </div>
-            <p>The device&rsquo;s location moving / stationary state at a point in time.</p>
-<h3 id='outdoor-accuracy' class='heading'>Outdoor Accuracy</h3>
-
-<p>The slowest detectable moving speed varies depending on the accuracy of available location data, however under typical
-conditions the slowest detected moving speed is a slow walk (~3 km/h) while outdoors.</p>
-<h3 id='indoor-accuracy' class='heading'>Indoor Accuracy</h3>
-
-<p>Most normal indoor movement will be classified as stationary, due to lack of GPS line of sight resulting in available
-location accuracy of 65 metres or worse. This has the side benefit of allowing indoor events to be clustered into
-distinct <q>visits</q>.</p>
-<h3 id='ibeacons' class='heading'>iBeacons</h3>
-
-<p>A building fitted with multiple iBeacons may increase the available indoor location accuracy to as high as 5
-metres. In such an environment, indoor movement may be detectable with similar accuracy to outdoor movement.</p>
+            <p>An individual result row in a <code><a href="../Structs/ClassifierResults.html">ClassifierResults</a></code> instance, for a single activity type.</p>
 
           </section>
           <section class="section task-group-section">
@@ -98,9 +85,9 @@ metres. In such an environment, indoor movement may be detectable with similar a
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:6ArcKit11MovingStateO6movingA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/moving" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit11MovingStateO6movingA2CmF">moving</a>
+                    <a name="/s:6ArcKit20ClassifierResultItemV4nameAA16ActivityTypeNameOv"></a>
+                    <a name="//apple_ref/swift/Property/name" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit20ClassifierResultItemV4nameAA16ActivityTypeNameOv">name</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -108,30 +95,26 @@ metres. In such an environment, indoor movement may be detectable with similar a
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The device has been determined to be moving between places, based on available location data.</p>
+                        <p>The activity type name for the result.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">moving</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">name</span><span class="p">:</span> <span class="kt"><a href="../Enums/ActivityTypeName.html">ActivityTypeName</a></span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:6ArcKit11MovingStateO10stationaryA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/stationary" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit11MovingStateO10stationaryA2CmF">stationary</a>
+                    <a name="/s:6ArcKit20ClassifierResultItemV5scoreSdv"></a>
+                    <a name="//apple_ref/swift/Property/score" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit20ClassifierResultItemV5scoreSdv">score</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -139,31 +122,26 @@ metres. In such an environment, indoor movement may be detectable with similar a
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The device has been determined to be either stationary, or moving slower than the slowest currently detectable 
-moving speed.</p>
+                        <p>The match probability score for the result, in the range of 0.0 to 1.0 (0% match to 100% match).</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">stationary</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">score</span><span class="p">:</span> <span class="kt">Double</span></code></pre>
 
                         </div>
                       </div>
                     </section>
                   </div>
                 </li>
-              </ul>
-            </div>
-            <div class="task-group">
-              <ul>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:6ArcKit11MovingStateO9uncertainA2CmF"></a>
-                    <a name="//apple_ref/swift/Element/uncertain" class="dashAnchor"></a>
-                    <a class="token" href="#/s:6ArcKit11MovingStateO9uncertainA2CmF">uncertain</a>
+                    <a name="/s:6ArcKit20ClassifierResultItemV2eeoiSbAC_ACtFZ"></a>
+                    <a name="//apple_ref/swift/Method/==(_:_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit20ClassifierResultItemV2eeoiSbAC_ACtFZ">==(_:_:)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -171,17 +149,14 @@ moving speed.</p>
                     <section class="section">
                       <div class="pointer"></div>
                       <div class="abstract">
-                        <p>The device&rsquo;s moving / stationary state could not be confidently determined.</p>
-
-<p>This state can occur either due to no available location data, or the available location data falling below 
-necessary quality or quantity thresholds.</p>
+                        <p>Result items are considered equal if they have matching <code><a href="../Structs/ClassifierResultItem.html#/s:6ArcKit20ClassifierResultItemV4nameAA16ActivityTypeNameOv">name</a></code> values.</p>
 
                       </div>
                       <div class="declaration">
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight"><code><span class="k">case</span> <span class="n">uncertain</span></code></pre>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="o">==</span><span class="p">(</span><span class="nv">lhs</span><span class="p">:</span> <span class="kt">ClassifierResultItem</span><span class="p">,</span> <span class="nv">rhs</span><span class="p">:</span> <span class="kt">ClassifierResultItem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
 
                         </div>
                       </div>

@@ -14,7 +14,7 @@
     <a title="ActivityTypeClassifier Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">ArcKit Docs</a> (61% documented)</p>
+        <p><a href="../index.html">ArcKit Docs</a> (64% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="../img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -56,6 +56,9 @@
           <li class="nav-group-name">
             <a href="../Structs.html">Structures</a>
             <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="../Structs/ClassifierResultItem.html">ClassifierResultItem</a>
+              </li>
               <li class="nav-group-task">
                 <a href="../Structs/ClassifierResults.html">ClassifierResults</a>
               </li>
@@ -103,6 +106,11 @@ a small town, or a single neighbourhood in a larger city.</p>
 <p>Larger cities might encompass anywhere from four to ten or more classifier regions, thus allowing the classifers to
 accurately detect activity type differences within different areas of a single city.</p>
 <h2 id='determining-regional-coverage' class='heading'>Determining Regional Coverage</h2>
+
+<ul>
+<li><a href="https://arc-web.herokuapp.com/coverage/transport">ArcKit transport coverage maps</a></li>
+<li><a href="https://arc-web.herokuapp.com/coverage/cycling">ArcKit cycling coverage maps</a></li>
+</ul>
 <h4 id='stationary-transport-walking-running' class='heading'>Stationary, Transport, Walking, Running</h4>
 
 <p>The base activity types of stationary, transport, walking, and running do not significantly differ by geographical
@@ -118,19 +126,11 @@ to average depending on the availability of local model data.</p>
 for the regions you require. However if cycling detection is not a core function of your app, then the results from
 even low coverage classifiers should achieve adequate accuracy, and will certainly exceed the accuracy of Core
 Motion&rsquo;s detection.</p>
-
-<ul>
-<li><a href="https://arc-web.herokuapp.com/coverage/cycling">ArcKit cycling coverage</a></li>
-</ul>
 <h4 id='car-train-bus-motorcycle-airplane-boat' class='heading'>Car, Train, Bus, Motorcycle, Airplane, Boat</h4>
 
 <p>While the base <q>transport</q> type can be detected anywhere in the world with high accuracy, determining the specific
 mode of transport requires local knowledge. If knowing the specific mode of transport is important to your
 application, you should check the coverage maps for your required regions.</p>
-
-<ul>
-<li><a href="https://arc-web.herokuapp.com/coverage/transport">ArcKit transport coverage</a></li>
-</ul>
 
           </section>
           <section class="section task-group-section">
@@ -378,9 +378,9 @@ experiment with a range of thresholds to determine a best fit minimum for your a
 classifier.</p>
 <div class="aside aside-note">
     <p class="aside-title">Note</p>
-    This number represents the worst case accuracy, so in practice, the achieved accuracy will typically be
-considerably higher than this value. A classifier with an Accuracy Score above 0.75 should appear to give
-essentially perfect results in most cases.
+    This number represents the worst case accuracy. The achieved accuracy will typically be considerably
+higher than this value. A classifier with an Accuracy Score above 0.75 will appear to give essentially
+perfect results in most cases.
 
 </div>
 

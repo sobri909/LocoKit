@@ -13,7 +13,7 @@
     <a title="Structures  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">ArcKit Docs</a> (61% documented)</p>
+        <p><a href="index.html">ArcKit Docs</a> (64% documented)</p>
         <p class="header-right"><a href="https://github.com/sobri909/ArcKit"><img src="img/gh.png"/>View on GitHub</a></p>
       </div>
     </header>
@@ -56,6 +56,9 @@
             <a href="Structs.html">Structures</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
+                <a href="Structs/ClassifierResultItem.html">ClassifierResultItem</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Structs/ClassifierResults.html">ClassifierResults</a>
               </li>
             </ul>
@@ -75,6 +78,38 @@
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:6ArcKit20ClassifierResultItemV"></a>
+                    <a name="//apple_ref/swift/Struct/ClassifierResultItem" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6ArcKit20ClassifierResultItemV">ClassifierResultItem</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An individual result row in a <code><a href="Structs/ClassifierResults.html">ClassifierResults</a></code> instance, for a single activity type.</p>
+
+                        <a href="Structs/ClassifierResultItem.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">ClassifierResultItem</span><span class="p">:</span> <span class="kt">Equatable</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:6ArcKit17ClassifierResultsV"></a>
                     <a name="//apple_ref/swift/Struct/ClassifierResults" class="dashAnchor"></a>
                     <a class="token" href="#/s:6ArcKit17ClassifierResultsV">ClassifierResults</a>
@@ -87,11 +122,33 @@
                       <div class="abstract">
                         <p>The results of a call to <code>classify(_:types:)</code> on an <code><a href="Classes/ActivityTypeClassifier.html">ActivityTypeClassifier</a></code>.</p>
 
-<p>Classifier Results are an iterable sequence of result rows (<code>ClassifierResultItem</code>), with each row representing a
-single <code><a href="Enums/ActivityTypeName.html">ActivityTypeName</a></code> and its match probability score.</p>
+<p>Classifier Results are an iterable sequence of <code><a href="Structs/ClassifierResultItem.html">ClassifierResultItem</a></code> rows, with each row representing a single
+<code><a href="Enums/ActivityTypeName.html">ActivityTypeName</a></code> and its match probability score.</p>
 
 <p>The results are ordered from best match to worst match, thus the first result row represents the best match for the
-given sample. The simplest way to use the results is to take the first result row and ignore the rest.</p>
+given sample.</p>
+<h2 id='using-the-results' class='heading'>Using The Results</h2>
+
+<p>The simplest way to use the results is to take the first result row (ie the best match) and ignore the rest.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">results</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="nf">classify</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+
+<span class="k">let</span> <span class="nv">bestMatch</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">first</span>
+</code></pre>
+
+<p>You could also iterate through the results, in order from best match to worst match.</p>
+<pre class="highlight swift"><code><span class="k">for</span> <span class="n">result</span> <span class="k">in</span> <span class="n">results</span> <span class="p">{</span>
+    <span class="nf">print</span><span class="p">(</span><span class="s">"name: </span><span class="se">\(</span><span class="n">result</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s"> score: </span><span class="se">\(</span><span class="n">result</span><span class="o">.</span><span class="n">score</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>If you want to know the probability score of a specific type, you could extract that result row by <code><a href="Enums/ActivityTypeName.html">ActivityTypeName</a></code>:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">walkingResult</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="o">.</span><span class="n">walking</span><span class="p">]</span>
+</code></pre>
+
+<p>If you want the first and second result rows:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">firstResult</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">let</span> <span class="nv">secondResult</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</code></pre>
 <h2 id='interpreting-classifier-results' class='heading'>Interpreting Classifier Results</h2>
 
 <p>Two key indicators can help to interpret the probability scores. The first being the most obvious: a higher score
@@ -100,14 +157,22 @@ indicates a better match.</p>
 <p>The second, and perhaps more important indicator, is the ratio of the best match&rsquo;s score to the second best match&rsquo;s
 score.</p>
 
-<p>For example if the first result row has a probability score of 0.9 while the second result row&rsquo;s score is 0.1, that
-indicates that the best match is nine times more probable than the second best match (<code>0.9 / 0.1 = 9.0</code>). However if
-the second row&rsquo;s score where instead 0.8, the first row would only be 1.125 times more probable than the second
-(<code>0.9 / 0.8 = 1.125</code>).</p>
+<p>For example if the first result row has a probability score of 0.9 (a 90% match) while the second result row&rsquo;s score
+is 0.1 (a 10% match), that indicates that the best match is nine times more probable than the second best match
+(<code>0.9 / 0.1 = 9.0</code>). However if the second row&rsquo;s score where instead 0.8, the first row would only be 1.125 times more
+probable than the second (<code>0.9 / 0.8 = 1.125</code>).</p>
 
 <p>The ratio between the first and second best matches can be loosely considered a <q>confidence</q> score. Thus the
 <code>0.9 / 0.1 = 9.0</code> example gives a confidence score of 9.0, whilst the second example of <code>0.9 / 0.8 = 1.125</code> gives
 a much lower confidence score of 1.125.</p>
+
+<p>A real world example might be results that have <q>car</q> and <q>bus</q> as the top two results. If both types achieve a high
+probability score, but the scores are close together, that indicates there is high confidence that the type is either
+car or bus, but low confidence of knowing which one of the two it is.</p>
+
+<p>The easiest way to apply these two metrics is with simple thresholds. For example a raw score threshold of 0.01
+and a first-to-second-match ratio threshold of 2.0. If the first match falls below these thresholds, you could consider
+it an <q>uncertain</q> match. Although which kinds of thresholds to use will depend heavily on the application.</p>
 
                         <a href="Structs/ClassifierResults.html" class="slightly-smaller">See more</a>
                       </div>
