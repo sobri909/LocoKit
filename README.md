@@ -13,7 +13,7 @@ A location and activity recording framework for iOS.
 - A [simple API](https://sobri909.github.io/ArcKit/) that frees you from the complexity of Core
   Location and Core Motion
 
-## Examples
+## Examples and Screenshots
 
 - [Location filtering 
   examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
