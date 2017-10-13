@@ -1,7 +1,15 @@
 # Location Filtering Examples
 
 These screenshots were taken from the ArcKit Demo App. Compile and run the Demo App on device to 
-experiment with the SDK and see its results in your local area. 
+experiment with the SDK and see results in your local area. 
+
+### Filtering and Smoothing
+
+ArcKit uses a two pass system of filtering and smoothing location data. 
+
+The first pass is a [Kalman filter](https://en.wikipedia.org/wiki/Kalman_filter) to remove noise from 
+the raw locations. The second pass is a dynamically sized, weighted moving average, to turn potentially
+erratic paths into smoothed, presentable lines.
 
 ### Short Walk Between Nearby Buildings
 

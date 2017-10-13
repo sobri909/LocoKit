@@ -10,15 +10,18 @@ A location and activity recording framework for iOS.
 - High accuracy activity type detection (stationary, walking, running, cycling, car, train, bus,
   motorcycle, airplane, boat)
 - Dynamic GPS energy use management
-
-## Documentation 
-
-- [ArcKit API Reference](https://sobri909.github.io/ArcKit/)
+- A [simple API](https://sobri909.github.io/ArcKit/) that frees you from the complexity of Core
+  Location and Core Motion
 
 ## Examples
 
 - [Location filtering 
   examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
+- [Activity type detection examples](https://github.com/sobri909/ArcKit/blob/master/ActivityTypeClassifierExamples.md)
+
+## Documentation 
+
+- [ArcKit API reference](https://sobri909.github.io/ArcKit/)
 
 ## Installation
 
