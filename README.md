@@ -4,10 +4,10 @@ A location and activity recording framework for iOS.
 
 ## Features
 
-- Dynamic location data [filtering](https://en.wikipedia.org/wiki/Kalman_filter) and smoothing 
+- Core Location data [filtering](https://en.wikipedia.org/wiki/Kalman_filter) and smoothing 
 - Core Motion data filtering and sanitising
 - Near real time stationary / moving state detection 
-- High accuracy activity type detection (stationary, walking, running, cycling, car, train, bus,
+- Extended activity type detection (stationary, walking, running, cycling, car, train, bus,
   motorcycle, airplane, boat)
 - Dynamic GPS energy use management
 - A [simple API](https://sobri909.github.io/ArcKit/) that frees you from the complexity of Core
