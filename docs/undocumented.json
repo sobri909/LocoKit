@@ -38,13 +38,6 @@
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
       "line": 9,
-      "symbol": "CoreMotionActivityTypeName",
-      "symbol_kind": "source.lang.swift.decl.enum",
-      "warning": "undocumented"
-    },
-    {
-      "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityType.swift",
-      "line": 21,
       "symbol": "ActivityType",
       "symbol_kind": "source.lang.swift.decl.class",
       "warning": "undocumented"
@@ -93,7 +86,7 @@
     },
     {
       "file": "/Users/matt/Projects/ArcKitPrivate/ArcKit/ActivityTypeName.swift",
-      "line": 56,
+      "line": 52,
       "symbol": "ActivityTypeName.automotive",
       "symbol_kind": "source.lang.swift.decl.enumelement",
       "warning": "undocumented"
