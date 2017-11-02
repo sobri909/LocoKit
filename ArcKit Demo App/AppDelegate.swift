@@ -20,10 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window?.rootViewController = ViewController()
         window?.makeKeyAndVisible()
-       
-        // API key is needed for ActivityTypeClassifier
-        LocomotionManager.highlander.apiKey = "ArcKitDemoAppKey"
-        
+
         return true
     }
     

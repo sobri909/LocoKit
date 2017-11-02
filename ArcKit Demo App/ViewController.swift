@@ -32,9 +32,15 @@ class ViewController: UIViewController {
         buildViewTree()
         buildResultsViewTree()
 
+        // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
+
+        // an API key is only necessary if you're using ActivityTypeClassifier
+        loco.apiKey = "13921b60be4611e7b6e021acca45d94f"
+
         let centre = NotificationCenter.default
-        
+
+        // observe incoming location / locomotion updates
         centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { note in
             self.locomotionSampleUpdated(note: note)
         }
