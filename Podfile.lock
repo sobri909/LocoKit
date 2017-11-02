@@ -1,6 +1,6 @@
 PODS:
-  - ArcKit (2.0.1)
-  - Cartography (2.0.0)
+  - ArcKit (2.1.0)
+  - Cartography (3.0.0)
   - MGEvents (1.1.0)
 
 DEPENDENCIES:
@@ -9,8 +9,8 @@ DEPENDENCIES:
   - MGEvents
 
 SPEC CHECKSUMS:
-  ArcKit: ed4d93b5174c955988e078bca34f834f8fd30862
-  Cartography: d295eb25ab54bb57eecd8c2f04e9648c850f1281
+  ArcKit: 6d3db1217dfbcffc6116a0b926c8bf8c0ec86988
+  Cartography: 105643267226a7ab58895b94b44727eb013e31ce
   MGEvents: 04c4c5b49a420a4895c5bb676ccc708311176d14
 
 PODFILE CHECKSUM: d7ef465bf71e763ea019a0fe12dcacf0d1907821
