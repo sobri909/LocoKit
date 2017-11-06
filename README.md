@@ -10,7 +10,7 @@ A location and activity recording framework for iOS.
 - Extended activity type detection (stationary, walking, running, cycling, car, train, bus,
   motorcycle, airplane, boat)
 - Dynamic GPS energy use management
-- A [simple API](https://sobri909.github.io/ArcKit/) that frees you from the complexity of Core
+- A [simple API](https://arc-web.herokuapp.com/docs) that frees you from the complexity of Core
   Location and Core Motion
 
 ## Examples and Screenshots
@@ -21,7 +21,7 @@ A location and activity recording framework for iOS.
 
 ## Documentation 
 
-- [ArcKit API reference](https://sobri909.github.io/ArcKit/)
+- [ArcKit API reference](https://arc-web.herokuapp.com/docs)
 
 ## Installation
 
@@ -29,10 +29,16 @@ A location and activity recording framework for iOS.
 
 ## Demo Apps
 
-- To run the demo app from this repository, do a `pod install` before building
-- To see the full SDK features in action in a production app try
+- To run the ArcKit Demo App from this repository:
+  1. Download or clone the repository
+  1. Run `pod install` in the project folder
+  2. In Xcode, change the project's "Team" to match your Apple Developer Account
+  3. Build and run!
+  4. Go for a walk in your neighbourhood, to see the results :)
+
+- To see the SDK in action in a live, production app, install
   [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) 
-  on the App Store
+  from the App Store
 
 ## Code Example 
 
