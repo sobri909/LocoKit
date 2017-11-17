@@ -187,28 +187,6 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 
 SWIFT_MODULE_NAMESPACE_PUSH("ArcKitCore")
 
-SWIFT_CLASS("_TtC10ArcKitCore13ActivityBrain")
-@interface ActivityBrain : NSObject
-- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
-@end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SWIFT_CLASS("_TtC10ArcKitCore12ActivityType")
 @interface ActivityType : NSObject
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;

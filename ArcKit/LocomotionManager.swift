@@ -180,7 +180,7 @@ public class LocomotionManager: NSObject {
         resulting sample until a new sample is needed.
      */
     public func locomotionSample() -> LocomotionSample {
-        return ActivityBrain.highlander.presentSample.locomotionSample
+        return ActivityBrain.highlander.locomotionSample
     }
     
     // MARK: Current Moving State
@@ -199,7 +199,7 @@ public class LocomotionManager: NSObject {
             return .uncertain
         }
         
-        return ActivityBrain.highlander.presentSample.movingState
+        return ActivityBrain.highlander.movingState
     }
 
     // MARK: Starting and Stopping Location Recording
@@ -247,10 +247,8 @@ public class LocomotionManager: NSObject {
         }
         
         // prep the brain for next wakeup
-        ActivityBrain.highlander.pastSampleFrozen = true
-        ActivityBrain.highlander.flushThePresentSample()
-        ActivityBrain.highlander.resetKalmanVariance()
-        
+        ActivityBrain.highlander.freezeTheBrain()
+
         stopTheUpdateTimer()
         
         locationManager.stopUpdatingLocation()
@@ -524,7 +522,7 @@ internal extension LocomotionManager {
         }
         
         let currentlyDesired = locationManager.desiredAccuracy
-        let currentlyAchieved = ActivityBrain.highlander.presentSample.nonNegativeHorizontalAccuracy
+        let currentlyAchieved = ActivityBrain.highlander.horizontalAccuracy
         
         let steps = [
             kCLLocationAccuracyHundredMeters,
@@ -538,7 +536,7 @@ internal extension LocomotionManager {
         var minimum = maximumDesiredLocationAccuracy
         
         // if getting wifi triangulation or worse, and in a visit, fall back to 100 metres
-        if currentlyAchieved >= 65 && ActivityBrain.highlander.presentSample.movingState == .stationary {
+        if currentlyAchieved >= 65 && ActivityBrain.highlander.movingState == .stationary {
             minimum = max(LocomotionManager.maximumDesiredLocationAccuracyInVisit, minimum)
         }
         
@@ -598,4 +596,11 @@ extension LocomotionManager: CLLocationManagerDelegate {
         locationManagerDelegate?.locationManager?(manager, didUpdateLocations: locations)
     }
 
+}
+
+extension Comparable {
+    mutating func clamp(min: Self, max: Self) {
+        if self < min { self = min }
+        if self > max { self = max }
+    }
 }
