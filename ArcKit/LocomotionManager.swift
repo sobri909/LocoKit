@@ -6,6 +6,7 @@
 import os.log
 import CoreMotion
 import CoreLocation
+import ArcKitCore
 
 public extension NSNotification.Name {
     public static let locomotionSampleUpdated = Notification.Name("locomotionSampleUpdated")
