@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
                      :type => "Commercial" }
   s.source       = { :git => 'https://github.com/sobri909/ArcKit.git', :tag => '2.2.0.pre.1' }
   s.source_files = 'ArcKit/*'
-  s.ios.vendored_frameworks = 'ArcKitCore.framework'
-  s.frameworks   = 'CoreLocation', 'CoreMotion'
+  s.frameworks   = 'CoreLocation', 'CoreMotion' 
   s.ios.deployment_target = '10.0'
+  s.dependency 'ArcKitCore', '2.2.0.pre.1'
 end
