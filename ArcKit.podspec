@@ -10,5 +10,5 @@ Pod::Spec.new do |s|
   s.source_files = 'ArcKit/*'
   s.frameworks   = 'CoreLocation', 'CoreMotion' 
   s.ios.deployment_target = '10.0'
-  s.dependency 'ArcKitCore', '2.2.0.pre.1'
+  s.dependency 'ArcKitCore', '2.2.0.pre.2'
 end
