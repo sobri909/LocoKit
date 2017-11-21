@@ -222,28 +222,6 @@ SWIFT_CLASS("_TtC10ArcKitCore12ActivityType")
 
 
 
-/// A composite, high level representation of the device’s location, motion, and activity states over a brief
-/// duration of time.
-/// The current sample can be retrieved from <code>LocomotionManager.highlander.locomotionSample()</code>.
-/// <h2>Dynamic Sample Sizes</h2>
-/// Each sample’s duration is dynamically determined, depending on the quality and quantity of available ocation
-/// and motion data. Samples sizes typically range from 10 to 60 seconds, however varying conditions can sometimes
-/// produce sample durations outside those bounds.
-/// Higher quality and quantity of available data results in shorter sample durations, with more specific
-/// representations of single moments in time.
-/// Lesser quality or quantity of available data result in longer sample durations, thus representing the average or most
-/// common states and location over the sample period instead of a single specific moment.
-SWIFT_CLASS("_TtC10ArcKitCore16LocomotionSample")
-@interface LocomotionSample : NSObject
-- (nonnull instancetype)init SWIFT_UNAVAILABLE;
-@end
-
-
-@interface LocomotionSample (SWIFT_EXTENSION(ArcKitCore))
-@property (nonatomic, readonly, copy) NSString * _Nonnull description;
-@end
-
-
 SWIFT_CLASS("_TtC10ArcKitCore19MutableActivityType")
 @interface MutableActivityType : ActivityType
 @end
