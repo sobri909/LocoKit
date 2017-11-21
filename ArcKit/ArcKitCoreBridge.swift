@@ -15,6 +15,8 @@ public typealias ActivityTypesCache = ArcKitCore.ActivityTypesCache
 public typealias ActivityTypeClassifier = ArcKitCore.ActivityTypeClassifier
 public typealias ActivityTypeClassifiable = ArcKitCore.ActivityTypeClassifiable
 
+public typealias CoreMotionActivityTypeName = ArcKitCore.CoreMotionActivityTypeName
+
 public typealias ClassifierResults = ArcKitCore.ClassifierResults
 public typealias ClassifierResultItem = ArcKitCore.ClassifierResultItem
 
