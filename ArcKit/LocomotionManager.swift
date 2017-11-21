@@ -8,12 +8,6 @@ import CoreMotion
 import CoreLocation
 import ArcKitCore
 
-public typealias ArcKitService = ArcKitCore.ArcKitService
-public typealias LocomotionSample = ArcKitCore.LocomotionSample
-public typealias ActivityTypesCache = ArcKitCore.ActivityTypesCache
-public typealias ActivityTypeClassifier = ArcKitCore.ActivityTypeClassifier
-public typealias ActivityTypeName = ArcKitCore.ActivityTypeName
-
 public extension NSNotification.Name {
     public static let locomotionSampleUpdated = Notification.Name("locomotionSampleUpdated")
     public static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")
@@ -186,7 +180,7 @@ public class LocomotionManager: NSObject {
         resulting sample until a new sample is needed.
      */
     public func locomotionSample() -> LocomotionSample {
-        return ActivityBrain.highlander.locomotionSample
+        return LocomotionSample(sample: ActivityBrain.highlander.presentSample)
     }
     
     // MARK: Current Moving State
