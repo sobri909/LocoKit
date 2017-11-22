@@ -137,4 +137,13 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
         
         self.coreMotionActivityType = sample.coreMotionActivityType
     }
+
+    // MARK: CustomStringConvertible
+
+    public override var description: String {
+        let seconds = filteredLocations.dateInterval?.duration ?? 0
+        let locationsN = filteredLocations.count
+        let locationsHz = locationsN > 0 && seconds > 0 ? Double(locationsN) / seconds : 0.0
+        return String(format: "\(locationsN) locations (%.1f Hz), \(String(duration: seconds))", locationsHz)
+    }
 }
