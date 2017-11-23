@@ -35,8 +35,12 @@ class ViewController: UIViewController {
         // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
 
-        // an API key is only necessary if you're using ActivityTypeClassifier
-        loco.apiKey = "13921b60be4611e7b6e021acca45d94f"
+        /**
+         An ArcKit API key is necessary if you are using ActivityTypeClassifier.
+         This key is the Demo App's key, and cannot be used in another app.
+         API keys can be created at: https://arc-web.herokuapp.com/account
+        */
+        ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
 
         let centre = NotificationCenter.default
 
