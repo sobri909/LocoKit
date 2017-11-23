@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.0.0] - 2017-11-23
+
+### Added
+
+- Open sourced `LocomotionManager` and `LocomotionSample`. 
+
+### Changed
+
+- Moved `apiKey` from `LocomotionManager` to `ArcKitService`. Note that this is a breaking 
+  change - you will need up update your code to set the API key in the new location.
+- Split the SDK into two separate frameworks. The `ArcKit` framework now contains only the open 
+  source portions, while the new `ArcKitCore` contains the binary framework. (Over time I will 
+  be open sourcing more code by migrating it from the binary framework to the source framework.)
+
 ## [2.1.0] - 2017-11-02
 
 ### Added
