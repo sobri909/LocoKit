@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.0.0.pre.1] - 2017-11-26
+
+### Added
+
+- Added a low power Sleep Mode. Read the `LocomotionManager.useLowPowerSleepModeWhileStationary` API 
+  docs for more details.
+- Added ability to disable dynamic desiredAccuracy adjustments. Read the  
+  `LocomotionManager.dynamicallyAdjustDesiredAccuracy` API docs for more details.
+- Added LocomotionManager settings for deciding which (if any) Core Motion features to make use of
+  whilst recording.
+
+### Removed
+
+- Core Motion recording is no longer started explicitly with startCoreMotion(). Instead you 
+  should call startRecording(), and use the new Core Motion settings properties to determine 
+  which (if any) Core Motion features should be enabled.  
+
 ## [3.0.0] - 2017-11-23
 
 ### Added
