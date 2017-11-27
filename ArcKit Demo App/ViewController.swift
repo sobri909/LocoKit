@@ -317,7 +317,10 @@ class ViewController: UIViewController {
         resultsRows.addRow(leftText: "Recording State", rightText: loco.recordingState.rawValue)
         resultsRows.addRow(leftText: "Moving State", rightText: loco.movingState.rawValue)
         
-        if loco.recordingState == .recording {
+        if loco.recordingState == .off {
+            resultsRows.addRow(leftText: "Requesting accuracy", rightText: "-")
+
+        } else { // must be recording or in sleep mode
             let requesting = loco.locationManager.desiredAccuracy
             if requesting == kCLLocationAccuracyBest {
                 resultsRows.addRow(leftText: "Requesting accuracy", rightText: "kCLLocationAccuracyBest")
@@ -326,8 +329,6 @@ class ViewController: UIViewController {
             } else {
                 resultsRows.addRow(leftText: "Requesting accuracy", rightText: String(format: "%.0f metres", requesting))
             }
-        } else {
-            resultsRows.addRow(leftText: "Requesting accuracy", rightText: "-")
         }
         
         var receivingString = "-"
