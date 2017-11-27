@@ -56,6 +56,12 @@ class ViewController: UIViewController {
         when(settings, does: .settingsChanged) { _ in
             self.updateTheMap()
         }
+
+        // clear up some memory when going into the background
+        when(.UIApplicationDidEnterBackground) { _ in
+            self.rawLocations.removeAll()
+            self.filteredLocations.removeAll()
+        }
         
         loco.requestLocationPermission()
     }
@@ -69,14 +75,18 @@ class ViewController: UIViewController {
     func locomotionSampleUpdated() {
         let loco = LocomotionManager.highlander
 
-        if let location = loco.rawLocation {
-            rawLocations.append(location)
+        // only store the lesser quality locations if in foreground, otherwise they're just noise
+        if UIApplication.shared.applicationState == .active {
+            if let location = loco.rawLocation {
+                rawLocations.append(location)
+            }
+
+            if let location = loco.filteredLocation {
+                filteredLocations.append(location)
+            }
         }
-        
-        if let location = loco.filteredLocation {
-            filteredLocations.append(location)
-        }
-       
+
+        // this is the useful one
         let sample = loco.locomotionSample()
         
         locomotionSamples.append(sample)
