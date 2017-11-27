@@ -19,6 +19,7 @@
   `stopCoreMotion()` have been removed. 
 - `recordingCoreLocation` and `recordingCoreMotion` have been removed, and replaced by 
   `recordingState`. 
+- The `locomotionSampleUpdated` notification no longer includes a userInfo dict. 
 
 ## [3.0.0] - 2017-11-23
 
