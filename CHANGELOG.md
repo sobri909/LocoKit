@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.0.0.pre.1] - 2017-11-26
+## [4.0.0] - 2017-11-27
 
 ### Added
 
@@ -8,14 +8,17 @@
   docs for more details.
 - Added ability to disable dynamic desiredAccuracy adjustments. Read the  
   `LocomotionManager.dynamicallyAdjustDesiredAccuracy` API docs for more details.
-- Added LocomotionManager settings for deciding which (if any) Core Motion features to make use of
+- Added LocomotionManager settings for configuring which (if any) Core Motion features to make use of
   whilst recording.
 
 ### Removed
 
-- Core Motion recording is no longer started explicitly with startCoreMotion(). Instead you 
-  should call startRecording(), and use the new Core Motion settings properties to determine 
-  which (if any) Core Motion features should be enabled.  
+- `startCoreLocation()` has been renamed to `startRecording()` and now starts both Core Location 
+  and Core Motion recording (depending on your LocomotionManager settings). Additionally, 
+  `stopCoreLocation()` has been renamed to `stopRecording()`, and `startCoreMotion()` and 
+  `stopCoreMotion()` have been removed. 
+- `recordingCoreLocation` and `recordingCoreMotion` have been removed, and replaced by 
+  `recordingState`. 
 
 ## [3.0.0] - 2017-11-23
 
