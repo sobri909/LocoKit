@@ -131,9 +131,8 @@ class ViewController: UIViewController {
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
         
-        loco.startCoreLocation()
-        loco.startCoreMotion()
-        
+        loco.startRecording()
+
         startButton.isHidden = true
         stopButton.isHidden = false
     }
@@ -141,9 +140,8 @@ class ViewController: UIViewController {
     func tappedStop() {
         let loco = LocomotionManager.highlander
         
-        loco.stopCoreLocation()
-        loco.stopCoreMotion()
-        
+        loco.stopRecording()
+
         stopButton.isHidden = true
         startButton.isHidden = false
     }
@@ -182,7 +180,7 @@ class ViewController: UIViewController {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
 
-        map.showsUserLocation = settings.showUserLocation && LocomotionManager.highlander.recordingCoreLocation
+        map.showsUserLocation = settings.showUserLocation && LocomotionManager.highlander.recordingState == .recording
 
         let mapType: MKMapType = settings.showSatelliteMap ? .hybrid : .standard
         if mapType != map.mapType {
@@ -309,7 +307,7 @@ class ViewController: UIViewController {
         resultsRows.addHeading(title: "Core Location")
         resultsRows.addGap(height: 10)
         
-        if loco.recordingCoreLocation {
+        if loco.recordingState == .recording {
             let requesting = LocomotionManager.highlander.locationManager.desiredAccuracy
             if requesting == kCLLocationAccuracyBest {
                 resultsRows.addRow(leftText: "Requesting accuracy", rightText: "kCLLocationAccuracyBest")
@@ -321,7 +319,7 @@ class ViewController: UIViewController {
         }
         
         var receivingString = "-"
-        if loco.recordingCoreLocation, let sample = sample {
+        if loco.recordingState == .recording, let sample = sample {
             var receivingHertz = 0.0
             if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
                 receivingHertz = Double(sample.filteredLocations.count) / duration
@@ -356,7 +354,7 @@ class ViewController: UIViewController {
         }
         resultsRows.addGap(height: 10)
         
-        if loco.recordingCoreLocation, let sample = sample {
+        if loco.recordingState == .recording, let sample = sample {
             if let classifier = baseClassifier {
                 let results = classifier.classify(sample)
                 
@@ -391,7 +389,7 @@ class ViewController: UIViewController {
         }
         resultsRows.addGap(height: 10)
         
-        if loco.recordingCoreLocation, let sample = sample {
+        if loco.recordingState == .recording, let sample = sample {
             if let classifier = transportClassifier {
                 let results = classifier.classify(sample)
                 
