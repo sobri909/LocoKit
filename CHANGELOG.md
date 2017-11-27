@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.1] - 2017-11-27
+
+### Fixed
+
+- Fixed overly aggressive reentry to sleep mode after calling `stopRecording()` then 
+  `startRecording()`.  
+
 ## [4.0.0] - 2017-11-27
 
 ### Added
