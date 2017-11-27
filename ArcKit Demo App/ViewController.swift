@@ -8,7 +8,7 @@
 
 import ArcKit
 import MapKit
-import MGEvents
+import SwiftNotes
 import Cartography
 import CoreLocation
 
@@ -42,19 +42,18 @@ class ViewController: UIViewController {
         */
         ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
 
-        let centre = NotificationCenter.default
 
         // observe incoming location / locomotion updates
-        centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { _ in
+        when(loco, does: .locomotionSampleUpdated) { _ in
             self.locomotionSampleUpdated()
         }
 
         // observe changes in the LocomotionManager's recording state (eg sleep mode starts/ends)
-        centre.addObserver(forName: .recordingStateChanged, object: loco, queue: OperationQueue.main) { _ in
+        when(loco, does: .recordingStateChanged) { _ in
             self.locomotionSampleUpdated()
         }
         
-        centre.addObserver(forName: .settingsChanged, object: settings, queue: OperationQueue.main) { _ in
+        when(settings, does: .settingsChanged) { _ in
             self.updateTheMap()
         }
         
@@ -129,7 +128,7 @@ class ViewController: UIViewController {
     
     // MARK: tap actions
     
-    func tappedStart() {
+    @objc func tappedStart() {
         let loco = LocomotionManager.highlander
         
         // for demo purposes only. the default value already best balances accuracy with battery use
@@ -144,7 +143,7 @@ class ViewController: UIViewController {
         stopButton.isHidden = false
     }
     
-    func tappedStop() {
+    @objc func tappedStop() {
         let loco = LocomotionManager.highlander
         
         loco.stopRecording()
@@ -153,7 +152,7 @@ class ViewController: UIViewController {
         startButton.isHidden = false
     }
     
-    func tappedClear() {
+    @objc func tappedClear() {
         rawLocations.removeAll()
         filteredLocations.removeAll()
         locomotionSamples.removeAll()
@@ -550,11 +549,8 @@ class ViewController: UIViewController {
        
         button.backgroundColor = .white
         button.setTitle("Start", for: .normal)
-        
-        button.onControlEvent(.touchUpInside) { [weak self] in
-            self?.tappedStart()
-        }
-        
+        button.addTarget(self, action: #selector(ViewController.tappedStart), for: .touchUpInside)
+
         return button
     }()
     
@@ -565,11 +561,8 @@ class ViewController: UIViewController {
         button.backgroundColor = .white
         button.setTitle("Stop", for: .normal)
         button.setTitleColor(.red, for: .normal)
-        
-        button.onControlEvent(.touchUpInside) { [weak self] in
-            self?.tappedStop()
-        }
-        
+        button.addTarget(self, action: #selector(ViewController.tappedStop), for: .touchUpInside)
+
         return button
     }()
     
@@ -578,11 +571,8 @@ class ViewController: UIViewController {
         
         button.backgroundColor = .white
         button.setTitle("Clear", for: .normal)
-        
-        button.onControlEvent(.touchUpInside) { [weak self] in
-            self?.tappedClear()
-        }
-        
+        button.addTarget(self, action: #selector(ViewController.tappedClear), for: .touchUpInside)
+
         return button
     }()
     

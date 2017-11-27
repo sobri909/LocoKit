@@ -4,6 +4,6 @@ use_frameworks!
 
 pod 'ArcKit'
 
-pod 'MGEvents', :inhibit_warnings => true
+pod 'SwiftNotes'
 pod 'Cartography', :inhibit_warnings => true
 

@@ -11,8 +11,11 @@ import Cartography
 class ToggleBox: UIView {
     
     let toggle = UISwitch()
+    var onChange: (Bool) -> Void
     
     init(dotColors: [UIColor] = [], text: String, toggleDefault: Bool = true, onChange: @escaping ((Bool) -> Void)) {
+        self.onChange = onChange
+
         super.init(frame: CGRect.zero)
         
         backgroundColor = .white
@@ -48,10 +51,8 @@ class ToggleBox: UIView {
         label.textColor = UIColor(white: 0.1, alpha: 1)
         
         toggle.isOn = toggleDefault
-        toggle.onControlEvent(.valueChanged) { [unowned self] in
-            onChange(self.toggle.isOn)
-        }
-        
+        toggle.addTarget(self, action: #selector(ToggleBox.triggerOnChange), for: .valueChanged)
+
         addSubview(label)
         addSubview(toggle)
         
@@ -75,6 +76,10 @@ class ToggleBox: UIView {
             toggle.right == toggle.superview!.right - 10
             toggle.left == label.right
         }
+    }
+
+    @objc func triggerOnChange() {
+        onChange(toggle.isOn)
     }
     
     required init?(coder aDecoder: NSCoder) {
