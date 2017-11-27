@@ -45,8 +45,13 @@ class ViewController: UIViewController {
         let centre = NotificationCenter.default
 
         // observe incoming location / locomotion updates
-        centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { note in
-            self.locomotionSampleUpdated(note: note)
+        centre.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: OperationQueue.main) { _ in
+            self.locomotionSampleUpdated()
+        }
+
+        // observe changes in the LocomotionManager's recording state (eg sleep mode starts/ends)
+        centre.addObserver(forName: .recordingStateChanged, object: loco, queue: OperationQueue.main) { _ in
+            self.locomotionSampleUpdated()
         }
         
         centre.addObserver(forName: .settingsChanged, object: settings, queue: OperationQueue.main) { _ in
@@ -62,16 +67,18 @@ class ViewController: UIViewController {
   
     // MARK: process incoming locations
     
-    func locomotionSampleUpdated(note: Notification) {
-        if let location = note.userInfo?["rawLocation"] as? CLLocation {
+    func locomotionSampleUpdated() {
+        let loco = LocomotionManager.highlander
+
+        if let location = loco.rawLocation {
             rawLocations.append(location)
         }
         
-        if let location = note.userInfo?["filteredLocation"] as? CLLocation {
+        if let location = loco.filteredLocation {
             filteredLocations.append(location)
         }
        
-        let sample = LocomotionManager.highlander.locomotionSample()
+        let sample = loco.locomotionSample()
         
         locomotionSamples.append(sample)
         
@@ -304,13 +311,18 @@ class ViewController: UIViewController {
         resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         resultsRows.addGap(height: 22)
-        resultsRows.addHeading(title: "Core Location")
+        resultsRows.addHeading(title: "Locomotion Manager")
         resultsRows.addGap(height: 10)
+
+        resultsRows.addRow(leftText: "Recording State", rightText: loco.recordingState.rawValue)
+        resultsRows.addRow(leftText: "Moving State", rightText: loco.movingState.rawValue)
         
         if loco.recordingState == .recording {
-            let requesting = LocomotionManager.highlander.locationManager.desiredAccuracy
+            let requesting = loco.locationManager.desiredAccuracy
             if requesting == kCLLocationAccuracyBest {
                 resultsRows.addRow(leftText: "Requesting accuracy", rightText: "kCLLocationAccuracyBest")
+            } else if requesting == Double.greatestFiniteMagnitude {
+                resultsRows.addRow(leftText: "Requesting accuracy", rightText: "Double.greatestFiniteMagnitude")
             } else {
                 resultsRows.addRow(leftText: "Requesting accuracy", rightText: String(format: "%.0f metres", requesting))
             }
