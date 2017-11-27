@@ -1,5 +1,9 @@
 # Changelog
 
+## [4.0.2] - 2017-11-27
+
+- Stopped doing unnecessary ArcKitService API requests, and tidied up some console logging
+
 ## [4.0.1] - 2017-11-27
 
 ### Fixed
