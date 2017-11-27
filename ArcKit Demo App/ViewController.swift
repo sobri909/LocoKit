@@ -32,9 +32,6 @@ class ViewController: UIViewController {
         buildViewTree()
         buildResultsViewTree()
 
-        // the Core Location / Core Motion singleton
-        let loco = LocomotionManager.highlander
-
         /**
          An ArcKit API key is necessary if you are using ActivityTypeClassifier.
          This key is the Demo App's key, and cannot be used in another app.
@@ -42,6 +39,8 @@ class ViewController: UIViewController {
         */
         ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
 
+        // the Core Location / Core Motion singleton
+        let loco = LocomotionManager.highlander
 
         // observe incoming location / locomotion updates
         when(loco, does: .locomotionSampleUpdated) { _ in
