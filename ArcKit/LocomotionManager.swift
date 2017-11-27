@@ -404,7 +404,7 @@ public class LocomotionManager: NSObject {
             return
         }
 
-        // prep the brain for next wakeup
+        // prep the brain for next startup
         ActivityBrain.highlander.freezeTheBrain()
 
         // stop the timers
@@ -429,7 +429,6 @@ public class LocomotionManager: NSObject {
         ActivityBrain.highlander.resetKalmans()
     }
 
-
     /**
      This method is temporarily public because the only way to request Core Motion permission is to just go ahead and
      start using Core Motion. I will make this method private soon, and provide a more tidy way to trigger a Core
@@ -440,10 +439,7 @@ public class LocomotionManager: NSObject {
         startThePedometer()
         startTheWiggles()
     }
-    
-    /**
-     Stop monitoring Core Motion activity types, pedometer data, and accelerometer data.
-     */
+
     private func stopCoreMotion() {
         stopTheM()
         stopThePedometer()
