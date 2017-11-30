@@ -39,6 +39,9 @@ loco.recordCoreMotionActivityTypeEvents = true
 loco.useLowPowerSleepModeWhileStationary = true
 ```
 
+- **Note:** These are all on by default. The above snippets are unnecessary, and just here to 
+  show you some of the available options. 
+
 ```swift
 // start recording 
 loco.startRecording()
