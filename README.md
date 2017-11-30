@@ -26,6 +26,7 @@ A machine learning based location and activity recording and detection framework
 let locoManager = LocomotionManager.highlander
 ```
 
+```swift
 // start recording 
 locoManager.startRecording()
 ```
