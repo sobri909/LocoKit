@@ -1,6 +1,6 @@
 # ArcKit
 
-A machine learning based location and activity recording framework for iOS.
+A machine learning based location and activity recording and detection framework for iOS.
 
 ## Location and Motion Recording
 
@@ -12,15 +12,9 @@ A machine learning based location and activity recording framework for iOS.
 ## Activity Type Detection
 
 - Machine Learning based activity type detection
-- Higher accuracy detection of Core Motion activity types (stationary, walking, running, cycling,
+- Improved detection of Core Motion activity types (stationary, walking, running, cycling,
   automotive)
 - Distinguish between specific transport types (car, train, bus, motorcycle, airplane, boat)
-
-## Examples and Screenshots
-
-- [Location filtering 
-  examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
-- [Activity type detection examples](https://github.com/sobri909/ArcKit/blob/master/ActivityTypeClassifierExamples.md)
 
 ## Installation
 
@@ -30,6 +24,7 @@ A machine learning based location and activity recording framework for iOS.
 
 ```swift
 let locoManager = LocomotionManager.highlander
+```
 
 // start recording 
 locoManager.startRecording()
@@ -39,13 +34,13 @@ locoManager.startRecording()
 // watch for updates
 when(locoManager, does: .locomotionSampleUpdated) { _ in
 
-		// the raw CLLocation
+    // the raw CLLocation
     print(locoManager.rawLocation)
 
-		// a more usable, de-noised CLLocation
+    // a more usable, de-noised CLLocation
     print(locoManager.filteredLocation)
 
-		// a smoothed, simplified, combined location and motion sample
+    // a smoothed, simplified, combined location and motion sample
     print(locoManager.locomotionSample())
 }
 ```
@@ -66,6 +61,12 @@ let bestMatch = results.first
 print(bestMatch.name)
 ```
 
+## Examples and Screenshots
+
+- [Location filtering 
+  examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
+- [Activity type detection examples](https://github.com/sobri909/ArcKit/blob/master/ActivityTypeClassifierExamples.md)
+
 ## Documentation 
 
 - [ArcKit API reference](https://www.bigpaua.com/arckit/docs)
@@ -73,7 +74,7 @@ print(bestMatch.name)
 ## Try the Demo App
 
 - To run the ArcKit Demo App:
-  1. Download or clone the repository
+  1. Download or clone this repository
   1. Run `pod install` in the project folder
   2. In Xcode, change the project's "Team" to match your Apple Developer Account
   3. Build and run!
