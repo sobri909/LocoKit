@@ -39,8 +39,8 @@ loco.recordCoreMotionActivityTypeEvents = true
 loco.useLowPowerSleepModeWhileStationary = true
 ```
 
-- **Note:** These are all on by default. The above snippets are unnecessary, and just here to 
-  show you some of the available options. 
+**Note:** The above settings are all on by default. The above snippets are unnecessary, and just here 
+  to show you some of the available options. 
 
 ```swift
 // start recording 
@@ -62,7 +62,7 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
-- **Note:** The above code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
+**Note:** The above code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
   the event observing code easier to read. If you're not using SwiftNotes, your observer should be
   written something like this:
 
