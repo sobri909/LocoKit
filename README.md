@@ -28,6 +28,18 @@ let loco = LocomotionManager.highlander
 ```
 
 ```swift
+// decide which Core Motion features to include
+loco.recordPedometerEvents = true
+loco.recordAccelerometerEvents = true
+loco.recordCoreMotionActivityTypeEvents = true
+```
+
+```swift
+// decide whether to use "sleep mode" to allow for all day recording 
+loco.useLowPowerSleepModeWhileStationary = true
+```
+
+```swift
 // start recording 
 loco.startRecording()
 ```
