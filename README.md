@@ -47,9 +47,19 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
-- Note: This code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make the 
-  event observing code easier to read. If you're not using SwiftNotes, it's essentially the same, 
-  except with slightly more words. 
+- **Note:** This code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make the 
+  event observing code easier to read. If you're not using SwiftNotes, your observer should be written
+	something like this:
+
+```swift
+let noteCenter = NotificationCenter.default
+let queue = OperationQueue.main 
+
+// watch for updates
+noteCenter.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: queue) { _ in
+    // do stuff
+}
+```
 
 ## Detect Activity Types
 
