@@ -23,6 +23,7 @@ A machine learning based location and activity recording and detection framework
 ## Record Location and Motion
 
 ```swift
+// the recording manager singleton
 let loco = LocomotionManager.highlander
 ```
 
@@ -45,6 +46,10 @@ when(loco, does: .locomotionSampleUpdated) { _ in
     print(loco.locomotionSample())
 }
 ```
+
+- Note: This code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make the 
+  event observing code easier to read. If you're not using SwiftNotes, it's essentially the same, 
+  except with slightly more words. 
 
 ## Detect Activity Types
 
