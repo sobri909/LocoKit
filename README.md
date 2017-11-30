@@ -23,26 +23,26 @@ A machine learning based location and activity recording and detection framework
 ## Record Location and Motion
 
 ```swift
-let locoManager = LocomotionManager.highlander
+let loco = LocomotionManager.highlander
 ```
 
 ```swift
 // start recording 
-locoManager.startRecording()
+loco.startRecording()
 ```
 
 ```swift
 // watch for updates
-when(locoManager, does: .locomotionSampleUpdated) { _ in
+when(loco, does: .locomotionSampleUpdated) { _ in
 
     // the raw CLLocation
-    print(locoManager.rawLocation)
+    print(loco.rawLocation)
 
     // a more usable, de-noised CLLocation
-    print(locoManager.filteredLocation)
+    print(loco.filteredLocation)
 
     // a smoothed, simplified, combined location and motion sample
-    print(locoManager.locomotionSample())
+    print(loco.locomotionSample())
 }
 ```
 
