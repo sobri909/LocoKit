@@ -47,9 +47,9 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
-- **Note:** This code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make the 
-  event observing code easier to read. If you're not using SwiftNotes, your observer should be written
-	something like this:
+- **Note:** The above code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
+  the event observing code easier to read. If you're not using SwiftNotes, your observer should be
+  written something like this:
 
 ```swift
 let noteCenter = NotificationCenter.default
