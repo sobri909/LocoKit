@@ -322,9 +322,8 @@ class ViewController: UIViewController {
         resultsRows.addHeading(title: "Locomotion Manager")
         resultsRows.addGap(height: 10)
 
-        resultsRows.addRow(leftText: "Recording State", rightText: loco.recordingState.rawValue)
-        resultsRows.addRow(leftText: "Moving State", rightText: loco.movingState.rawValue)
-        
+        resultsRows.addRow(leftText: "Recording state", rightText: loco.recordingState.rawValue)
+
         if loco.recordingState == .off {
             resultsRows.addRow(leftText: "Requesting accuracy", rightText: "-")
 
@@ -359,11 +358,31 @@ class ViewController: UIViewController {
         if let sample = sample {
             resultsRows.addRow(leftText: "Latest sample", rightText: sample.description)
             resultsRows.addRow(leftText: "Behind now", rightText: String(duration: sample.date.age))
+            resultsRows.addRow(leftText: "Moving state", rightText: sample.movingState.rawValue)
+
+            if loco.recordPedometerEvents {
+                resultsRows.addRow(leftText: "Steps per second", rightText: String(format: "%.1f Hz", sample.stepHz))
+            }
+
+            if loco.recordAccelerometerEvents {
+                resultsRows.addRow(leftText: "XY Acceleration",
+                                   rightText: String(format: "%.2f g", sample.xyAcceleration))
+                resultsRows.addRow(leftText: "Z Acceleration",
+                                   rightText: String(format: "%.2f g", sample.zAcceleration))
+            }
+
+            if loco.recordCoreMotionActivityTypeEvents {
+                if let coreMotionType = sample.coreMotionActivityType {
+                    resultsRows.addRow(leftText: "Core Motion activity", rightText: coreMotionType.rawValue)
+                } else {
+                    resultsRows.addRow(leftText: "Core Motion activity", rightText: "-")
+                }
+            }
+
         } else {
             resultsRows.addRow(leftText: "Latest sample", rightText: "-")
-            resultsRows.addRow(leftText: "Behind now", rightText: "-")
         }
-        
+
         resultsRows.addGap(height: 18)
         resultsRows.addHeading(title: "Activity Type Classifier (baseTypes)")
         resultsRows.addGap(height: 10)
