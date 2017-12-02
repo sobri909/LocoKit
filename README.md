@@ -47,8 +47,9 @@ loco.useLowPowerSleepModeWhileStationary = true
 loco.startRecording()
 ```
 
+## Watch For Location Updates
+
 ```swift
-// watch for updates
 when(loco, does: .locomotionSampleUpdated) { _ in
 
     // the raw CLLocation
@@ -59,6 +60,20 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 
     // a smoothed, simplified, combined location and motion sample
     print(loco.locomotionSample())
+}
+```
+
+## Watch For Moving State Changes
+
+```swift
+when(loco, does: .movingStateChanged) { _ in
+    if loco.movingState == .moving {
+        print("started moving")
+    }
+
+    if loco.movingState == .stationary {
+        print("stopped moving")
+    }
 }
 ```
 
