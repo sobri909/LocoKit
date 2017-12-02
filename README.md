@@ -77,8 +77,8 @@ when(loco, does: .movingStateChanged) { _ in
 }
 ```
 
-**Note:** The above code snippet uses [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
-  the event observing code easier to read. If you're not using SwiftNotes, your observer should be
+**Note:** The above code snippets use [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
+  the event observing code easier to read. If you're not using SwiftNotes, your observers should be
   written something like this:
 
 ```swift
