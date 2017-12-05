@@ -904,10 +904,3 @@ extension LocomotionManager: CLLocationManagerDelegate {
     }
 
 }
-
-extension Comparable {
-    mutating func clamp(min: Self, max: Self) {
-        if self < min { self = min }
-        if self > max { self = max }
-    }
-}

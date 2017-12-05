@@ -20,7 +20,6 @@ public typealias CoreMotionActivityTypeName = ArcKitCore.CoreMotionActivityTypeN
 public typealias ClassifierResults = ArcKitCore.ClassifierResults
 public typealias ClassifierResultItem = ArcKitCore.ClassifierResultItem
 
-
 public func +(left: ClassifierResults, right: ClassifierResults) -> ClassifierResults {
     return ClassifierResults(results: left.array + right.array, moreComing: left.moreComing || right.moreComing)
 }

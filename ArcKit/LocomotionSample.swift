@@ -111,8 +111,21 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
     public lazy var timeOfDay: TimeInterval = {
         return self.date.sinceStartOfDay
     }()
+
+    public var hasUsableCoordinate: Bool {
+        return location?.hasUsableCoordinate ?? false
+    }
+
+    public weak var timelineItem: TimelineItem?
+
+    public func distance(from otherSample: LocomotionSample) -> CLLocationDistance? {
+        guard let myLocation = location, let theirLocation = otherSample.location else {
+            return nil
+        }
+        return myLocation.distance(from: theirLocation)
+    }
     
-    init(sample: ActivityBrainSample) {
+    internal init(sample: ActivityBrainSample) {
         if let location = sample.location  {
             self.rawLocations = sample.rawLocations
             self.filteredLocations = sample.filteredLocations
@@ -146,4 +159,39 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
         let locationsHz = locationsN > 0 && seconds > 0 ? Double(locationsN) / seconds : 0.0
         return String(format: "\(locationsN) locations (%.1f Hz), \(String(duration: seconds))", locationsHz)
     }
+}
+
+public extension Array where Element: LocomotionSample {
+
+    public var center: CLLocation? {
+        return CLLocation(centerFor: self)
+    }
+
+    public var weightedCenter: CLLocation? {
+        return CLLocation(weightedCenterFor: self)
+    }
+
+    public var duration: TimeInterval {
+        guard let firstDate = first?.date, let lastDate = last?.date else {
+            return 0
+        }
+        return lastDate.timeIntervalSince(firstDate)
+    }
+
+    public var distance: CLLocationDistance {
+        return flatMap { $0.location }.distance
+    }
+
+    func radiusFrom(center: CLLocation) -> (mean: CLLocationDistance, sd: CLLocationDistance) {
+        return flatMap { $0.location }.radiusFrom(center: center)
+    }
+
+    public var horizontalAccuracyRange: AccuracyRange? {
+        return flatMap { $0.location }.horizontalAccuracyRange
+    }
+
+    public var verticalAccuracyRange: AccuracyRange? {
+        return flatMap { $0.location }.verticalAccuracyRange
+    }
+    
 }
