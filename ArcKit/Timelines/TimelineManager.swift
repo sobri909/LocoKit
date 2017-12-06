@@ -24,7 +24,7 @@ public extension NSNotification.Name {
     // MARK: The Singleton
 
     /// The TimelineManager singleton instance, through which all actions should be performed.
-    public static let highlander = TimelineManager()
+    @objc public static let highlander = TimelineManager()
 
     // MARK: Settings
 
