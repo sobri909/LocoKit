@@ -17,7 +17,7 @@ import CoreLocation
 
     private var _radius: (mean: CLLocationDistance, sd: CLLocationDistance) = (0, 0)
 
-    public override var isWorthKeeping: Bool {
+    @objc public override var isWorthKeeping: Bool {
         if !isValid {
             return false
         }

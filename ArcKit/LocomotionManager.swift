@@ -101,7 +101,7 @@ public extension NSNotification.Name {
  either from the `movingState` property on the LocomotionManager, or on the latest `locomotionSample`. See the
  `movingState` documentation for further details.
  */
-public class LocomotionManager: NSObject {
+@objc public class LocomotionManager: NSObject {
    
     // internal settings
     internal static let fallbackUpdateCycle: TimeInterval = 30
@@ -160,7 +160,7 @@ public class LocomotionManager: NSObject {
     // MARK: The Singleton
     
     /// The LocomotionManager singleton instance, through which all actions should be performed.
-    public static let highlander = LocomotionManager()
+    @objc public static let highlander = LocomotionManager()
     
     // MARK: Settings
 
@@ -190,7 +190,7 @@ public class LocomotionManager: NSObject {
      alone, without engaging GPS, thus reducing energy consumption. Wifi triangulation is typically more energy
      efficient than GPS.
      */
-    public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 30
+    @objc public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 30
 
     /**
      Whether LocomotionManager should dynamically adjust the internal CLLocationManager's `desiredAccuracy` to best
@@ -203,13 +203,13 @@ public class LocomotionManager: NSObject {
 
      If set to false, `desiredAccuracy` will be set to `maximumDesiredLocationAccuracy` and not modified.
      */
-    public var dynamicallyAdjustDesiredAccuracy: Bool = true
+    @objc public var dynamicallyAdjustDesiredAccuracy: Bool = true
 
     /**
      Assign a delegate to this property if you would like to have the internal location manager's
      `CLLocationManagerDelegate` events forwarded to you after they have been processed internally.
      */
-    public var locationManagerDelegate: CLLocationManagerDelegate?
+    @objc public var locationManagerDelegate: CLLocationManagerDelegate?
 
     // MARK: Core Motion Settings
 
@@ -221,7 +221,7 @@ public class LocomotionManager: NSObject {
      to increase classifier results accuracy. This is particularly important for the accurate detection of walking,
      running, and cycling.
      */
-    public var recordPedometerEvents: Bool = true
+    @objc public var recordPedometerEvents: Bool = true
 
     /**
      Whether or not to record accelerometer events. If this option is enabled, `LocomotionSample.xyAcceleration` and
@@ -230,7 +230,7 @@ public class LocomotionManager: NSObject {
      - Note: If you are making use of `ActivityTypeClassifier`, enabling this option will increase classifier results
      accuracy.
      */
-    public var recordAccelerometerEvents: Bool = true
+    @objc public var recordAccelerometerEvents: Bool = true
 
     /**
      Whether or not to record Core Motion activity type events. If this option is enabled,
@@ -239,7 +239,7 @@ public class LocomotionManager: NSObject {
      - Note: If you are making use of `ActivityTypeClassifier`, enabling this option will increase classifier results
      accuracy.
      */
-    public var recordCoreMotionActivityTypeEvents: Bool = true
+    @objc public var recordCoreMotionActivityTypeEvents: Bool = true
 
     // MARK: Sleep Mode Settings
 
@@ -247,7 +247,7 @@ public class LocomotionManager: NSObject {
      Whether LocomotionManager should enter a low power "sleep mode" while stationary, in order to reduce energy
      consumption and extend battery life during long recording sessions.
      */
-    public var useLowPowerSleepModeWhileStationary: Bool = true
+    @objc public var useLowPowerSleepModeWhileStationary: Bool = true
 
     /**
      Whether or not LocomotionManager should wake from sleep mode and resume recording when no location data is
@@ -268,7 +268,7 @@ public class LocomotionManager: NSObject {
      - Warning: This setting should be left unchanged unless you have confident reason to do otherwise. Changing this
      setting to true may unnecessarily increase energy consumption.
     */
-    public var ignoreNoLocationDataDuringWakeups: Bool = true
+    @objc public var ignoreNoLocationDataDuringWakeups: Bool = true
 
     /**
      How long the LocomotionManager should wait before entering sleep mode, once the user is stationary.
@@ -278,7 +278,7 @@ public class LocomotionManager: NSObject {
      stops, lasting less than a few minutes. If the LocomotionManager enters sleep mode during one of these stops, it
      will not notice the user has resumed moving until the next wakeup cycle (see `sleepCycleDuration`).
      */
-    public var sleepAfterStationaryDuration: TimeInterval = 180
+    @objc public var sleepAfterStationaryDuration: TimeInterval = 180
 
     /**
      The duration to wait before performing brief "wakeup" checks whilst in sleep mode.
@@ -290,7 +290,7 @@ public class LocomotionManager: NSObject {
      unavoidable energy cost. Setting a longer sleep cycle duration will reduce the number and frequency of wakeups,
      thus reducing energy consumption and improving battery life.
      */
-    public var sleepCycleDuration: TimeInterval = 60
+    @objc public var sleepCycleDuration: TimeInterval = 60
 
     // MARK: Raw, Filtered, and Smoothed Data
     

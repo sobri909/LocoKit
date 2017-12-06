@@ -56,7 +56,7 @@ import CoreLocation
     }
 
     // this is defined properly in the subclasses
-    public var isWorthKeeping: Bool {
+    @objc public var isWorthKeeping: Bool {
         fatalError("Shouldn't be here.")
     }
 

@@ -37,7 +37,7 @@ import CoreLocation
         return true
     }
 
-    public override var isWorthKeeping: Bool {
+    @objc public override var isWorthKeeping: Bool {
         if !isValid {
             return false
         }
