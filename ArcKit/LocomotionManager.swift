@@ -520,7 +520,7 @@ public extension NSNotification.Name {
      `delegate` should also not be changed, as this will disable LocomotionManager, and potentially result in the
      untimely deaths of small cute animals in Madagascar.
      */
-    public private(set) lazy var locationManager: CLLocationManager = {
+    @objc public private(set) lazy var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.distanceFilter = kCLDistanceFilterNone
         manager.desiredAccuracy = self.maximumDesiredLocationAccuracy
