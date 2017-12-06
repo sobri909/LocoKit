@@ -8,16 +8,16 @@
 
 import CoreLocation
 
-public class Path: TimelineItem {
+@objc public class Path: TimelineItem {
 
     // valid path settings
-    static var minimumValidDuration: TimeInterval = 10
-    static var minimumValidDistance: Double = 10
-    static var minimumValidSamples = 2
+    @objc static var minimumValidDuration: TimeInterval = 10
+    @objc static var minimumValidDistance: Double = 10
+    @objc static var minimumValidSamples = 2
 
     // keeper path settings
-    static var minimumKeeperDuration: TimeInterval = 60
-    static var minimumKeeperDistance: Double = 20
+    @objc static var minimumKeeperDuration: TimeInterval = 60
+    @objc static var minimumKeeperDistance: Double = 20
 
     private var _distance: CLLocationDistance?
 
@@ -51,7 +51,7 @@ public class Path: TimelineItem {
     }
 
     /// The distance of the path, as the sum of the distances between each sample.
-    public var distance: CLLocationDistance {
+    @objc public var distance: CLLocationDistance {
         if let distance = _distance {
             return distance
         }
@@ -156,9 +156,9 @@ public class Path: TimelineItem {
     }
 }
 
-extension Path: CustomStringConvertible {
+extension Path {
 
-    public var description: String {
+    public override var description: String {
         return String(format: "%@ path", isWorthKeeping ? "keeper" : isValid ? "valid" : "invalid")
     }
 

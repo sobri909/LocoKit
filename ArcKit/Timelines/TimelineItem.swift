@@ -8,7 +8,7 @@
 
 import CoreLocation
 
-public class TimelineItem {
+@objc public class TimelineItem: NSObject {
 
     private var _samples: [LocomotionSample] = []
 
@@ -18,15 +18,16 @@ public class TimelineItem {
     public var samples: [LocomotionSample] {
         return _samples
     }
-    private(set) public var dateRange: DateInterval?
+
+    @objc private(set) public var dateRange: DateInterval?
 
     /// The timeline item's start date
-    public var start: Date? {
+    @objc public var start: Date? {
         return dateRange?.start
     }
 
     /// The timeline item's end date
-    public var end: Date? {
+    @objc public var end: Date? {
         return dateRange?.end
     }
 
@@ -39,6 +40,7 @@ public class TimelineItem {
 
     public init(samples: [LocomotionSample]) {
         self.itemId = UUID()
+        super.init()
         self.add(samples)
     }
 
@@ -69,7 +71,7 @@ public class TimelineItem {
     }
 
     /// The duration of the timeline item, as the time interval between the start and end dates.
-    public var duration: TimeInterval {
+    @objc public var duration: TimeInterval {
         guard let dateRange = dateRange else {
             return 0
         }
@@ -169,10 +171,13 @@ public class TimelineItem {
     }
 }
 
-extension TimelineItem: Equatable {
+extension TimelineItem {
 
-    public static func ==(lhs: TimelineItem, rhs: TimelineItem) -> Bool {
-        return lhs.itemId == rhs.itemId
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let item = object as? TimelineItem else {
+            return false
+        }
+        return item.itemId == self.itemId
     }
 
 }

@@ -14,12 +14,12 @@ public extension NSNotification.Name {
     public static let timelineItemUpdated = Notification.Name("timelineItemUpdated")
 }
 
-public class TimelineManager {
+@objc public class TimelineManager: NSObject {
 
     private var recording = false
     private var lastRecorded: Date?
     
-    private(set) public var timelineItems: [TimelineItem] = []
+    @objc private(set) public var timelineItems: [TimelineItem] = []
 
     // MARK: The Singleton
 
@@ -37,12 +37,12 @@ public class TimelineManager {
 
     // MARK: Starting and Stopping Recording
 
-    public func startRecording() {
+    @objc public func startRecording() {
         LocomotionManager.highlander.startRecording()
         recording = true
     }
 
-    public func stopRecording() {
+    @objc public func stopRecording() {
         LocomotionManager.highlander.stopRecording()
         recording = false
     }
@@ -169,7 +169,8 @@ public class TimelineManager {
         }
     }
 
-    private init() {
+    private override init() {
+        super.init()
         NotificationCenter.default.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { _ in
             self.sampleUpdated()
         }

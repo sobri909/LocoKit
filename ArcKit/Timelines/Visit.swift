@@ -8,12 +8,12 @@
 
 import CoreLocation
 
-public class Visit: TimelineItem {
+@objc public class Visit: TimelineItem {
 
-    static let minimumKeeperDuration: TimeInterval = 60 * 2
-    static let minimumValidDuration: TimeInterval = 10
+    @objc static var minimumKeeperDuration: TimeInterval = 60 * 2
+    @objc static var minimumValidDuration: TimeInterval = 10
 
-    private(set) public var center: CLLocation?
+    @objc private(set) public var center: CLLocation?
 
     private var _radius: (mean: CLLocationDistance, sd: CLLocationDistance) = (0, 0)
 
@@ -206,9 +206,9 @@ public class Visit: TimelineItem {
     }
 }
 
-extension Visit: CustomStringConvertible {
+extension Visit {
 
-    public var description: String {
+    public override var description: String {
         return String(format: "%@ visit", isWorthKeeping ? "keeper" : isValid ? "valid" : "invalid")
     }
     
