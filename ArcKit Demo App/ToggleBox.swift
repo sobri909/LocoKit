@@ -12,6 +12,16 @@ class ToggleBox: UIView {
     
     let toggle = UISwitch()
     var onChange: (Bool) -> Void
+
+    var disabled: Bool {
+        get {
+            return toggle.alpha < 1
+        }
+        set(disable) {
+            toggle.isEnabled = !disable
+            subviews.forEach { $0.alpha = disable ? 0.45 : 1 }
+        }
+    }
     
     init(dotColors: [UIColor] = [], text: String, toggleDefault: Bool = true, onChange: @escaping ((Bool) -> Void)) {
         self.onChange = onChange

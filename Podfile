@@ -2,8 +2,8 @@ target 'ArcKit Demo App'
 platform :ios, '11.0'
 use_frameworks!
 
-pod 'ArcKit'
+pod 'ArcKit', '4.1.0.pre.2'
 
 pod 'SwiftNotes'
-pod 'Cartography', :inhibit_warnings => true
+pod 'Cartography'
 

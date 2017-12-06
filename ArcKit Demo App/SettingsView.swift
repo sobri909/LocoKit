@@ -6,6 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import SwiftNotes
 import Cartography
 
 extension NSNotification.Name {
@@ -13,21 +14,22 @@ extension NSNotification.Name {
 }
 
 class SettingsView: UIScrollView {
-    
+
+    var showTimelineItems = true
+
     var showRawLocations = true
     var showFilteredLocations = true
     var showLocomotionSamples = true
-    var showStationaryCircles = true
+
     var showSatelliteMap = false
     var showUserLocation = true
     var autoZoomMap = true
     
     var enableTheClassifier = true
     var enableTransportClassifier = true
-    
-    var visitsToggleBox: UIView?
-    var visitsToggle: UISwitch?
-    
+
+    var locoDataToggleBoxes: [ToggleBox] = []
+
     var transportClassifierToggleBox: UIView?
     var transportClassifierToggle: UISwitch?
     
@@ -74,56 +76,68 @@ class SettingsView: UIScrollView {
         settingsRows.addGap(height: 6)
         settingsRows.addUnderline()
         
-        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: true) { isOn in
+        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: showUserLocation) { isOn in
             self.showUserLocation = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+            trigger(.settingsChanged, on: self)
         }
         settingsRows.addRow(views: [currentLocation])
         
         settingsRows.addUnderline()
         
-        let satellite = ToggleBox(text: "Satellite map", toggleDefault: false) { isOn in
+        let satellite = ToggleBox(text: "Satellite map", toggleDefault: showSatelliteMap) { isOn in
             self.showSatelliteMap = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+            trigger(.settingsChanged, on: self)
         }
         let zoom = ToggleBox(text: "Auto zoom") { isOn in
             self.autoZoomMap = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+            trigger(.settingsChanged, on: self)
         }
         settingsRows.addRow(views: [satellite, zoom])
         
         settingsRows.addGap(height: 18)
-        settingsRows.addHeading(title: "Map Data Overlays", alignment: .center)
+        settingsRows.addHeading(title: "Map Data", alignment: .center)
         settingsRows.addGap(height: 6)
         settingsRows.addUnderline()
-        
-        let raw = ToggleBox(dotColors: [.red], text: "Raw") { isOn in
-            self.showRawLocations = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+
+        // toggle for showing timeline items
+        let visits = ToggleBox(dotColors: [.brown, .orange], text: "Timeline", toggleDefault: showTimelineItems) { isOn in
+            self.showTimelineItems = isOn
+            self.locoDataToggleBoxes.forEach { $0.disabled = isOn }
+            trigger(.settingsChanged, on: self)
         }
-        let smoothed = ToggleBox(dotColors: [.blue, .magenta], text: "Samples") { isOn in
-            self.showLocomotionSamples = isOn
-            self.visitsToggle?.isEnabled = isOn
-            self.visitsToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+
+        // toggle for showing filtered locations
+        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered", toggleDefault: showFilteredLocations) { isOn in
+            self.showFilteredLocations = isOn
+            trigger(.settingsChanged, on: self)
         }
-        settingsRows.addRow(views: [raw, smoothed])
+        filtered.disabled = showTimelineItems
+        locoDataToggleBoxes.append(filtered)
+
+        // add the toggles to the view
+        settingsRows.addRow(views: [visits, filtered])
         
         settingsRows.addUnderline()
         
-        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered") { isOn in
-            self.showFilteredLocations = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+        // toggle for showing locomotion samples
+        let samples = ToggleBox(dotColors: [.blue, .magenta], text: "Samples", toggleDefault: showLocomotionSamples) { isOn in
+            self.showLocomotionSamples = isOn
+            trigger(.settingsChanged, on: self)
         }
-        let visits = ToggleBox(dotColors: [.orange], text: "Visits") { isOn in
-            self.showStationaryCircles = isOn
-            NotificationCenter.default.post(Notification(name: .settingsChanged, object: self))
+        samples.disabled = showTimelineItems
+        locoDataToggleBoxes.append(samples)
+
+        // toggle for showing raw locations
+        let raw = ToggleBox(dotColors: [.red], text: "Raw", toggleDefault: showRawLocations) { isOn in
+            self.showRawLocations = isOn
+            trigger(.settingsChanged, on: self)
         }
-        settingsRows.addRow(views: [filtered, visits])
-        
-        visitsToggleBox = visits
-        visitsToggle = visits.toggle
-        
+        raw.disabled = showTimelineItems
+        locoDataToggleBoxes.append(raw)
+
+        // add the toggles to the view
+        settingsRows.addRow(views: [samples, raw])
+
         settingsRows.addGap(height: 18)
         settingsRows.addHeading(title: "Activity Type Classifiers", alignment: .center)
         settingsRows.addGap(height: 6)

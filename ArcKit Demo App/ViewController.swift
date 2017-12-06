@@ -42,6 +42,19 @@ class ViewController: UIViewController {
         // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
 
+        // the high level Visits / Paths management singelton
+        let timeline = TimelineManager.highlander
+
+        // observe new timeline items
+        when(timeline, does: .newTimelineItem) { _ in
+            self.updateTheMap()
+        }
+
+        // observe timeline items updates
+        when(timeline, does: .timelineItemUpdated) { _ in
+            self.updateTheMap()
+        }
+
         // observe incoming location / locomotion updates
         when(loco, does: .locomotionSampleUpdated) { _ in
             self.locomotionSampleUpdated()
@@ -94,7 +107,11 @@ class ViewController: UIViewController {
         updateTheTransportClassifier()
         
         buildResultsViewTree(sample: sample)
-        updateTheMap()
+
+        // only update the map from here if we're showing low level data on the map
+        if !settings.showTimelineItems {
+            updateTheMap()
+        }
     }
     
     func updateTheBaseClassifier() {
@@ -139,23 +156,25 @@ class ViewController: UIViewController {
     
     @objc func tappedStart() {
         let loco = LocomotionManager.highlander
+        let timeline = TimelineManager.highlander
         
-        // for demo purposes only. the default value already best balances accuracy with battery use
+        // for demo purposes only. this accuracy level is excessive
+        // the default value best balances accuracy with battery use
         loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyBest
         
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
         
-        loco.startRecording()
+        timeline.startRecording()
 
         startButton.isHidden = true
         stopButton.isHidden = false
     }
     
     @objc func tappedStop() {
-        let loco = LocomotionManager.highlander
+        let timeline = TimelineManager.highlander
         
-        loco.stopRecording()
+        timeline.stopRecording()
 
         stopButton.isHidden = true
         startButton.isHidden = false
@@ -186,7 +205,8 @@ class ViewController: UIViewController {
     // MARK: UI updating
     
     func updateTheMap() {
-        
+        let timeline = TimelineManager.highlander
+
         // don't bother updating the map when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else {
             return
@@ -202,22 +222,68 @@ class ViewController: UIViewController {
             map.mapType = mapType
             setNeedsStatusBarAppearanceUpdate()
         }
-        
-        if settings.showRawLocations {
-            addPath(locations: rawLocations, color: .red)
-        }
-        
-        if settings.showFilteredLocations {
-            addPath(locations: filteredLocations, color: .purple)
-        }
-        
-        if settings.showLocomotionSamples {
-            addSamples(samples: locomotionSamples)
+
+        if settings.showTimelineItems {
+            for timelineItem in timeline.timelineItems {
+                if let path = timelineItem as? Path {
+                    addToMap(path)
+
+                } else if let visit = timelineItem as? Visit {
+                    addToMap(visit)
+                }
+            }
+
+        } else {
+            if settings.showRawLocations {
+                addToMap(rawLocations, color: .red)
+            }
+
+            if settings.showFilteredLocations {
+                addToMap(filteredLocations, color: .purple)
+            }
+
+            if settings.showLocomotionSamples {
+                let groups = sampleGroups(from: locomotionSamples)
+                for group in groups {
+                    addToMap(group)
+                }
+            }
         }
         
         if settings.autoZoomMap {
             zoomToShow(overlays: map.overlays)
         }
+    }
+
+    func sampleGroups(from samples: [LocomotionSample]) -> [[LocomotionSample]] {
+        var groups: [[LocomotionSample]] = []
+        var currentGroup: [LocomotionSample]?
+
+        for sample in samples where sample.location != nil {
+            let currentState = sample.movingState
+
+            // state changed? close off the previous group, add to the collection, and start a new one
+            if let previousState = currentGroup?.last?.movingState, previousState != currentState {
+
+                // add new sample to previous grouping, to link them end to end
+                currentGroup?.append(sample)
+
+                // add it to the collection
+                groups.append(currentGroup!)
+
+                currentGroup = nil
+            }
+
+            currentGroup = currentGroup ?? []
+            currentGroup?.append(sample)
+        }
+
+        // add the final grouping to the collection
+        if let grouping = currentGroup {
+            groups.append(grouping)
+        }
+
+        return groups
     }
     
     func zoomToShow(overlays: [MKOverlay]) {
@@ -315,6 +381,7 @@ class ViewController: UIViewController {
         }
         
         let loco = LocomotionManager.highlander
+        let timeline = TimelineManager.highlander
         
         resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
@@ -350,7 +417,24 @@ class ViewController: UIViewController {
             }
         }
         resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
-        
+
+        if let currentItem = timeline.currentItem {
+            resultsRows.addGap(height: 18)
+            resultsRows.addHeading(title: currentItem is Visit ? "Current Visit" : "Current Path")
+            resultsRows.addGap(height: 10)
+
+            if let start = currentItem.start {
+                resultsRows.addRow(leftText: "Duration", rightText: String(duration: Date().timeIntervalSince(start)))
+            }
+            if let currentPath = currentItem as? Path {
+                resultsRows.addRow(leftText: "Distance", rightText: String(metres: currentPath.distance))
+                resultsRows.addRow(leftText: "Speed", rightText: String(metresPerSecond: currentPath.metresPerSecond))
+            }
+            if let currentVisit = currentItem as? Visit {
+                resultsRows.addRow(leftText: "Radius", rightText: String(metres: currentVisit.radius1sd))
+            }
+        }
+
         resultsRows.addGap(height: 18)
         resultsRows.addHeading(title: "Locomotion Sample")
         resultsRows.addGap(height: 10)
@@ -457,8 +541,8 @@ class ViewController: UIViewController {
     }
    
     // MARK: map building
-    
-    func addPath(locations: [CLLocation], color: UIColor) {
+
+    func addToMap(_ locations: [CLLocation], color: UIColor) {
         guard !locations.isEmpty else {
             return
         }
@@ -469,36 +553,9 @@ class ViewController: UIViewController {
         
         map.add(path)
     }
+
     
-    func addSamples(samples: [LocomotionSample]) {
-        var currentGrouping: [LocomotionSample]?
-        
-        for sample in samples where sample.location != nil {
-            let currentState = sample.movingState
-            
-            // state changed? close off the previous grouping, add to map, and start a new one
-            if let previousState = currentGrouping?.last?.movingState, previousState != currentState {
-                
-                // add new sample to previous grouping, to link them end to end
-                currentGrouping?.append(sample)
-              
-                // add it to the map
-                addGrouping(currentGrouping!)
-                
-                currentGrouping = nil
-            }
-            
-            currentGrouping = currentGrouping ?? []
-            currentGrouping?.append(sample)
-        }
-        
-        // add the final grouping to the map
-        if let grouping = currentGrouping {
-            addGrouping(grouping)
-        }
-    }
-    
-    func addGrouping(_ samples: [LocomotionSample]) {
+    func addToMap(_ samples: [LocomotionSample]) {
         guard let movingState = samples.first?.movingState else {
             return
         }
@@ -507,26 +564,33 @@ class ViewController: UIViewController {
         
         switch movingState {
         case .moving:
-            addPath(locations: locations, color: .blue)
+            addToMap(locations, color: .blue)
             
         case .stationary:
-            if settings.showStationaryCircles {
-                addVisit(locations: locations)
-            } else {
-                addPath(locations: locations, color: .orange)
-            }
-            
+            addToMap(locations, color: .orange)
+
         case .uncertain:
-            addPath(locations: locations, color: .magenta)
+            addToMap(locations, color: .magenta)
         }
     }
 
-    func addVisit(locations: [CLLocation]) {
-        if let center = CLLocation(locations: locations) {
+    func addToMap(_ path: Path) {
+        if path.samples.isEmpty {
+            return
+        }
+
+        var coords = path.samples.flatMap { $0.location?.coordinate }
+        let path = PathPolyline(coordinates: &coords, count: coords.count)
+        path.color = .brown
+
+        map.add(path)
+    }
+
+    func addToMap(_ visit: Visit) {
+        if let center = visit.center {
             map.addAnnotation(VisitAnnotation(coordinate: center.coordinate))
            
-            let radius = locations.radiusFrom(center: center)
-            let circle = VisitCircle(center: center.coordinate, radius: radius.mean + radius.sd * 2)
+            let circle = VisitCircle(center: center.coordinate, radius: visit.radius1sd)
             circle.color = .orange
             map.add(circle, level: .aboveLabels)
         }
