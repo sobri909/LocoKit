@@ -18,8 +18,6 @@ public extension NSNotification.Name {
 
     private var recording = false
     private var lastRecorded: Date?
-    
-    @objc private(set) public var timelineItems: [TimelineItem] = []
 
     // MARK: The Singleton
 
@@ -35,6 +33,14 @@ public extension NSNotification.Name {
      */
     public var samplesPerMinute: Double = 10
 
+    /**
+     The duration of historical timeline items to retain in `finalisedTimelineItems`.
+
+     Once a timeline item is older than this (measured from the item's `end` date) it will be removed from
+     `finalisedTimelineItems`.
+     */
+    public var timelineItemHistoryRetention: TimeInterval = 60 * 60 * 6
+
     // MARK: Starting and Stopping Recording
 
     @objc public func startRecording() {
@@ -49,6 +55,23 @@ public extension NSNotification.Name {
 
     /// The current timeline item.
     @objc private(set) public var currentItem: TimelineItem?
+
+    /**
+     The timeline items that are still being considered for modification by the processing engine, in ascending date
+     order.
+
+     Once each timeline item is finalised, it is moved to `finalisedTimelineItems`, at which point it will no longer
+     be modified by the processing engine.
+     */
+    @objc private(set) public var activeTimelineItems: [TimelineItem] = []
+
+    /**
+     The timeline items that have been processed and finalised, in ascending date order.
+
+     - Note: The last item in this array will usually be linked to the first item in `activeTimelineItems` by its
+     `nextItem` property (and in turn, that item will be linked back by its `previousItem` property).
+     */
+    @objc private(set) public var finalisedTimelineItems: [TimelineItem] = []
 
     private func sampleUpdated() {
         guard recording else {
@@ -104,14 +127,14 @@ public extension NSNotification.Name {
         currentItem?.nextItem = newItem
 
         currentItem = newItem
-        timelineItems.append(newItem)
+        activeTimelineItems.append(newItem)
 
         NotificationCenter.default.post(Notification(name: .newTimelineItem, object: self,
                                                      userInfo: ["timelineItem": newItem]))
     }
 
     private func processTimelineItems() {
-        if timelineItems.isEmpty {
+        if activeTimelineItems.isEmpty {
             return
         }
 
@@ -163,10 +186,49 @@ public extension NSNotification.Name {
             let results = winningMerge.doIt()
 
             // sweep up the dead bodies
-            timelineItems.removeObjects(results.killed)
+            activeTimelineItems.removeObjects(results.killed)
 
             // recurse until no valid merges left to do
             processTimelineItems()
+        }
+
+        // housekeeping
+        trimTheActiveItems()
+        trimTheFinalisedItems()
+    }
+
+    private func trimTheActiveItems() {
+        var keeperCount = 0
+        var itemsToTrim: ArraySlice<TimelineItem>?
+
+        for item in activeTimelineItems.reversed() {
+            if item.isWorthKeeping {
+                keeperCount += 1
+            }
+            if keeperCount == 2 {
+                itemsToTrim = activeTimelineItems.prefix { $0 != item }
+                break
+            }
+        }
+
+        // move the newly finalised items to their new home
+        if let finalised = itemsToTrim, !finalised.isEmpty {
+            finalisedTimelineItems.append(contentsOf: finalised)
+            activeTimelineItems.removeObjects(Array(finalised))
+            os_log("Finalised %d timeline item(s).", type: .debug, finalised.count)
+        }
+    }
+
+    private func trimTheFinalisedItems() {
+        let itemsToTrim = activeTimelineItems.prefix {
+            guard let end = $0.end else {
+                return true
+            }
+            return end.age > timelineItemHistoryRetention
+        }
+        if !itemsToTrim.isEmpty {
+            finalisedTimelineItems.removeObjects(Array(itemsToTrim))
+            os_log("Released %d historical timeline item(s).", type: .debug, itemsToTrim.count)
         }
     }
 
