@@ -1,21 +1,21 @@
 PODS:
-  - ArcKit (4.1.0.pre.3):
-    - ArcKitCore (= 4.1.0.pre.3)
-  - ArcKitCore (4.1.0.pre.3)
+  - ArcKit (4.1.0.pre.4):
+    - ArcKitCore (= 4.1.0.pre.4)
+  - ArcKitCore (4.1.0.pre.4)
   - Cartography (3.0.1)
   - SwiftNotes (1.1.0)
 
 DEPENDENCIES:
-  - ArcKit (= 4.1.0.pre.3)
+  - ArcKit (= 4.1.0.pre.4)
   - Cartography
   - SwiftNotes
 
 SPEC CHECKSUMS:
-  ArcKit: 769a7aaac4796b3ce93189c9363fc4becc342552
-  ArcKitCore: 4c3e72a2dd803e200c4b1551f1927d5b069f8c90
+  ArcKit: 1a0514e11107e51035f55de335eead868cc43d60
+  ArcKitCore: 572c8491b39f3da82c0df792b3ca2a31eb98fa85
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
 
-PODFILE CHECKSUM: e411eb3468a3dd369b8dea6cfa3620463e89dc1f
+PODFILE CHECKSUM: 1e17ac503d9cc09a73d2aa02644077cc426d8743
 
 COCOAPODS: 1.3.1
