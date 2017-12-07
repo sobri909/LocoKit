@@ -257,6 +257,15 @@ class ViewController: UIViewController {
         }
 
         if settings.showTimelineItems {
+            for timelineItem in timeline.finalisedTimelineItems {
+                if let path = timelineItem as? Path {
+                    addToMap(path)
+
+                } else if let visit = timelineItem as? Visit {
+                    addToMap(visit)
+                }
+            }
+
             for timelineItem in timeline.activeTimelineItems {
                 if let path = timelineItem as? Path {
                     addToMap(path)
