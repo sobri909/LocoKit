@@ -87,6 +87,16 @@ import CoreLocation
         return kilometresPerHour / 1.609344
     }
 
+    internal override func distance(from otherItem: TimelineItem) -> CLLocationDistance? {
+        if let path = otherItem as? Path {
+            return distance(from: path)
+        }
+        if let visit = otherItem as? Visit {
+            return distance(from: visit)
+        }
+        return nil
+    }
+
     internal func distance(from visit: Visit) -> CLLocationDistance? {
         return visit.distance(from: self)
     }
@@ -133,11 +143,21 @@ import CoreLocation
         return visit.containedPercentOf(self)
     }
 
-    internal func maximumMergeableDistance(from visit: Visit) -> CLLocationDistance {
+    internal override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {
+        if let path = otherItem as? Path {
+            return maximumMergeableDistance(from: path)
+        }
+        if let visit = otherItem as? Visit {
+            return maximumMergeableDistance(from: visit)
+        }
+        return 0
+    }
+
+    private func maximumMergeableDistance(from visit: Visit) -> CLLocationDistance {
         return visit.maximumMergeableDistance(from: self)
     }
 
-    internal func maximumMergeableDistance(from otherPath: Path) -> CLLocationDistance {
+    private func maximumMergeableDistance(from otherPath: Path) -> CLLocationDistance {
         guard let timeSeparation = self.timeIntervalFrom(otherPath) else {
             return 0
         }

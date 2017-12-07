@@ -91,6 +91,16 @@ import CoreLocation
         return [percentOfPathSamples, percentOfPathDuration, percentOfPathDistance].mean
     }
 
+    internal override func distance(from otherItem: TimelineItem) -> CLLocationDistance? {
+        if let path = otherItem as? Path {
+            return distance(from: path)
+        }
+        if let visit = otherItem as? Visit {
+            return distance(from: visit)
+        }
+        return nil
+    }
+    
     internal func distance(from otherVisit: Visit) -> CLLocationDistance? {
         guard let center = center, let otherCenter = otherVisit.center else {
             return nil
@@ -108,11 +118,25 @@ import CoreLocation
         return center.distance(from: pathEdge) - radius1sd
     }
 
-    internal func maximumMergeableDistance(from path: Path) -> CLLocationDistance {
+    internal override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {
+        if let path = otherItem as? Path {
+            return maximumMergeableDistance(from: path)
+        }
+        if let visit = otherItem as? Visit {
+            return maximumMergeableDistance(from: visit)
+        }
+        return 0
+    }
+
+    private func maximumMergeableDistance(from path: Path) -> CLLocationDistance {
         guard let timeSeparation = self.timeIntervalFrom(path) else {
             return 0
         }
         return CLLocationDistance(path.mps * timeSeparation * 4)
+    }
+
+    private func maximumMergeableDistance(from visit: Visit) -> CLLocationDistance {
+        return CLLocationDistanceMax
     }
 
     public override func sanitiseEdges() {

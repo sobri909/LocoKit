@@ -48,7 +48,7 @@ public extension NSNotification.Name {
     }
 
     /// The current timeline item.
-    private(set) public var currentItem: TimelineItem?
+    @objc private(set) public var currentItem: TimelineItem?
 
     private func sampleUpdated() {
         guard recording else {
@@ -65,6 +65,7 @@ public extension NSNotification.Name {
         let sample = LocomotionManager.highlander.locomotionSample()
 
         defer {
+            processTimelineItems()
             NotificationCenter.default.post(Notification(name: .timelineItemUpdated, object: self, userInfo: nil))
         }
 
@@ -88,8 +89,6 @@ public extension NSNotification.Name {
 
         // switched between path and visit, so let's make a new timeline item
         createTimelineItem(from: sample)
-
-        processTimelineItems()
     }
 
     private func createTimelineItem(from sample: LocomotionSample) {
@@ -153,11 +152,13 @@ public extension NSNotification.Name {
         // sort the merges by highest to lowest score
         merges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
 
-        print("merges: \(merges)")
+        if !merges.isEmpty {
+            os_log("merges: %@", type: .debug, String(describing: merges))
+        }
 
         // do the highest scoring valid merge
         if let winningMerge = merges.first, winningMerge.score != .impossible {
-            print("DOING: \(winningMerge)")
+            os_log("DOING: %@", type: .debug, String(describing: winningMerge))
 
             let results = winningMerge.doIt()
 
