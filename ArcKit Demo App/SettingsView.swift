@@ -36,8 +36,7 @@ class SettingsView: UIScrollView {
     lazy var settingsRows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
-        box.isHidden = true
-        
+
         let background = UIView()
         background.backgroundColor = UIColor(white: 0.85, alpha: 1)
         
@@ -51,6 +50,7 @@ class SettingsView: UIScrollView {
     
     init() {
         super.init(frame: CGRect.zero)
+        backgroundColor = .white
         alwaysBounceVertical = true
         buildSettingsViewTree()
     }

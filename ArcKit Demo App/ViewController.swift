@@ -47,6 +47,7 @@ class ViewController: UIViewController {
 
         // observe new timeline items
         when(timeline, does: .newTimelineItem) { _ in
+            log(".newTimelineItem (\(String(describing: type(of: timeline.currentItem!))))")
             self.updateTheMap()
         }
 
@@ -62,11 +63,32 @@ class ViewController: UIViewController {
 
         // observe changes in the LocomotionManager's recording state (eg sleep mode starts/ends)
         when(loco, does: .recordingStateChanged) { _ in
+            // don't log every type of state change, because it gets noisy
+            if loco.recordingState == .recording || loco.recordingState == .off {
+                log(".recordingStateChanged (\(loco.recordingState))")
+            }
             self.locomotionSampleUpdated()
+        }
+
+        when(loco, does: .startedSleepMode) { _ in
+            log(".startedSleepMode")
+        }
+
+        when(loco, does: .stoppedSleepMode) { _ in
+            log(".stoppedSleepMode")
+        }
+
+        // observe changes in the LocomotionManager's moving state (moving / stationary)
+        when(loco, does: .movingStateChanged) { _ in
+            log(".movingStateChanged (\(loco.movingState))")
         }
         
         when(settings, does: .settingsChanged) { _ in
             self.updateTheMap()
+        }
+
+        when(.logFileUpdated) { _ in
+            self.updateLogView()
         }
 
         // clear up some memory when going into the background
@@ -155,6 +177,8 @@ class ViewController: UIViewController {
     // MARK: tap actions
     
     @objc func tappedStart() {
+        log("tappedStart()")
+
         let loco = LocomotionManager.highlander
         let timeline = TimelineManager.highlander
         
@@ -172,6 +196,8 @@ class ViewController: UIViewController {
     }
     
     @objc func tappedStop() {
+        log("tappedStop()")
+
         let timeline = TimelineManager.highlander
         
         timeline.stopRecording()
@@ -181,10 +207,12 @@ class ViewController: UIViewController {
     }
     
     @objc func tappedClear() {
+        DebugLog.deleteLogFile()
+
         rawLocations.removeAll()
         filteredLocations.removeAll()
         locomotionSamples.removeAll()
-        
+
         updateTheMap()
         buildResultsViewTree()
     }
@@ -192,13 +220,18 @@ class ViewController: UIViewController {
     @objc func tappedViewToggle() {
         switch viewToggle.selectedSegmentIndex {
         case 0:
-            settings.settingsRows.isHidden = true
-            resultsScroller.isHidden = false
+            view.bringSubview(toFront: resultsScroller)
+            view.bringSubview(toFront: viewToggleBar)
             resultsScroller.flashScrollIndicators()
-        default:
-            settings.settingsRows.isHidden = false
-            resultsScroller.isHidden = true
+        case 1:
+            view.bringSubview(toFront: settings)
+            view.bringSubview(toFront: viewToggleBar)
             settings.flashScrollIndicators()
+        default:
+            view.bringSubview(toFront: logScroller)
+            view.bringSubview(toFront: viewToggleBar)
+            logScroller.flashScrollIndicators()
+            updateLogView()
         }
     }
     
@@ -224,7 +257,7 @@ class ViewController: UIViewController {
         }
 
         if settings.showTimelineItems {
-            for timelineItem in timeline.timelineItems {
+            for timelineItem in timeline.activeTimelineItems {
                 if let path = timelineItem as? Path {
                     addToMap(path)
 
@@ -343,6 +376,7 @@ class ViewController: UIViewController {
         }
        
         view.addSubview(settings)
+        view.addSubview(logScroller)
         view.addSubview(resultsScroller)
         view.addSubview(viewToggleBar)
         
@@ -359,8 +393,9 @@ class ViewController: UIViewController {
             scroller.bottom == viewToggleBar.top
         }
         
-        constrain(resultsScroller, settings) { resultsScroller, settingsScroller in
+        constrain(logScroller, resultsScroller, settings) { logScroller, resultsScroller, settingsScroller in
             settingsScroller.edges == resultsScroller.edges
+            logScroller.edges == resultsScroller.edges
         }
         
         resultsScroller.addSubview(resultsRows)
@@ -370,6 +405,15 @@ class ViewController: UIViewController {
             box.left == box.superview!.left + 16
             box.right == box.superview!.right - 16
             box.right == view.right - 16
+        }
+
+        logScroller.addSubview(logRows)
+        constrain(logRows, view) { box, view in
+            box.top == box.superview!.top + 8
+            box.bottom == box.superview!.bottom - 8
+            box.left == box.superview!.left + 8
+            box.right == box.superview!.right - 8
+            box.right == view.right - 8
         }
     }
     
@@ -539,6 +583,31 @@ class ViewController: UIViewController {
 
         resultsRows.addGap(height: 12)
     }
+
+    func updateLogView() {
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+
+        for subview in logRows.subviews {
+            subview.removeFromSuperview()
+        }
+        
+        guard let logString = try? String(contentsOf: DebugLog.logFile) else {
+            return
+        }
+        
+        let label = UILabel()
+        label.textColor = UIColor.black
+        label.font = UIFont(name: "Menlo", size: 8)
+        label.numberOfLines = 0
+        label.text = logString
+        logRows.addSubview(label)
+        
+        constrain(label) { label in
+            label.edges == label.superview!.edges
+        }
+    }
    
     // MARK: map building
 
@@ -632,6 +701,29 @@ class ViewController: UIViewController {
     
     lazy var resultsScroller: UIScrollView = {
         let scroller = UIScrollView()
+        scroller.backgroundColor = .white
+        scroller.alwaysBounceVertical = true
+        return scroller
+    }()
+
+    lazy var logRows: UIStackView = {
+        let box = UIStackView()
+        box.axis = .vertical
+
+        let background = UIView()
+        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
+
+        box.addSubview(background)
+        constrain(background) { background in
+            background.edges == background.superview!.edges
+        }
+
+        return box
+    }()
+
+    lazy var logScroller: UIScrollView = {
+        let scroller = UIScrollView()
+        scroller.backgroundColor = .white
         scroller.alwaysBounceVertical = true
         return scroller
     }()
@@ -680,9 +772,10 @@ class ViewController: UIViewController {
     }()
     
     lazy var viewToggle: UISegmentedControl = {
-        let toggle = UISegmentedControl(items: ["Results", "Settings"])
-        toggle.setWidth(120, forSegmentAt: 0)
-        toggle.setWidth(120, forSegmentAt: 1)
+        let toggle = UISegmentedControl(items: ["Results", "Settings", "Log"])
+        toggle.setWidth(100, forSegmentAt: 0)
+        toggle.setWidth(100, forSegmentAt: 1)
+        toggle.setWidth(100, forSegmentAt: 2)
         toggle.selectedSegmentIndex = 0
         toggle.addTarget(self, action: #selector(tappedViewToggle), for: .valueChanged)
         return toggle
