@@ -35,7 +35,7 @@ class ViewController: UIViewController {
         /**
          An ArcKit API key is necessary if you are using ActivityTypeClassifier.
          This key is the Demo App's key, and cannot be used in another app.
-         API keys can be created at: https://arc-web.herokuapp.com/account
+         API keys can be created at: https://www.bigpaua.com/arckit/account
         */
         ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
 
