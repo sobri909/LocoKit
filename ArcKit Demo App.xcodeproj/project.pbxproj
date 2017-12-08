@@ -52,8 +52,8 @@
 		C9A023D61F18A50D00DFFEBD /* VisitAnnotation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisitAnnotation.swift; sourceTree = "<group>"; };
 		C9A023D71F18A50D00DFFEBD /* VisitAnnotationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisitAnnotationView.swift; sourceTree = "<group>"; };
 		C9A023D81F18A50D00DFFEBD /* VisitCircle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisitCircle.swift; sourceTree = "<group>"; };
-		C9FE56641F18A35500F941FE /* ArcKit Demo App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ArcKit Demo App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
+		C9FE56641F18A35500F941FE /* ArcKit Demo App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ArcKit Demo App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE56671F18A35500F941FE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9FE56691F18A35500F941FE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		C9FE566E1F18A35500F941FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -138,7 +138,7 @@
 				C9FE56691F18A35500F941FE /* ViewController.swift */,
 				C91CAF4A1F8B88A300416418 /* SettingsView.swift */,
 				C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */,
-				C96981AA1F360B160021238C /* Helpers */,
+				C96981AA1F360B160021238C /* Extensions */,
 				C9A023DE1F18A51900DFFEBD /* Views */,
 				C9FE56731F18A35500F941FE /* Info.plist */,
 				C9FE566E1F18A35500F941FE /* Assets.xcassets */,

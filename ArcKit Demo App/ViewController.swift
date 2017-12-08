@@ -67,7 +67,7 @@ class ViewController: UIViewController {
 
         when(timeline, does: .mergedTimelineItems) { note in
             if let description = note.userInfo?["merge"] as? String {
-                log(".mergedTimelineItems (\(description))")
+                log(".mergedItems (\(description))")
             }
         }
 
@@ -824,7 +824,11 @@ extension ViewController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if let annotation = annotation as? VisitAnnotation {
-            return annotation.view
+            let view = annotation.view
+            if !TimelineManager.highlander.activeTimelineItems.contains(annotation.visit) {
+                view.image = UIImage(named: "inactiveDot")
+            }
+            return view
         }
         return nil
     }
