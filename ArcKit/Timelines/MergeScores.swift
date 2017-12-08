@@ -116,9 +116,14 @@ extension MergeScores {
         return .impossible
     }
 
-    // TODO: hook all these path-path bits back up
     // MARK: PATH <- PATH
     fileprivate static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
+
+        // let's just call them all medium for now (they've already passed the separation distance test, by this stage)
+        return .medium
+
+        // TODO: hook back up the activity type based path-path merge rules
+
 //        let consumerType = consumer.primaryMovingActivityType ?? consumer.primaryActivityType
 //        let consumeeType = consumee.activityType
 
@@ -159,8 +164,8 @@ extension MergeScores {
 //        default:
 //            return .veryLow
 //        }
-
-        return .impossible
+//
+//        return .impossible
     }
 }
 

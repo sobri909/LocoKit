@@ -13,6 +13,9 @@ import CoreLocation
     @objc static var minimumKeeperDuration: TimeInterval = 60 * 2
     @objc static var minimumValidDuration: TimeInterval = 10
 
+    @objc static var minimumRadius: CLLocationDistance = 10
+    @objc static var maximumRadius: CLLocationDistance = 150
+
     @objc private(set) public var center: CLLocation?
 
     private var _radius: (mean: CLLocationDistance, sd: CLLocationDistance) = (0, 0)
@@ -43,22 +46,22 @@ import CoreLocation
 
     // ~50% of samples
     public var radius0sd: Double {
-        return _radius.mean
+        return _radius.mean.clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
     // ~84% of samples
     public var radius1sd: Double {
-        return _radius.mean + _radius.sd
+        return (_radius.mean + _radius.sd).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
     // ~98% of samples
     public var radius2sd: Double {
-        return _radius.mean + (_radius.sd * 2)
+        return (_radius.mean + (_radius.sd * 2)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
     // ~100% of samples
     public var radius3sd: Double {
-        return _radius.mean + (_radius.sd * 3)
+        return (_radius.mean + (_radius.sd * 3)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
     /// Whether the given location falls within this visit's radius.

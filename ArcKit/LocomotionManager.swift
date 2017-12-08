@@ -541,6 +541,11 @@ private extension LocomotionManager {
             return
         }
 
+        // make sure we're supposed to be here
+        guard useLowPowerSleepModeWhileStationary else {
+            return
+        }
+
         // notify that we're going to sleep
         let note = Notification(name: .willStartSleepMode, object: self, userInfo: nil)
         NotificationCenter.default.post(note)

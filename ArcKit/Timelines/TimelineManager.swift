@@ -11,7 +11,9 @@ import os.log
 /// Custom notification events that the TimelineManager may send.
 public extension NSNotification.Name {
     public static let newTimelineItem = Notification.Name("newTimelineItem")
-    public static let timelineItemUpdated = Notification.Name("timelineItemUpdated")
+    public static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
+    public static let finalisedTimelineItem = Notification.Name("finalisedTimelineItem")
+    public static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
 }
 
 @objc public class TimelineManager: NSObject {
@@ -54,7 +56,9 @@ public extension NSNotification.Name {
     }
 
     /// The current timeline item.
-    @objc private(set) public var currentItem: TimelineItem?
+    @objc public var currentItem: TimelineItem? {
+        return activeTimelineItems.last
+    }
 
     /**
      The timeline items that are still being considered for modification by the processing engine, in ascending date
@@ -66,7 +70,8 @@ public extension NSNotification.Name {
     @objc private(set) public var activeTimelineItems: [TimelineItem] = []
 
     /**
-     The timeline items that have been processed and finalised, in ascending date order.
+     The timeline items that have received their final processing and will no longer be modified, in ascending date
+     order.
 
      - Note: The last item in this array will usually be linked to the first item in `activeTimelineItems` by its
      `nextItem` property (and in turn, that item will be linked back by its `previousItem` property).
@@ -89,7 +94,7 @@ public extension NSNotification.Name {
 
         defer {
             processTimelineItems()
-            NotificationCenter.default.post(Notification(name: .timelineItemUpdated, object: self, userInfo: nil))
+            NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
         }
 
         // first timeline item?
@@ -126,7 +131,7 @@ public extension NSNotification.Name {
         newItem.previousItem = currentItem
         currentItem?.nextItem = newItem
 
-        currentItem = newItem
+        // new item becomes current
         activeTimelineItems.append(newItem)
 
         NotificationCenter.default.post(Notification(name: .newTimelineItem, object: self,
@@ -148,7 +153,7 @@ public extension NSNotification.Name {
         var merges: [Merge] = []
 
         // collect all possible merges
-        while true {
+        while activeTimelineItems.contains(workingItem) {
 
             // clean up item edges before calculating any merge scores
             workingItem.sanitiseEdges()
@@ -176,25 +181,41 @@ public extension NSNotification.Name {
         merges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
 
         if !merges.isEmpty {
-            os_log("merges: %@", type: .debug, String(describing: merges))
+            var descriptions = ""
+            for merge in merges {
+                descriptions += String(describing: merge) + "\n"
+            }
+            os_log("Considering:\n%@", type: .debug, descriptions)
         }
 
         // do the highest scoring valid merge
         if let winningMerge = merges.first, winningMerge.score != .impossible {
-            os_log("DOING: %@", type: .debug, String(describing: winningMerge))
+            let description = String(describing: winningMerge)
+            os_log("Doing:\n%@", type: .debug, description)
 
             let results = winningMerge.doIt()
 
             // sweep up the dead bodies
             activeTimelineItems.removeObjects(results.killed)
 
+            NotificationCenter.default.post(Notification(name: .mergedTimelineItems, object: self,
+                                                         userInfo: ["merge": description]))
+
             // recurse until no valid merges left to do
             processTimelineItems()
+            return
         }
 
-        // housekeeping
+        // final housekeeping
         trimTheActiveItems()
         trimTheFinalisedItems()
+
+        // make sure sleep mode doesn't happen prematurely
+        if let currentVisit = currentItem as? Visit, currentVisit.isWorthKeeping {
+            LocomotionManager.highlander.useLowPowerSleepModeWhileStationary = true
+        } else {
+            LocomotionManager.highlander.useLowPowerSleepModeWhileStationary = false
+        }
     }
 
     private func trimTheActiveItems() {
@@ -215,12 +236,16 @@ public extension NSNotification.Name {
         if let finalised = itemsToTrim, !finalised.isEmpty {
             finalisedTimelineItems.append(contentsOf: finalised)
             activeTimelineItems.removeObjects(Array(finalised))
-            os_log("Finalised %d timeline item(s).", type: .debug, finalised.count)
+
+            for item in finalised {
+                NotificationCenter.default.post(Notification(name: .finalisedTimelineItem, object: self,
+                                                             userInfo: ["timelineItem": item]))
+            }
         }
     }
 
     private func trimTheFinalisedItems() {
-        let itemsToTrim = activeTimelineItems.prefix {
+        let itemsToTrim = finalisedTimelineItems.prefix {
             guard let end = $0.end else {
                 return true
             }

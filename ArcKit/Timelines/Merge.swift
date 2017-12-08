@@ -63,10 +63,10 @@ extension Merge: CustomStringConvertible {
 
     public var description: String {
         if let betweener = betweener {
-            return String(format: "\nscore: %d (%@) <- (%@) <- (%@)", score.rawValue, String(describing: keeper),
+            return String(format: "score: %d (%@) <- (%@) <- (%@)", score.rawValue, String(describing: keeper),
                           String(describing: betweener), String(describing: deadman))
         } else {
-            return String(format: "\nscore: %d (%@) <- (%@)", score.rawValue, String(describing: keeper),
+            return String(format: "score: %d (%@) <- (%@)", score.rawValue, String(describing: keeper),
                           String(describing: deadman))
         }
     }
