@@ -35,9 +35,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
         
-        // update the map and UI on appear
+        // update the UI on appear
         controller.updateTheMap()
-        controller.buildResultsViewTree()
+        controller.updateResultsView()
+        controller.updateTimelineView()
     }
 
 }

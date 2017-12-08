@@ -30,7 +30,10 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
        
         buildViewTree()
-        buildResultsViewTree()
+
+        updateLogView()
+        updateResultsView()
+        updateTimelineView()
 
         /**
          An ArcKit API key is necessary if you are using ActivityTypeClassifier.
@@ -51,11 +54,13 @@ class ViewController: UIViewController {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
             self.updateTheMap()
+            self.updateTimelineView()
         }
 
         // observe timeline item updates
         when(timeline, does: .updatedTimelineItem) { _ in
             self.updateTheMap()
+            self.updateTimelineView()
         }
 
         // observe timeline items finalised after post processing
@@ -63,12 +68,14 @@ class ViewController: UIViewController {
             if let item = note.userInfo?["timelineItem"] as? TimelineItem {
                 log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
             }
+            self.updateTimelineView()
         }
 
         when(timeline, does: .mergedTimelineItems) { note in
             if let description = note.userInfo?["merge"] as? String {
                 log(".mergedItems (\(description))")
             }
+            self.updateTimelineView()
         }
 
         // observe incoming location / locomotion updates
@@ -144,7 +151,7 @@ class ViewController: UIViewController {
         updateTheBaseClassifier()
         updateTheTransportClassifier()
         
-        buildResultsViewTree(sample: sample)
+        updateResultsView(sample: sample)
 
         // only update the map from here if we're showing low level data on the map
         if !settings.showTimelineItems {
@@ -230,24 +237,28 @@ class ViewController: UIViewController {
         locomotionSamples.removeAll()
 
         updateTheMap()
-        buildResultsViewTree()
+        updateResultsView()
     }
     
     @objc func tappedViewToggle() {
         switch viewToggle.selectedSegmentIndex {
         case 0:
+            view.bringSubview(toFront: timelineScroller)
+            view.bringSubview(toFront: viewToggleBar)
+            timelineScroller.flashScrollIndicators()
+        case 1:
             view.bringSubview(toFront: resultsScroller)
             view.bringSubview(toFront: viewToggleBar)
             resultsScroller.flashScrollIndicators()
-        case 1:
-            view.bringSubview(toFront: settings)
-            view.bringSubview(toFront: viewToggleBar)
-            settings.flashScrollIndicators()
-        default:
+        case 2:
             view.bringSubview(toFront: logScroller)
             view.bringSubview(toFront: viewToggleBar)
             logScroller.flashScrollIndicators()
             updateLogView()
+        default:
+            view.bringSubview(toFront: settings)
+            view.bringSubview(toFront: viewToggleBar)
+            settings.flashScrollIndicators()
         }
     }
     
@@ -403,6 +414,7 @@ class ViewController: UIViewController {
         view.addSubview(settings)
         view.addSubview(logScroller)
         view.addSubview(resultsScroller)
+        view.addSubview(timelineScroller)
         view.addSubview(viewToggleBar)
         
         constrain(viewToggleBar) { bar in
@@ -418,11 +430,21 @@ class ViewController: UIViewController {
             scroller.bottom == viewToggleBar.top
         }
         
-        constrain(logScroller, resultsScroller, settings) { logScroller, resultsScroller, settingsScroller in
+        constrain(timelineScroller, logScroller, resultsScroller, settings) { timelineScroller, logScroller, resultsScroller, settingsScroller in
             settingsScroller.edges == resultsScroller.edges
+            timelineScroller.edges == resultsScroller.edges
             logScroller.edges == resultsScroller.edges
         }
-        
+
+        timelineScroller.addSubview(timelineRows)
+        constrain(timelineRows, view) { box, view in
+            box.top == box.superview!.top
+            box.bottom == box.superview!.bottom
+            box.left == box.superview!.left + 16
+            box.right == box.superview!.right - 16
+            box.right == view.right - 16
+        }
+
         resultsScroller.addSubview(resultsRows)
         constrain(resultsRows, view) { box, view in
             box.top == box.superview!.top
@@ -441,17 +463,75 @@ class ViewController: UIViewController {
             box.right == view.right - 8
         }
     }
-    
-    func buildResultsViewTree(sample: LocomotionSample? = nil) {
+
+    func updateTimelineView() {
+        let timeline = TimelineManager.highlander
+
+        // don't bother updating the UI when we're not in the foreground
+        guard UIApplication.shared.applicationState == .active else {
+            return
+        }
+
+        timelineRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
+        timelineRows.addGap(height: 14)
+        timelineRows.addHeading(title: "Active Timeline Items")
+        timelineRows.addGap(height: 2)
+
+        if timeline.activeTimelineItems.isEmpty {
+            timelineRows.addRow(leftText: "-")
+        } else {
+            for timelineItem in timeline.activeTimelineItems.reversed() {
+                addToTimelineView(timelineItem)
+            }
+        }
+
+        timelineRows.addGap(height: 18)
+        timelineRows.addHeading(title: "Finalised Timeline Items")
+        timelineRows.addGap(height: 2)
+
+        if timeline.finalisedTimelineItems.isEmpty {
+            timelineRows.addRow(leftText: "-")
+        } else {
+            for timelineItem in timeline.finalisedTimelineItems.reversed() {
+                addToTimelineView(timelineItem)
+            }
+        }
+    }
+
+    func addToTimelineView(_ timelineItem: TimelineItem) {
+        let timeline = TimelineManager.highlander
+
+        timelineRows.addGap(height: 14)
+        if timelineItem == timeline.currentItem {
+            timelineRows.addHeading(title: timelineItem is Visit ? "Current Visit" : "Current Path")
+        } else {
+            timelineRows.addHeading(title: timelineItem is Visit ? "Visit" : "Path")
+        }
+        timelineRows.addGap(height: 6)
+
+        if timelineItem == timeline.currentItem, let start = timelineItem.start {
+            timelineRows.addRow(leftText: "Duration", rightText: String(duration: Date().timeIntervalSince(start)))
+        } else {
+            timelineRows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
+        }
+        if let path = timelineItem as? Path {
+            timelineRows.addRow(leftText: "Distance", rightText: String(metres: path.distance))
+            timelineRows.addRow(leftText: "Speed", rightText: String(metresPerSecond: path.metresPerSecond))
+        }
+        if let visit = timelineItem as? Visit {
+            timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius1sd))
+        }
+    }
+
+    func updateResultsView(sample: LocomotionSample? = nil) {
+        let loco = LocomotionManager.highlander
         
         // don't bother updating the UI when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else {
             return
         }
-        
-        let loco = LocomotionManager.highlander
-        let timeline = TimelineManager.highlander
-        
+
         resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         resultsRows.addGap(height: 18)
@@ -486,23 +566,6 @@ class ViewController: UIViewController {
             }
         }
         resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
-
-        if let currentItem = timeline.currentItem {
-            resultsRows.addGap(height: 14)
-            resultsRows.addHeading(title: currentItem is Visit ? "Current Visit" : "Current Path")
-            resultsRows.addGap(height: 6)
-
-            if let start = currentItem.start {
-                resultsRows.addRow(leftText: "Duration", rightText: String(duration: Date().timeIntervalSince(start)))
-            }
-            if let currentPath = currentItem as? Path {
-                resultsRows.addRow(leftText: "Distance", rightText: String(metres: currentPath.distance))
-                resultsRows.addRow(leftText: "Speed", rightText: String(metresPerSecond: currentPath.metresPerSecond))
-            }
-            if let currentVisit = currentItem as? Visit {
-                resultsRows.addRow(leftText: "Radius", rightText: String(metres: currentVisit.radius1sd))
-            }
-        }
 
         resultsRows.addGap(height: 14)
         resultsRows.addHeading(title: "Locomotion Sample")
@@ -708,14 +771,36 @@ class ViewController: UIViewController {
         box.backgroundColor = UIColor(white: 0.85, alpha: 1)
         return box
     }()
-    
+
+    lazy var timelineRows: UIStackView = {
+        let box = UIStackView()
+        box.axis = .vertical
+
+        let background = UIView()
+        background.backgroundColor = .white
+
+        box.addSubview(background)
+        constrain(background) { background in
+            background.edges == background.superview!.edges
+        }
+
+        return box
+    }()
+
+    lazy var timelineScroller: UIScrollView = {
+        let scroller = UIScrollView()
+        scroller.backgroundColor = .white
+        scroller.alwaysBounceVertical = true
+        return scroller
+    }()
+
     lazy var resultsRows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
         
         let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        
+        background.backgroundColor = .white
+
         box.addSubview(background)
         constrain(background) { background in
             background.edges == background.superview!.edges
@@ -736,7 +821,7 @@ class ViewController: UIViewController {
         box.axis = .vertical
 
         let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
+        background.backgroundColor = .white
 
         box.addSubview(background)
         constrain(background) { background in
@@ -797,10 +882,11 @@ class ViewController: UIViewController {
     }()
     
     lazy var viewToggle: UISegmentedControl = {
-        let toggle = UISegmentedControl(items: ["Results", "Settings", "Log"])
-        toggle.setWidth(100, forSegmentAt: 0)
-        toggle.setWidth(100, forSegmentAt: 1)
-        toggle.setWidth(100, forSegmentAt: 2)
+        let toggle = UISegmentedControl(items: ["Timeline", "Details", "Log", "Settings"])
+        toggle.setWidth(84, forSegmentAt: 0)
+        toggle.setWidth(84, forSegmentAt: 1)
+        toggle.setWidth(84, forSegmentAt: 2)
+        toggle.setWidth(84, forSegmentAt: 3)
         toggle.selectedSegmentIndex = 0
         toggle.addTarget(self, action: #selector(tappedViewToggle), for: .valueChanged)
         return toggle
