@@ -47,13 +47,28 @@ class ViewController: UIViewController {
 
         // observe new timeline items
         when(timeline, does: .newTimelineItem) { _ in
-            log(".newTimelineItem (\(String(describing: type(of: timeline.currentItem!))))")
+            if let currentItem = timeline.currentItem {
+                log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
+            }
             self.updateTheMap()
         }
 
-        // observe timeline items updates
-        when(timeline, does: .timelineItemUpdated) { _ in
+        // observe timeline item updates
+        when(timeline, does: .updatedTimelineItem) { _ in
             self.updateTheMap()
+        }
+
+        // observe timeline items finalised after post processing
+        when(timeline, does: .finalisedTimelineItem) { note in
+            if let item = note.userInfo?["timelineItem"] as? TimelineItem {
+                log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
+            }
+        }
+
+        when(timeline, does: .mergedTimelineItems) { note in
+            if let description = note.userInfo?["merge"] as? String {
+                log(".mergedTimelineItems (\(description))")
+            }
         }
 
         // observe incoming location / locomotion updates
@@ -418,8 +433,8 @@ class ViewController: UIViewController {
 
         logScroller.addSubview(logRows)
         constrain(logRows, view) { box, view in
-            box.top == box.superview!.top + 8
-            box.bottom == box.superview!.bottom - 8
+            box.top == box.superview!.top + 10
+            box.bottom == box.superview!.bottom - 10
             box.left == box.superview!.left + 8
             box.right == box.superview!.right - 8
             box.right == view.right - 8
@@ -438,9 +453,9 @@ class ViewController: UIViewController {
         
         resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
-        resultsRows.addGap(height: 22)
+        resultsRows.addGap(height: 18)
         resultsRows.addHeading(title: "Locomotion Manager")
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
 
         resultsRows.addRow(leftText: "Recording state", rightText: loco.recordingState.rawValue)
 
@@ -472,9 +487,9 @@ class ViewController: UIViewController {
         resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
 
         if let currentItem = timeline.currentItem {
-            resultsRows.addGap(height: 18)
+            resultsRows.addGap(height: 14)
             resultsRows.addHeading(title: currentItem is Visit ? "Current Visit" : "Current Path")
-            resultsRows.addGap(height: 10)
+            resultsRows.addGap(height: 6)
 
             if let start = currentItem.start {
                 resultsRows.addRow(leftText: "Duration", rightText: String(duration: Date().timeIntervalSince(start)))
@@ -488,9 +503,9 @@ class ViewController: UIViewController {
             }
         }
 
-        resultsRows.addGap(height: 18)
+        resultsRows.addGap(height: 14)
         resultsRows.addHeading(title: "Locomotion Sample")
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
         
         if let sample = sample {
             resultsRows.addRow(leftText: "Latest sample", rightText: sample.description)
@@ -520,16 +535,16 @@ class ViewController: UIViewController {
             resultsRows.addRow(leftText: "Latest sample", rightText: "-")
         }
 
-        resultsRows.addGap(height: 18)
+        resultsRows.addGap(height: 14)
         resultsRows.addHeading(title: "Activity Type Classifier (baseTypes)")
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
         
         if let classifier = baseClassifier {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
         } else {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
         }
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
         
         if loco.recordingState == .recording, let sample = sample {
             if let classifier = baseClassifier {
@@ -555,16 +570,16 @@ class ViewController: UIViewController {
             }
         }
         
-        resultsRows.addGap(height: 18)
+        resultsRows.addGap(height: 14)
         resultsRows.addHeading(title: "Activity Type Classifier (transportTypes)")
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
         
         if let classifier = transportClassifier {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
         } else {
             resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
         }
-        resultsRows.addGap(height: 10)
+        resultsRows.addGap(height: 6)
         
         if loco.recordingState == .recording, let sample = sample {
             if let classifier = transportClassifier {
@@ -658,18 +673,18 @@ class ViewController: UIViewController {
         }
 
         var coords = path.samples.flatMap { $0.location?.coordinate }
-        let path = PathPolyline(coordinates: &coords, count: coords.count)
-        path.color = .brown
+        let line = PathPolyline(coordinates: &coords, count: coords.count)
+        line.color = TimelineManager.highlander.activeTimelineItems.contains(path) ? .brown : .darkGray
 
-        map.add(path)
+        map.add(line)
     }
 
     func addToMap(_ visit: Visit) {
         if let center = visit.center {
-            map.addAnnotation(VisitAnnotation(coordinate: center.coordinate))
+            map.addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
            
             let circle = VisitCircle(center: center.coordinate, radius: visit.radius1sd)
-            circle.color = .orange
+            circle.color = TimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
             map.add(circle, level: .aboveLabels)
         }
     }

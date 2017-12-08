@@ -90,7 +90,7 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
-		C96981AA1F360B160021238C /* Helpers */ = {
+		C96981AA1F360B160021238C /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
 				C95644231F5EAABF00E9F428 /* Array.helpers.swift */,
@@ -98,7 +98,7 @@
 				C96981A81F360ADF0021238C /* String.helpers.swift */,
 				C96B3C3D1F35EB590089854F /* UIStackView.helpers.swift */,
 			);
-			name = Helpers;
+			name = Extensions;
 			sourceTree = "<group>";
 		};
 		C9A023DE1F18A51900DFFEBD /* Views */ = {

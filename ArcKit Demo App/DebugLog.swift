@@ -50,7 +50,7 @@ class DebugLog {
 extension Date {
     var timeLogString: String {
         let formatter = DebugLog.formatter
-        formatter.dateFormat = "HH:mm:ss.SSS"
+        formatter.dateFormat = "HH:mm:ss"
         return formatter.string(from: self)
     }
 }

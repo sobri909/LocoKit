@@ -2,13 +2,16 @@
 // Copyright (c) 2016 Big Paua. All rights reserved.
 
 import MapKit
+import ArcKit
 
 class VisitAnnotation: NSObject, MKAnnotation {
 
     var coordinate: CLLocationCoordinate2D
+    var visit: Visit
 
-    init(coordinate: CLLocationCoordinate2D) {
+    init(coordinate: CLLocationCoordinate2D, visit: Visit) {
         self.coordinate = coordinate
+        self.visit = visit
         super.init()
     }
 

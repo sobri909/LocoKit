@@ -80,7 +80,7 @@ extension UIStackView {
         constrain(row, leftPad, rightPad) { row, leftPad, rightPad in
             leftPad.width == 8
             rightPad.width == 8
-            row.height == 24
+            row.height == 20
         }
         
         return row
