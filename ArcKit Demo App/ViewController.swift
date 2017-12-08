@@ -87,6 +87,7 @@ class ViewController: UIViewController {
 
         when(loco, does: .startedSleepMode) { _ in
             log(".startedSleepMode")
+            self.updateTheMap()
         }
 
         when(loco, does: .stoppedSleepMode) { _ in
