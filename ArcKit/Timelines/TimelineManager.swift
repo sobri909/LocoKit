@@ -158,8 +158,13 @@ public extension NSNotification.Name {
             // clean up item edges before calculating any merge scores
             workingItem.sanitiseEdges()
 
-            // the only escape
+            // if the chain is broken, we can't do merges
             guard let previous = workingItem.previousItem else {
+                break
+            }
+
+            // don't do merges against finalised items
+            guard activeTimelineItems.contains(previous) else {
                 break
             }
 
@@ -168,7 +173,9 @@ public extension NSNotification.Name {
 
             // if previous has a lesser keepness, look at doing a merge against previous-previous
             if previous.keepnessScore < workingItem.keepnessScore {
-                if let prevPrev = previous.previousItem, prevPrev.keepnessScore > previous.keepnessScore {
+                if let prevPrev = previous.previousItem, activeTimelineItems.contains(prevPrev),
+                    prevPrev.keepnessScore > previous.keepnessScore
+                {
                     merges.append(Merge(keeper: workingItem, betweener: previous, deadman: prevPrev))
                     merges.append(Merge(keeper: prevPrev, betweener: previous, deadman: workingItem))
                 }

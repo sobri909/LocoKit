@@ -41,9 +41,11 @@ public class Merge {
         // deadman is previous
         if keeper.previousItem == deadman || (betweener != nil && keeper.previousItem == betweener) {
             keeper.previousItem = deadman.previousItem
-            
+            keeper.previousItem?.nextItem = keeper
+
         } else { // keeper is previous
             keeper.nextItem = deadman.nextItem
+            keeper.nextItem?.previousItem = keeper
         }
 
         // reassign the deadman's samples
