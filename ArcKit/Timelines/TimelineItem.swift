@@ -160,7 +160,6 @@ import CoreLocation
         let modeType = counted.max { counted.count(for: $0) < counted.count(for: $1) }
 
         _modeActivityType = modeType as? ActivityTypeName
-
         return _modeActivityType
     }
 
@@ -181,7 +180,6 @@ import CoreLocation
         let modeType = counted.max { counted.count(for: $0) < counted.count(for: $1) }
 
         _modeMovingActivityType = modeType as? ActivityTypeName
-
         return _modeMovingActivityType
     }
 

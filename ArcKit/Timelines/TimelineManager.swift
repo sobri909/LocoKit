@@ -16,6 +16,7 @@ public extension NSNotification.Name {
     public static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
     public static let finalisedTimelineItem = Notification.Name("finalisedTimelineItem")
     public static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
+    public static let debugInfo = Notification.Name("debugInfo")
 }
 
 @objc public class TimelineManager: NSObject {
