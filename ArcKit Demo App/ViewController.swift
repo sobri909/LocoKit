@@ -206,8 +206,8 @@ class ViewController: UIViewController {
         let timeline = TimelineManager.highlander
         
         // for demo purposes only. this accuracy level is excessive
-        // the default value best balances accuracy with battery use
-        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyBest
+        // the default value (30 metres) best balances accuracy with battery use
+        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
         
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
