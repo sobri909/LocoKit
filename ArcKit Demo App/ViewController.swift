@@ -532,7 +532,7 @@ class ViewController: UIViewController {
         }
         title += timelineItem is Visit ? "Visit" : "Path"
         if let path = timelineItem as? Path, let activityType = path.movingActivityType {
-            title += " (best: \(activityType)"
+            title += " (\(activityType)"
             if let modeType = path.modeMovingActivityType {
                 title += ", mode: \(modeType)"
             }
