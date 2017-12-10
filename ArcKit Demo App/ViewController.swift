@@ -105,7 +105,15 @@ class ViewController: UIViewController {
         when(loco, does: .movingStateChanged) { _ in
             log(".movingStateChanged (\(loco.movingState))")
         }
-        
+
+        when(timeline, does: .debugInfo) { note in
+            if let info = note.userInfo?["info"] as? String {
+                log(".debug (\(info))")
+            } else {
+                log(".debug (nil)")
+            }
+        }
+
         when(settings, does: .settingsChanged) { _ in
             self.updateTheMap()
         }
@@ -474,7 +482,7 @@ class ViewController: UIViewController {
 
         timelineRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
-        timelineRows.addGap(height: 14)
+        timelineRows.addGap(height: 18)
         timelineRows.addHeading(title: "Active Timeline Items")
         timelineRows.addGap(height: 2)
 
