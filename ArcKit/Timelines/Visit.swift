@@ -16,10 +16,6 @@ import CoreLocation
     @objc static var minimumRadius: CLLocationDistance = 10
     @objc static var maximumRadius: CLLocationDistance = 150
 
-    @objc private(set) public var center: CLLocation?
-
-    private var _radius: (mean: CLLocationDistance, sd: CLLocationDistance) = (0, 0)
-
     @objc public override var isWorthKeeping: Bool {
         if !isValid {
             return false
@@ -42,26 +38,6 @@ import CoreLocation
         }
 
         return true
-    }
-
-    // ~50% of samples
-    public var radius0sd: Double {
-        return _radius.mean.clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
-    }
-
-    // ~84% of samples
-    public var radius1sd: Double {
-        return (_radius.mean + _radius.sd).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
-    }
-
-    // ~98% of samples
-    public var radius2sd: Double {
-        return (_radius.mean + (_radius.sd * 2)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
-    }
-
-    // ~100% of samples
-    public var radius3sd: Double {
-        return (_radius.mean + (_radius.sd * 3)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
     /// Whether the given location falls within this visit's radius.
@@ -150,12 +126,12 @@ import CoreLocation
             var previousChanged: LocomotionSample? = nil
             var nextChanged: LocomotionSample? = nil
 
-            if let previousItem = self.previousItem as? Path {
-                previousChanged = self.cleanseVisitEdgeWith(previousItem)
+            if let previousPath = previousItem as? Path {
+                previousChanged = self.cleanseVisitEdgeWith(previousPath)
             }
 
-            if let nextItem = self.nextItem as? Path {
-                nextChanged = self.cleanseVisitEdgeWith(nextItem)
+            if let nextPath = nextItem as? Path {
+                nextChanged = self.cleanseVisitEdgeWith(nextPath)
             }
 
             // no changes, so we're done
@@ -216,21 +192,8 @@ import CoreLocation
 
     override func samplesChanged() {
         super.samplesChanged()
-        updateCenter()
-        updateRadius()
     }
 
-    private func updateCenter() {
-        center = samples.weightedCenter
-    }
-
-    private func updateRadius() {
-        if let center = center {
-            _radius = samples.radiusFrom(center: center)
-        } else {
-            _radius = (0, 0)
-        }
-    }
 }
 
 extension Visit {

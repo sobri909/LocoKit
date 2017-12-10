@@ -12,6 +12,10 @@ import CoreLocation
 
     private var _samples: [LocomotionSample] = []
 
+    internal var _radius: (mean: CLLocationDistance, sd: CLLocationDistance) = (0, 0)
+
+    @objc private(set) public var center: CLLocation?
+
     private(set) public var itemId: UUID
 
     /// The LocomotionSamples recorded between the item's `start` and `end` dates.
@@ -78,6 +82,111 @@ import CoreLocation
         return dateRange.duration
     }
 
+    // ~50% of samples
+    public var radius0sd: Double {
+        return _radius.mean.clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
+    }
+
+    // ~84% of samples
+    public var radius1sd: Double {
+        return (_radius.mean + _radius.sd).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
+    }
+
+    // ~98% of samples
+    public var radius2sd: Double {
+        return (_radius.mean + (_radius.sd * 2)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
+    }
+
+    // ~100% of samples
+    public var radius3sd: Double {
+        return (_radius.mean + (_radius.sd * 3)).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
+    }
+
+    // MARK: Activity Types
+
+    private var _classifierResults: ClassifierResults?
+
+    /// The `ActivityTypeClassifier` results for the timeline item.
+    public var classifierResults: ClassifierResults? {
+        if let results = _classifierResults {
+            return results
+        }
+
+        guard let results = ActivityTypeSetClassifier.classify(self) else {
+            return nil
+        }
+
+        // don't cache if it's incomplete
+        if results.moreComing {
+            return results
+        }
+
+        _classifierResults = results
+        return results
+    }
+
+    /// The highest scoring activity type for the timeline's samples.
+    public var activityType: ActivityTypeName? {
+        return classifierResults?.first?.name
+    }
+
+    /// The highest scoring moving (ie not stationary) activity type for the timeline item.
+    public var movingActivityType: ActivityTypeName? {
+        guard let results = classifierResults else {
+            return nil
+        }
+        for result in results {
+            if result.name != .stationary {
+                return result.name
+            }
+        }
+        return nil
+    }
+
+    private var _modeActivityType: ActivityTypeName?
+
+    /// The most common activity type for the timeline item's samples.
+    public var modeActivityType: ActivityTypeName? {
+        if let modeType = _modeActivityType {
+            return modeType
+        }
+        let sampleTypes = samples.flatMap { $0.activityType }
+
+        if sampleTypes.isEmpty {
+            return nil
+        }
+
+        let counted = NSCountedSet(array: sampleTypes)
+        let modeType = counted.max { counted.count(for: $0) < counted.count(for: $1) }
+
+        _modeActivityType = modeType as? ActivityTypeName
+
+        return _modeActivityType
+    }
+
+    private var _modeMovingActivityType: ActivityTypeName?
+
+    /// The most common moving activity type for the timeline item's samples.
+    public var modeMovingActivityType: ActivityTypeName? {
+        if let modeType = _modeMovingActivityType {
+            return modeType
+        }
+        let sampleTypes = samples.flatMap { $0.activityType != .stationary ? $0.activityType : nil }
+
+        if sampleTypes.isEmpty {
+            return nil
+        }
+
+        let counted = NSCountedSet(array: sampleTypes)
+        let modeType = counted.max { counted.count(for: $0) < counted.count(for: $1) }
+
+        _modeMovingActivityType = modeType as? ActivityTypeName
+
+        return _modeMovingActivityType
+    }
+
+    // MARK: Comparisons and Helpers
+
     /**
      The time interval between this item and the given item.
 
@@ -87,15 +196,17 @@ import CoreLocation
         guard let myRange = self.dateRange, let theirRange = otherItem.dateRange else {
             return nil
         }
-        if myRange < theirRange {
-            return theirRange.start.timeIntervalSince(myRange.end)
-        }
-        if myRange > theirRange {
-            return myRange.start.timeIntervalSince(theirRange.end)
-        }
+
         if let intersection = myRange.intersection(with: theirRange) {
             return -intersection.duration
         }
+        if myRange.end <= theirRange.start {
+            return theirRange.start.timeIntervalSince(myRange.end)
+        }
+        if myRange.start >= theirRange.end {
+            return myRange.start.timeIntervalSince(theirRange.end)
+        }
+
         return nil
     }
 
@@ -167,6 +278,25 @@ import CoreLocation
             dateRange = DateInterval(start: start, end: end)
         } else {
             dateRange = nil
+        }
+
+        _classifierResults = nil
+        _modeMovingActivityType = nil
+        _modeActivityType = nil
+        
+        updateCenter()
+        updateRadius()
+    }
+
+    private func updateCenter() {
+        center = samples.weightedCenter
+    }
+
+    private func updateRadius() {
+        if let center = center {
+            _radius = samples.radiusFrom(center: center)
+        } else {
+            _radius = (0, 0)
         }
     }
 }

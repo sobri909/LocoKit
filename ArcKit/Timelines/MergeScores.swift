@@ -118,54 +118,47 @@ extension MergeScores {
 
     // MARK: PATH <- PATH
     fileprivate static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
+        guard TimelineManager.highlander.separatePathsByActivityType else {
+            return .medium
+        }
 
-        // let's just call them all medium for now (they've already passed the separation distance test, by this stage)
-        return .medium
-
-        // TODO: hook back up the activity type based path-path merge rules
-
-//        let consumerType = consumer.primaryMovingActivityType ?? consumer.primaryActivityType
-//        let consumeeType = consumee.activityType
+        let consumerType = consumer.movingActivityType ?? consumer.activityType
+        let consumeeType = consumee.movingActivityType
 
         // perfect type match
-//        if consumeeType == consumerType {
-//            return .perfect
-//        }
+        if consumeeType == consumerType {
+            return .perfect
+        }
 
         // can't consume a keeper path
-//        if consumee.isWorthKeeping {
-//            return .impossible
-//        }
+        if consumee.isWorthKeeping {
+            return .impossible
+        }
 
-        // a path with nil type can't consume shit
-//        guard let scoringType = consumerType else {
-//            return .impossible
-//        }
-//
-//        guard let classifierResult = consumee.classifierResults?.first(where: { $0.name == scoringType }) else {
-//            return .impossible
-//        }
-//
-//        // consumee's type score for consumer's primary type, as a usable Int
-//        let scoreDoubleBig = floor(classifierResult.score * 1000)
-//        let typeScore = Int(scoreDoubleBig)
-//
-//        log("consumer: \(consumer.typeDescription) consumee: \(consumee.typeDescription) typeScore: \(typeScore)")
-//
-//        switch typeScore {
-//        case 75...Int.max:
-//            return .perfect
-//        case 50...75:
-//            return .high
-//        case 25...50:
-//            return .medium
-//        case 10...25:
-//            return .low
-//        default:
-//            return .veryLow
-//        }
-//
-//        return .impossible
+        // a path with nil type can't consume anyone
+        guard let scoringType = consumerType else {
+            return .impossible
+        }
+
+        guard let classifierResult = consumee.classifierResults?.first(where: { $0.name == scoringType }) else {
+            return .impossible
+        }
+
+        // consumee's type score for consumer's type, as a usable Int
+        let typeScore = Int(floor(classifierResult.score * 1000))
+
+        switch typeScore {
+        case 75...Int.max:
+            return .perfect
+        case 50...75:
+            return .high
+        case 25...50:
+            return .medium
+        case 10...25:
+            return .low
+        default:
+            return .veryLow
+        }
     }
 }
 

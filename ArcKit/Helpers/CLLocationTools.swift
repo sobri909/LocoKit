@@ -28,6 +28,12 @@ extension CLLocationDistance {
     static let feetPerMetre = 3.2808399
 }
 
+extension CLLocationSpeed {
+    init(kmh: Double) {
+        self.init(kmh / 3.6)
+    }
+}
+
 public extension CLLocation {
 
     public convenience init?(weightedCenterFor samples: [LocomotionSample]) {

@@ -6,6 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import Upsurge
 import CoreLocation
 
 @objc public class Path: TimelineItem {
@@ -60,27 +61,38 @@ import CoreLocation
         return distance
     }
 
-    public var mps: Double {
+    public var speed: CLLocationSpeed {
         return metresPerSecond
     }
 
-    public var metresPerSecond: Double {
-        guard duration > 0 else {
-            return 0
+    public var mps: CLLocationSpeed {
+        return metresPerSecond
+    }
+
+    public var metresPerSecond: CLLocationSpeed {
+        if samples.count == 1, let sampleSpeed = samples.first?.location?.speed, sampleSpeed >= 0 {
+            return sampleSpeed
         }
-        return distance / duration
+        if duration > 0 {
+            return distance / duration
+        }
+        return 0
     }
 
     public var kph: Double {
         return kilometresPerHour
     }
 
+    public var kmh: Double {
+        return kilometresPerHour
+    }
+
     public var kilometresPerHour: Double {
-        guard duration > 0 else {
-            return 0
-        }
-        let hours = duration / (60 * 60)
-        return distance / 1000 / hours
+        return mps * 3.6
+    }
+
+    public var mph: Double {
+        return milesPerHour
     }
 
     public var milesPerHour: Double {
@@ -161,8 +173,14 @@ import CoreLocation
         guard let timeSeparation = self.timeIntervalFrom(otherPath) else {
             return 0
         }
-        let mps = (self.mps + otherPath.mps) * 0.5
-        return CLLocationDistance(mps * timeSeparation * 4)
+        var speeds: [CLLocationSpeed] = []
+        if self.mps > 0 {
+            speeds.append(self.mps)
+        }
+        if otherPath.mps > 0 {
+            speeds.append(otherPath.mps)
+        }
+        return CLLocationDistance(mean(speeds) * timeSeparation * 4)
     }
 
     // only sanitises path-path edges. path-visit sanitisation is done by Visit.sanitiseEdges()

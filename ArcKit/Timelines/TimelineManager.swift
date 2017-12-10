@@ -7,6 +7,8 @@
 //
 
 import os.log
+import CoreLocation
+import Reachability
 
 /// Custom notification events that the TimelineManager may send.
 public extension NSNotification.Name {
@@ -20,6 +22,8 @@ public extension NSNotification.Name {
 
     private var recording = false
     private var lastRecorded: Date?
+
+    private let reachability = Reachability()!
 
     // MARK: The Singleton
 
@@ -43,6 +47,12 @@ public extension NSNotification.Name {
      */
     public var timelineItemHistoryRetention: TimeInterval = 60 * 60 * 6
 
+    public var separatePathsByActivityType = true
+
+    public var minimumTransportCoverage = 0.10
+
+    public var maxModeShiftSpeed = CLLocationSpeed(kmh: 8)
+
     // MARK: Starting and Stopping Recording
 
     @objc public func startRecording() {
@@ -55,7 +65,13 @@ public extension NSNotification.Name {
         recording = false
     }
 
-    /// The current timeline item.
+    // MARK: The Recorded Timeline Items
+    
+    /**
+     The current (most recent) timeline item.
+
+     - Note: This value is equivalent to `activeTimelineItems.last`.
+     */
     @objc public var currentItem: TimelineItem? {
         return activeTimelineItems.last
     }
@@ -74,9 +90,16 @@ public extension NSNotification.Name {
      order.
 
      - Note: The last item in this array will usually be linked to the first item in `activeTimelineItems` by its
-     `nextItem` property (and in turn, that item will be linked back by its `previousItem` property).
+     `nextItem` property. And in turn, that item will be linked back by its `previousItem` property.
      */
     @objc private(set) public var finalisedTimelineItems: [TimelineItem] = []
+
+    // MARK: The Classifiers
+
+    var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
+    var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
+
+    // MARK: Internal Item Processing Stuff
 
     private func sampleUpdated() {
         guard recording else {
@@ -92,10 +115,18 @@ public extension NSNotification.Name {
 
         let sample = LocomotionManager.highlander.locomotionSample()
 
-        defer {
-            processTimelineItems()
-            NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+        if separatePathsByActivityType {
+            sample.classifierResults = classify(sample)
         }
+
+        processSample(sample)
+
+        processTimelineItems()
+
+        NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+    }
+
+    private func processSample(_ sample: LocomotionSample) {
 
         // first timeline item?
         if currentItem == nil {
@@ -104,14 +135,32 @@ public extension NSNotification.Name {
         }
 
         // can continue the last timeline item?
-        if let item = currentItem {
-            if item is Path && (sample.movingState == .moving || sample.movingState == .uncertain) {
-                item.add(sample)
+        if let currentItem = currentItem {
+            let previouslyMoving = currentItem is Path
+            let currentlyMoving = sample.movingState == .moving || sample.movingState == .uncertain
+
+            // if stationary -> stationary, reuse current
+            if !currentlyMoving && !previouslyMoving {
+                currentItem.add(sample)
                 return
             }
-            if item is Visit && sample.movingState == .stationary {
-                item.add(sample)
-                return
+
+            // moving -> moving
+            if previouslyMoving && currentlyMoving {
+
+                // if activityType hasn't changed, reuse current
+                if sample.activityType == currentItem.movingActivityType {
+                    currentItem.add(sample)
+                    return
+                }
+
+                // if edge speeds are above the mode change threshold, reuse current
+                if let currentSpeed = currentItem.samples.last?.location?.speed, let sampleSpeed = sample.location?.speed {
+                    if currentSpeed > maxModeShiftSpeed && sampleSpeed > maxModeShiftSpeed {
+                        currentItem.add(sample)
+                        return
+                    }
+                }
             }
         }
 
@@ -173,8 +222,8 @@ public extension NSNotification.Name {
 
             // if previous has a lesser keepness, look at doing a merge against previous-previous
             if previous.keepnessScore < workingItem.keepnessScore {
-                if let prevPrev = previous.previousItem, activeTimelineItems.contains(prevPrev),
-                    prevPrev.keepnessScore > previous.keepnessScore
+                if let prevPrev = previous.previousItem, prevPrev.keepnessScore > previous.keepnessScore,
+                    activeTimelineItems.contains(prevPrev)
                 {
                     merges.append(Merge(keeper: workingItem, betweener: previous, deadman: prevPrev))
                     merges.append(Merge(keeper: prevPrev, betweener: previous, deadman: workingItem))
@@ -263,6 +312,82 @@ public extension NSNotification.Name {
             os_log("Released %d historical timeline item(s).", type: .debug, itemsToTrim.count)
         }
     }
+
+    // MARK: Internal Classifier Management
+
+    internal func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults? {
+
+        // attempt to keep the classifiers relevant / fresh
+        if let coordinate = classifiable.location?.coordinate {
+            updateTheBaseClassifier(for: coordinate)
+            updateTheTransportClassifier(for: coordinate)
+        }
+
+        // if possible, get the base type results
+        guard let classifier = baseClassifier else {
+            return nil
+        }
+        let results = classifier.classify(classifiable)
+
+        // don't need to go further if transport didn't win the base round
+        guard results.first?.name == .transport else {
+            return results
+        }
+
+        // don't include specific transport types if classifier has less than required coverage
+        guard let coverageScore = transportClassifier?.coverageScore, coverageScore > minimumTransportCoverage else {
+            return results
+        }
+
+        // attempt to get the transport type results
+        guard let transportClassifier = transportClassifier else {
+            return results
+        }
+        let transportResults = transportClassifier.classify(classifiable)
+
+        // combine and return the results
+        return (results - ActivityTypeName.transport) + transportResults
+    }
+
+    private func updateTheBaseClassifier(for coordinate: CLLocationCoordinate2D) {
+
+        // don't try to fetch classifiers without a network connection
+        guard reachability.connection != .none else {
+            return
+        }
+
+        // have a classifier already, and it's still valid?
+        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
+            return
+        }
+
+        // attempt to get an updated classifier
+        if let replacement = ActivityTypeClassifier<ActivityTypesCache>(requestedTypes: ActivityTypeName.baseTypes,
+                                                                        coordinate: coordinate) {
+            baseClassifier = replacement
+        }
+    }
+
+    private func updateTheTransportClassifier(for coordinate: CLLocationCoordinate2D) {
+
+        // don't try to fetch classifiers without a network connection
+        guard reachability.connection != .none else {
+            return
+        }
+
+        // have a classifier already, and it's still valid?
+        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
+            return
+        }
+
+        // attempt to get an updated classifier
+        if let replacement = ActivityTypeClassifier<ActivityTypesCache>(requestedTypes: ActivityTypeName.transportTypes,
+                                                                        coordinate: coordinate) {
+            transportClassifier = replacement
+        }
+    }
+
+    // MARK: Only Highlanders Here
 
     private override init() {
         super.init()

@@ -104,7 +104,22 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
      sample's `date`.
      */
     public let coreMotionActivityType: CoreMotionActivityTypeName?
-    
+
+    // MARK: References
+
+    /**
+     The sample's parent `TimelineItem`, if recording is being done via `TimelineManager`.
+
+     - Note: If recording is being done directly with `LocomotionManager`, this value will be nil.
+     */
+    public weak var timelineItem: TimelineItem?
+
+    internal(set) public var classifierResults: ClassifierResults?
+
+    public var activityType: ActivityTypeName? {
+        return classifierResults?.first?.name
+    }
+
     // MARK: Convenience Getters
     
     /// A convenience getter for the sample's time interval since start of day.
@@ -115,8 +130,6 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
     public var hasUsableCoordinate: Bool {
         return location?.hasUsableCoordinate ?? false
     }
-
-    public weak var timelineItem: TimelineItem?
 
     public func distance(from otherSample: LocomotionSample) -> CLLocationDistance? {
         guard let myLocation = location, let theirLocation = otherSample.location else {
