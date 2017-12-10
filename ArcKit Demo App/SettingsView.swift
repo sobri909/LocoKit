@@ -72,7 +72,7 @@ class SettingsView: UIScrollView {
     
     func buildSettingsViewTree() {
         settingsRows.addGap(height: 24)
-        settingsRows.addHeading(title: "Map Style", alignment: .center)
+        settingsRows.addSubheading(title: "Map Style", alignment: .center)
         settingsRows.addGap(height: 6)
         settingsRows.addUnderline()
         
@@ -95,7 +95,7 @@ class SettingsView: UIScrollView {
         settingsRows.addRow(views: [satellite, zoom])
         
         settingsRows.addGap(height: 18)
-        settingsRows.addHeading(title: "Map Data", alignment: .center)
+        settingsRows.addSubheading(title: "Map Data", alignment: .center)
         settingsRows.addGap(height: 6)
         settingsRows.addUnderline()
 
@@ -139,7 +139,7 @@ class SettingsView: UIScrollView {
         settingsRows.addRow(views: [samples, raw])
 
         settingsRows.addGap(height: 18)
-        settingsRows.addHeading(title: "Activity Type Classifiers", alignment: .center)
+        settingsRows.addSubheading(title: "Activity Type Classifiers", alignment: .center)
         settingsRows.addGap(height: 6)
         settingsRows.addUnderline()
         

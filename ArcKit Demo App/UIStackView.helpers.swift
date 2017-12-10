@@ -12,6 +12,7 @@ extension UIStackView {
     
     func addUnderline() {
         let underline = UIView()
+        underline.backgroundColor = UIColor(white: 0.85, alpha: 1)
         addArrangedSubview(underline)
         
         constrain(underline) { underline in
@@ -28,8 +29,17 @@ extension UIStackView {
             gap.height == height
         }
     }
-    
+
     func addHeading(title: String, alignment: NSTextAlignment = .left) {
+        let header = UILabel()
+        header.backgroundColor = .white
+        header.font = UIFont.preferredFont(forTextStyle: .headline)
+        header.textAlignment = alignment
+        header.text = title
+        addArrangedSubview(header)
+    }
+    
+    func addSubheading(title: String, alignment: NSTextAlignment = .left) {
         let header = UILabel()
         header.backgroundColor = .white
         header.font = UIFont.preferredFont(forTextStyle: .subheadline)

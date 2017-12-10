@@ -439,7 +439,7 @@ class ViewController: UIViewController {
         timelineScroller.addSubview(timelineRows)
         constrain(timelineRows, view) { box, view in
             box.top == box.superview!.top
-            box.bottom == box.superview!.bottom
+            box.bottom == box.superview!.bottom - 16
             box.left == box.superview!.left + 16
             box.right == box.superview!.right - 16
             box.right == view.right - 16
@@ -478,10 +478,17 @@ class ViewController: UIViewController {
         timelineRows.addHeading(title: "Active Timeline Items")
         timelineRows.addGap(height: 2)
 
+        var nextItem: TimelineItem?
+
         if timeline.activeTimelineItems.isEmpty {
             timelineRows.addRow(leftText: "-")
         } else {
             for timelineItem in timeline.activeTimelineItems.reversed() {
+                if let next = nextItem, next.previousItem != timelineItem {
+                    addDataGapToTimeline()
+                }
+                nextItem = timelineItem
+
                 addToTimelineView(timelineItem)
             }
         }
@@ -494,6 +501,11 @@ class ViewController: UIViewController {
             timelineRows.addRow(leftText: "-")
         } else {
             for timelineItem in timeline.finalisedTimelineItems.reversed() {
+                if let next = nextItem, next.previousItem != timelineItem {
+                    addDataGapToTimeline()
+                }
+                nextItem = timelineItem
+
                 addToTimelineView(timelineItem)
             }
         }
@@ -503,11 +515,22 @@ class ViewController: UIViewController {
         let timeline = TimelineManager.highlander
 
         timelineRows.addGap(height: 14)
-        if timelineItem == timeline.currentItem {
-            timelineRows.addHeading(title: timelineItem is Visit ? "Current Visit" : "Current Path")
-        } else {
-            timelineRows.addHeading(title: timelineItem is Visit ? "Visit" : "Path")
+        var title = ""
+        if let start = timelineItem.start {
+            title += "[\(timelineDateFormatter.string(from: start))] "
         }
+        if timelineItem == timeline.currentItem {
+            title += "Current "
+        }
+        title += timelineItem is Visit ? "Visit" : "Path"
+        if let path = timelineItem as? Path, let activityType = path.movingActivityType {
+            title += " (best: \(activityType)"
+            if let modeType = path.modeMovingActivityType {
+                title += ", mode: \(modeType)"
+            }
+            title += ")"
+        }
+        timelineRows.addSubheading(title: title)
         timelineRows.addGap(height: 6)
 
         if timelineItem == timeline.currentItem, let start = timelineItem.start {
@@ -515,13 +538,38 @@ class ViewController: UIViewController {
         } else {
             timelineRows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
         }
+
         if let path = timelineItem as? Path {
             timelineRows.addRow(leftText: "Distance", rightText: String(metres: path.distance))
             timelineRows.addRow(leftText: "Speed", rightText: String(metresPerSecond: path.metresPerSecond))
         }
+
         if let visit = timelineItem as? Visit {
             timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius1sd))
         }
+
+        if timelineItem != timeline.currentItem, let end = timelineItem.end {
+            timelineRows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago")
+        }
+
+        if let previousItem = timelineItem.previousItem, let gap = timelineItem.timeIntervalFrom(previousItem) {
+            timelineRows.addRow(leftText: "Gap from previous", rightText: "\(String(duration: gap))")
+        }
+    }
+
+    func addDataGapToTimeline(duration: TimeInterval? = nil) {
+        timelineRows.addGap(height: 14)
+        timelineRows.addUnderline()
+        timelineRows.addGap(height: 14)
+
+        if let duration = duration {
+            timelineRows.addSubheading(title: "Timeline Gap (\(String(duration: duration)))")
+        } else {
+            timelineRows.addSubheading(title: "Timeline Gap")
+        }
+
+        timelineRows.addGap(height: 14)
+        timelineRows.addUnderline()
     }
 
     func updateResultsView(sample: LocomotionSample? = nil) {
@@ -535,7 +583,7 @@ class ViewController: UIViewController {
         resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         resultsRows.addGap(height: 18)
-        resultsRows.addHeading(title: "Locomotion Manager")
+        resultsRows.addSubheading(title: "Locomotion Manager")
         resultsRows.addGap(height: 6)
 
         resultsRows.addRow(leftText: "Recording state", rightText: loco.recordingState.rawValue)
@@ -568,7 +616,7 @@ class ViewController: UIViewController {
         resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
 
         resultsRows.addGap(height: 14)
-        resultsRows.addHeading(title: "Locomotion Sample")
+        resultsRows.addSubheading(title: "Locomotion Sample")
         resultsRows.addGap(height: 6)
         
         if let sample = sample {
@@ -600,7 +648,7 @@ class ViewController: UIViewController {
         }
 
         resultsRows.addGap(height: 14)
-        resultsRows.addHeading(title: "Activity Type Classifier (baseTypes)")
+        resultsRows.addSubheading(title: "Activity Type Classifier (baseTypes)")
         resultsRows.addGap(height: 6)
         
         if let classifier = baseClassifier {
@@ -635,7 +683,7 @@ class ViewController: UIViewController {
         }
         
         resultsRows.addGap(height: 14)
-        resultsRows.addHeading(title: "Activity Type Classifier (transportTypes)")
+        resultsRows.addSubheading(title: "Activity Type Classifier (transportTypes)")
         resultsRows.addGap(height: 6)
         
         if let classifier = transportClassifier {
@@ -890,6 +938,12 @@ class ViewController: UIViewController {
         toggle.selectedSegmentIndex = 0
         toggle.addTarget(self, action: #selector(tappedViewToggle), for: .valueChanged)
         return toggle
+    }()
+
+    lazy var timelineDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
     }()
 }
 
