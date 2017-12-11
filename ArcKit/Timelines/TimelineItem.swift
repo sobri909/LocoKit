@@ -257,12 +257,12 @@ import CoreLocation
     }
 
     // subclasses handle this
-    internal func distance(from: TimelineItem) -> CLLocationDistance? {
+    public func distance(from: TimelineItem) -> CLLocationDistance? {
         fatalError("Shouldn't be here.")
     }
 
     // subclasses handle this
-    internal func maximumMergeableDistance(from: TimelineItem) -> CLLocationDistance {
+    public func maximumMergeableDistance(from: TimelineItem) -> CLLocationDistance {
         fatalError("Shouldn't be here.")
     }
 

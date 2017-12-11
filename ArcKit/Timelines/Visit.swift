@@ -71,7 +71,7 @@ import CoreLocation
         return [percentOfPathSamples, percentOfPathDuration, percentOfPathDistance].mean
     }
 
-    internal override func distance(from otherItem: TimelineItem) -> CLLocationDistance? {
+    public override func distance(from otherItem: TimelineItem) -> CLLocationDistance? {
         if let path = otherItem as? Path {
             return distance(from: path)
         }
@@ -98,7 +98,7 @@ import CoreLocation
         return center.distance(from: pathEdge) - radius2sd
     }
 
-    internal override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {
+    public override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {
         if let path = otherItem as? Path {
             return maximumMergeableDistance(from: path)
         }
@@ -111,8 +111,6 @@ import CoreLocation
     private func maximumMergeableDistance(from path: Path) -> CLLocationDistance {
 
         // visit-path gaps less than this should be forgiven
-        // TODO: should this be configurable?
-        // or should it be taken from Visit.maximumRadius? or is their similarity just coincidence?
         let minimum: CLLocationDistance = 150
 
         guard let timeSeparation = self.timeIntervalFrom(path) else {
