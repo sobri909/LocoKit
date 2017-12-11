@@ -200,6 +200,9 @@ class ViewController: UIViewController {
         // for demo purposes only. this accuracy level is excessive
         // the default value (30 metres) best balances accuracy with battery use
         loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
+
+        // how many hours of finalised timeline items to retain 
+        timeline.timelineItemHistoryRetention = 60 * 60 * 1
         
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
@@ -255,6 +258,7 @@ class ViewController: UIViewController {
     // MARK: UI updating
     
     func updateTheMap() {
+        let loco = LocomotionManager.highlander
         let timeline = TimelineManager.highlander
 
         // don't bother updating the map when we're not in the foreground
@@ -265,7 +269,7 @@ class ViewController: UIViewController {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
 
-        map.showsUserLocation = settings.showUserLocation && LocomotionManager.highlander.recordingState == .recording
+        map.showsUserLocation = settings.showUserLocation && (loco.recordingState == .recording || loco.recordingState == .wakeup)
 
         let mapType: MKMapType = settings.showSatelliteMap ? .hybrid : .standard
         if mapType != map.mapType {
@@ -273,17 +277,11 @@ class ViewController: UIViewController {
             setNeedsStatusBarAppearanceUpdate()
         }
 
+        // let's combine active and finalised items lists, for convenience
+        let timelineItems = timeline.finalisedTimelineItems + timeline.activeTimelineItems
+
         if settings.showTimelineItems {
-            for timelineItem in timeline.finalisedTimelineItems {
-                if let path = timelineItem as? Path {
-                    addToMap(path)
-
-                } else if let visit = timelineItem as? Visit {
-                    addToMap(visit)
-                }
-            }
-
-            for timelineItem in timeline.activeTimelineItems {
+            for timelineItem in timelineItems {
                 if let path = timelineItem as? Path {
                     addToMap(path)
 
@@ -297,8 +295,8 @@ class ViewController: UIViewController {
             var filteredLocations: [CLLocation] = []
             var samples: [LocomotionSample] = []
 
-            // collect samples and locations from active timeline items
-            for timelineItem in timeline.activeTimelineItems {
+            // collect samples and locations from the timeline items
+            for timelineItem in timelineItems {
                 for sample in timelineItem.samples {
                     samples.append(sample)
                     rawLocations.append(contentsOf: sample.rawLocations)
