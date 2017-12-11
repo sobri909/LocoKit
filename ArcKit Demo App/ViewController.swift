@@ -534,11 +534,7 @@ class ViewController: UIViewController {
         timelineRows.addSubheading(title: title)
         timelineRows.addGap(height: 6)
 
-        if timelineItem == timeline.currentItem, let start = timelineItem.start {
-            timelineRows.addRow(leftText: "Duration", rightText: String(duration: Date().timeIntervalSince(start)))
-        } else {
-            timelineRows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
-        }
+        timelineRows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
 
         if let path = timelineItem as? Path {
             timelineRows.addRow(leftText: "Distance", rightText: String(metres: path.distance))
@@ -558,6 +554,9 @@ class ViewController: UIViewController {
         }
 
         timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)")
+
+        let keeperString = timelineItem.isInvalid ? "invalid" : timelineItem.isWorthKeeping ? "keeper" : "valid"
+        timelineRows.addRow(leftText: "Keeper status", rightText: keeperString)
     }
 
     func addDataGapToTimeline(duration: TimeInterval? = nil) {
