@@ -14,9 +14,6 @@ import CoreLocation
 
 class ViewController: UIViewController {
     
-    var rawLocations: [CLLocation] = []
-    var filteredLocations: [CLLocation] = []
-    var locomotionSamples: [LocomotionSample] = []
     var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
     var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
    
@@ -122,12 +119,6 @@ class ViewController: UIViewController {
             self.updateLogView()
         }
 
-        // clear up some memory when going into the background
-        when(.UIApplicationDidEnterBackground) { _ in
-            self.rawLocations.removeAll()
-            self.filteredLocations.removeAll()
-        }
-        
         loco.requestLocationPermission()
     }
     
@@ -140,25 +131,16 @@ class ViewController: UIViewController {
     func locomotionSampleUpdated() {
         let loco = LocomotionManager.highlander
 
-        // only store the lesser quality locations if in foreground, otherwise they're just noise
-        if UIApplication.shared.applicationState == .active {
-            if let location = loco.rawLocation {
-                rawLocations.append(location)
-            }
-
-            if let location = loco.filteredLocation {
-                filteredLocations.append(location)
-            }
+        // don't bother updating the UI when we're not in the foreground
+        guard UIApplication.shared.applicationState == .active else {
+            return
         }
 
-        // this is the useful one
-        let sample = loco.locomotionSample()
-        
-        locomotionSamples.append(sample)
-        
         updateTheBaseClassifier()
         updateTheTransportClassifier()
-        
+
+        // get the latest sample and update the detailed results view
+        let sample = loco.locomotionSample()
         updateResultsView(sample: sample)
 
         // only update the map from here if we're showing low level data on the map
@@ -240,9 +222,7 @@ class ViewController: UIViewController {
     @objc func tappedClear() {
         DebugLog.deleteLogFile()
 
-        rawLocations.removeAll()
-        filteredLocations.removeAll()
-        locomotionSamples.removeAll()
+        // TODO: flush the timeline data
 
         updateTheMap()
         updateResultsView()
@@ -311,6 +291,19 @@ class ViewController: UIViewController {
             }
 
         } else {
+            var rawLocations: [CLLocation] = []
+            var filteredLocations: [CLLocation] = []
+            var samples: [LocomotionSample] = []
+
+            // collect samples and locations from active timeline items
+            for timelineItem in timeline.activeTimelineItems {
+                for sample in timelineItem.samples {
+                    samples.append(sample)
+                    rawLocations.append(contentsOf: sample.rawLocations)
+                    filteredLocations.append(contentsOf: sample.filteredLocations)
+                }
+            }
+
             if settings.showRawLocations {
                 addToMap(rawLocations, color: .red)
             }
@@ -320,13 +313,13 @@ class ViewController: UIViewController {
             }
 
             if settings.showLocomotionSamples {
-                let groups = sampleGroups(from: locomotionSamples)
+                let groups = sampleGroups(from: samples)
                 for group in groups {
                     addToMap(group)
                 }
             }
         }
-        
+
         if settings.autoZoomMap {
             zoomToShow(overlays: map.overlays)
         }
@@ -553,7 +546,7 @@ class ViewController: UIViewController {
         }
 
         if let visit = timelineItem as? Visit {
-            timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius1sd))
+            timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius2sd))
         }
 
         if timelineItem != timeline.currentItem, let end = timelineItem.end {
@@ -563,6 +556,8 @@ class ViewController: UIViewController {
         if let previousItem = timelineItem.previousItem, let gap = timelineItem.timeIntervalFrom(previousItem) {
             timelineRows.addRow(leftText: "Gap from previous", rightText: "\(String(duration: gap))")
         }
+
+        timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)")
     }
 
     func addDataGapToTimeline(duration: TimeInterval? = nil) {
@@ -803,7 +798,7 @@ class ViewController: UIViewController {
         if let center = visit.center {
             map.addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
            
-            let circle = VisitCircle(center: center.coordinate, radius: visit.radius1sd)
+            let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
             circle.color = TimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
             map.add(circle, level: .aboveLabels)
         }

@@ -1,5 +1,5 @@
 PODS:
-  - ArcKit (4.1.0.pre.8):
+  - ArcKit (4.1.0.pre.9):
     - ArcKitCore (= 4.1.0.pre.4)
     - ReachabilitySwift (~> 4.1)
     - Upsurge (~> 0.10)
@@ -10,18 +10,18 @@ PODS:
   - Upsurge (0.10.0)
 
 DEPENDENCIES:
-  - ArcKit (= 4.1.0.pre.8)
+  - ArcKit (= 4.1.0.pre.9)
   - Cartography
   - SwiftNotes
 
 SPEC CHECKSUMS:
-  ArcKit: e1a501997d32ee214f10d66fa9772dff197cc5aa
+  ArcKit: da0534d1c664b330a4964dce4ddf231749a73ca4
   ArcKitCore: 572c8491b39f3da82c0df792b3ca2a31eb98fa85
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
   ReachabilitySwift: 6849231cd4e06559f3b9ef4a97a0a0f96d41e09f
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 07095027bbabc0d5c15b61616421eb87018852fa
 
-PODFILE CHECKSUM: bb5d09c090ca051f0a665f6fbd400b5755645057
+PODFILE CHECKSUM: 3ba758f3ec74f3ab6f9abf34252204e20a5f3227
 
 COCOAPODS: 1.3.1
