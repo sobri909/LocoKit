@@ -18,6 +18,8 @@ class ViewController: UIViewController {
     var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
    
     var settings = SettingsView()
+
+    var showDebugTimelineDetails = true
     
     // MARK: controller lifecycle
     
@@ -545,18 +547,37 @@ class ViewController: UIViewController {
             timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius2sd))
         }
 
-        if timelineItem != timeline.currentItem, let end = timelineItem.end {
-            timelineRows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago")
-        }
-
-        if let previousItem = timelineItem.previousItem, let gap = timelineItem.timeIntervalFrom(previousItem) {
-            timelineRows.addRow(leftText: "Gap from previous", rightText: "\(String(duration: gap))")
-        }
-
-        timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)")
-
         let keeperString = timelineItem.isInvalid ? "invalid" : timelineItem.isWorthKeeping ? "keeper" : "valid"
         timelineRows.addRow(leftText: "Keeper status", rightText: keeperString)
+
+        // the rest of the rows are debug bits, mostly for my benefit only
+        guard showDebugTimelineDetails else {
+            return
+        }
+
+        let debugColor = UIColor(white: 0.94, alpha: 1)
+
+        if timelineItem != timeline.currentItem, let end = timelineItem.end {
+            timelineRows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago",
+                background: debugColor)
+        }
+
+        if let previousItem = timelineItem.previousItem {
+            if
+                let timeGap = timelineItem.timeIntervalFrom(previousItem),
+                let distGap = timelineItem.distance(from: previousItem)
+            {
+                timelineRows.addRow(leftText: "Gap from previous",
+                                    rightText: "\(String(duration: timeGap)) (\(String(metres: distGap)))",
+                    background: debugColor)
+            }
+            let maxMerge = timelineItem.maximumMergeableDistance(from: previousItem)
+            timelineRows.addRow(leftText: "Max merge from previous", rightText: "\(String(metres: maxMerge))",
+                background: debugColor)
+        }
+
+        timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)", background: debugColor)
+
     }
 
     func addDataGapToTimeline(duration: TimeInterval? = nil) {

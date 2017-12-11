@@ -60,25 +60,25 @@ extension UIStackView {
         addArrangedSubview(row)
     }
     
-    @discardableResult func addRow(leftText: String? = nil, rightText: String? = nil) -> UIStackView {
+    @discardableResult func addRow(leftText: String? = nil, rightText: String? = nil, background: UIColor = .white) -> UIStackView {
         let leftLabel = UILabel()
         leftLabel.text = leftText
         leftLabel.font = UIFont.preferredFont(forTextStyle: .caption1)
         leftLabel.textColor = UIColor(white: 0.1, alpha: 1)
-        leftLabel.backgroundColor = .white
+        leftLabel.backgroundColor = background
         
         let rightLabel = UILabel()
         rightLabel.text = rightText
         rightLabel.textAlignment = .right
         rightLabel.font = UIFont.preferredFont(forTextStyle: .caption1)
         rightLabel.textColor = UIColor(white: 0.1, alpha: 1)
-        rightLabel.backgroundColor = .white
+        rightLabel.backgroundColor = background
         
         let leftPad = UIView()
-        leftPad.backgroundColor = .white
+        leftPad.backgroundColor = background
         
         let rightPad = UIView()
-        rightPad.backgroundColor = .white
+        rightPad.backgroundColor = background
         
         let row = UIStackView()
         row.addArrangedSubview(leftPad)
