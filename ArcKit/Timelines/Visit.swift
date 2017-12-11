@@ -41,7 +41,7 @@ import CoreLocation
     }
 
     /// Whether the given location falls within this visit's radius.
-    func contains(_ location: CLLocation, sd: Double = 4) -> Bool {
+    public func contains(_ location: CLLocation, sd: Double = 4) -> Bool {
         guard let center = center else {
             return false
         }
@@ -85,7 +85,7 @@ import CoreLocation
         guard let center = center, let otherCenter = otherVisit.center else {
             return nil
         }
-        return center.distance(from: otherCenter) - radius1sd - otherVisit.radius1sd
+        return center.distance(from: otherCenter) - radius2sd - otherVisit.radius2sd
     }
 
     internal func distance(from path: Path) -> CLLocationDistance? {
@@ -95,7 +95,7 @@ import CoreLocation
         guard let pathEdge = path.edgeSample(with: self)?.location, pathEdge.hasUsableCoordinate else {
             return nil
         }
-        return center.distance(from: pathEdge) - radius1sd
+        return center.distance(from: pathEdge) - radius2sd
     }
 
     internal override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {
@@ -136,11 +136,11 @@ import CoreLocation
             var nextChanged: LocomotionSample? = nil
 
             if let previousPath = previousItem as? Path {
-                previousChanged = self.cleanseVisitEdgeWith(previousPath)
+                previousChanged = cleanseEdge(with: previousPath)
             }
 
             if let nextPath = nextItem as? Path {
-                nextChanged = self.cleanseVisitEdgeWith(nextPath)
+                nextChanged = cleanseEdge(with: nextPath)
             }
 
             // no changes, so we're done
@@ -160,50 +160,54 @@ import CoreLocation
         }
     }
 
-    func cleanseVisitEdgeWith(_ path: Path) -> LocomotionSample? {
+    private func cleanseEdge(with path: Path) -> LocomotionSample? {
 
         // fail out if separation distance is too much
         guard let separation = distance(from: path), separation <= maximumMergeableDistance(from: path) else {
             return nil
         }
 
-        /** attempt to move a visit edge to the path **/
+        /** GET ALL THE REQUIRED VARS **/
 
-        guard let visitEdge = self.edgeSample(with: path), visitEdge.hasUsableCoordinate else {
+        guard
+            let visitEdge = self.edgeSample(with: path),
+            let pathEdge = path.edgeSample(with: self),
+            let pathEdgeNext = path.secondToEdgeSample(with: self) else
+        {
             return nil
         }
-        guard let visitEdgeLocation = visitEdge.location else {
+        guard visitEdge.hasUsableCoordinate, pathEdge.hasUsableCoordinate, pathEdgeNext.hasUsableCoordinate else {
             return nil
         }
-        let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 1)
+        guard
+            let visitEdgeLocation = visitEdge.location,
+            let pathEdgeLocation = pathEdge.location,
+            let pathEdgeNextLocation = pathEdgeNext.location else
+        {
+            return nil
+        }
 
-        // visit edge is outside: move it to the path
-        if !visitEdgeIsInside {
+        let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 2)
+        let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 2)
+        let pathEdgeNextIsInside = self.contains(pathEdgeNextLocation, sd: 2)
+
+        /** ATTEMPT TO MOVE A VISIT EDGE TO THE PATH **/
+
+        // path edge is outside and visit edge is outside: move visit edge to the path
+        if !pathEdgeIsInside && !visitEdgeIsInside {
             path.add(visitEdge)
             NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
-                                                         userInfo: ["info": "visit edge is outside; moved it to the path"]))
+                                                         userInfo: ["info": "moved visit edge to path"]))
             return visitEdge
         }
 
-        /** attempt to move a path edge to the visit **/
+        /** ATTEMPT TO MOVE A PATH EDGE TO THE VISIT **/
 
-        if path.samples.isEmpty {
-            return nil
-        }
-
-        guard let pathEdge = path.edgeSample(with: self), pathEdge.hasUsableCoordinate else {
-            return nil
-        }
-        guard let pathEdgeLocation = pathEdge.location else {
-            return nil
-        }
-        let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 1)
-
-        // path edge is inside: move it to the visit
-        if pathEdgeIsInside {
+        // path edge is inside and path edge next is inside: move path edge to the visit
+        if pathEdgeIsInside && pathEdgeNextIsInside {
             self.add(pathEdge)
             NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
-                                                         userInfo: ["info": "path edge is inside; moved it to the visit"]))
+                                                         userInfo: ["info": "moved path edge to visit"]))
             return pathEdge
         }
 

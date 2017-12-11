@@ -128,6 +128,7 @@ public extension NSNotification.Name {
     }
 
     private func processSample(_ sample: LocomotionSample) {
+        let loco = LocomotionManager.highlander
 
         // first timeline item?
         if currentItem == nil {
@@ -142,6 +143,17 @@ public extension NSNotification.Name {
 
             // if stationary -> stationary, reuse current
             if !currentlyMoving && !previouslyMoving {
+
+                // if in sleep mode, trim the last sample before adding the new one,
+                // to ensure we're only keeping the most recent sample during sleep
+                if loco.recordingState != .recording, let lastSample = currentItem.samples.last {
+
+                    // only trim the last if it's old enough to probably be from the previous sleep cycle
+                    if sample.date.timeIntervalSince(lastSample.date) > loco.sleepCycleDuration * 0.5 {
+                        currentItem.remove(lastSample)
+                    }
+                }
+
                 currentItem.add(sample)
                 return
             }
@@ -393,6 +405,11 @@ public extension NSNotification.Name {
     private override init() {
         super.init()
         NotificationCenter.default.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { _ in
+            self.sampleUpdated()
+        }
+
+        // want to be able to store a sample to mark the start of most recent sleep cycle
+        NotificationCenter.default.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { _ in
             self.sampleUpdated()
         }
     }

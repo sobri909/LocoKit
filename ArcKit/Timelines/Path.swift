@@ -139,7 +139,7 @@ import CoreLocation
                 continue
             }
             let metresFromCentre = visitCenter.distance(from: sampleLocation)
-            if metresFromCentre <= visit.radius1sd {
+            if metresFromCentre <= visit.radius2sd {
                 insiders.insert(sample)
             }
         }
