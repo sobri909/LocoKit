@@ -44,7 +44,7 @@ class ViewController: UIViewController {
         // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
 
-        // the high level Visits / Paths management singelton
+        // the Visits / Paths management singelton
         let timeline = TimelineManager.highlander
 
         // observe new timeline items
@@ -82,13 +82,18 @@ class ViewController: UIViewController {
             self.locomotionSampleUpdated()
         }
 
-        // observe changes in the LocomotionManager's recording state (eg sleep mode starts/ends)
+        // observe changes in the recording state (recording / sleeping)
         when(loco, does: .recordingStateChanged) { _ in
             // don't log every type of state change, because it gets noisy
             if loco.recordingState == .recording || loco.recordingState == .off {
                 log(".recordingStateChanged (\(loco.recordingState))")
             }
-            self.locomotionSampleUpdated()
+            self.updateResultsView()
+        }
+
+        // observe changes in the moving state (moving / stationary)
+        when(loco, does: .movingStateChanged) { _ in
+            log(".movingStateChanged (\(loco.movingState))")
         }
 
         when(loco, does: .startedSleepMode) { _ in
@@ -98,11 +103,6 @@ class ViewController: UIViewController {
 
         when(loco, does: .stoppedSleepMode) { _ in
             log(".stoppedSleepMode")
-        }
-
-        // observe changes in the LocomotionManager's moving state (moving / stationary)
-        when(loco, does: .movingStateChanged) { _ in
-            log(".movingStateChanged (\(loco.movingState))")
         }
 
         when(timeline, does: .debugInfo) { note in
@@ -144,11 +144,6 @@ class ViewController: UIViewController {
         // get the latest sample and update the detailed results view
         let sample = loco.locomotionSample()
         updateResultsView(sample: sample)
-
-        // only update the map from here if we're showing low level data on the map
-        if !settings.showTimelineItems {
-            updateTheMap()
-        }
     }
     
     func updateTheBaseClassifier() {
