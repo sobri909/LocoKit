@@ -197,7 +197,7 @@ class ViewController: UIViewController {
         loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
 
         // how many hours of finalised timeline items to retain 
-        timeline.timelineItemHistoryRetention = 60 * 60 * 1
+        timeline.timelineItemHistoryRetention = 60 * 60 * 3
         
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
