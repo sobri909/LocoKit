@@ -564,9 +564,14 @@ class ViewController: UIViewController {
                                     rightText: "\(String(duration: timeGap)) (\(String(metres: distGap)))",
                     background: debugColor)
             }
-            let maxMerge = timelineItem.maximumMergeableDistance(from: previousItem)
-            timelineRows.addRow(leftText: "Max merge from previous", rightText: "\(String(metres: maxMerge))",
-                background: debugColor)
+            let acceptableGap = timelineItem.withinMergeableDistance(from: previousItem)
+            timelineRows.addRow(leftText: "Within mergeable distance", rightText: acceptableGap ? "yes" : "no",
+                                background: debugColor)
+            if !acceptableGap {
+                let maxMerge = timelineItem.maximumMergeableDistance(from: previousItem)
+                timelineRows.addRow(leftText: "Max merge from previous", rightText: "\(String(metres: maxMerge))",
+                    background: debugColor)
+            }
         }
 
         timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)", background: debugColor)
