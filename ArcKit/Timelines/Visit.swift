@@ -125,43 +125,10 @@ import CoreLocation
         return CLLocationDistanceMax
     }
 
-    public override func sanitiseEdges() {
-        var lastPreviousChanged: LocomotionSample? = nil
-        var lastNextChanged: LocomotionSample? = nil
-
-        while true {
-            var previousChanged: LocomotionSample? = nil
-            var nextChanged: LocomotionSample? = nil
-
-            if let previousPath = previousItem as? Path {
-                previousChanged = cleanseEdge(with: previousPath)
-            }
-
-            if let nextPath = nextItem as? Path {
-                nextChanged = cleanseEdge(with: nextPath)
-            }
-
-            // no changes, so we're done
-            if previousChanged == nil && nextChanged == nil {
-                break
-            }
-
-            // break from an infinite loop
-            if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged {
-                NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
-                                                             userInfo: ["info": "sanitiseEdges: break from infinite loop"]))
-                break
-            }
-
-            lastPreviousChanged = previousChanged
-            lastNextChanged = nextChanged
-        }
-    }
-
-    private func cleanseEdge(with path: Path) -> LocomotionSample? {
+    internal override func cleanseEdge(with path: Path) -> LocomotionSample? {
 
         // fail out if separation distance is too much
-        guard let separation = distance(from: path), separation <= maximumMergeableDistance(from: path) else {
+        guard withinMergeableDistance(from: path) else {
             return nil
         }
 

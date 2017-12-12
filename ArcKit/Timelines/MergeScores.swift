@@ -33,10 +33,7 @@ class MergeScores {
         }
         
         // test for impossible separation distance
-        guard let separation = consumer.distance(from: consumee) else {
-            return .impossible
-        }
-        if separation > consumer.maximumMergeableDistance(from: consumee) {
+        guard consumer.withinMergeableDistance(from: consumee) else {
             return .impossible
         }
 
@@ -123,7 +120,7 @@ extension MergeScores {
         }
 
         let consumerType = consumer.movingActivityType ?? consumer.activityType
-        let consumeeType = consumee.movingActivityType
+        let consumeeType = consumee.movingActivityType ?? consumee.activityType
 
         // perfect type match
         if consumeeType == consumerType {

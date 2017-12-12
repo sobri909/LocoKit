@@ -183,9 +183,57 @@ import CoreLocation
         return CLLocationDistance(mean(speeds) * timeSeparation * 4)
     }
 
-    // only sanitises path-path edges. path-visit sanitisation is done by Visit.sanitiseEdges()
-    public override func sanitiseEdges() {
-        // this hasn't been ported from Arc App yet
+    internal override func cleanseEdge(with otherPath: Path) -> LocomotionSample? {
+        if otherPath.samples.isEmpty {
+            return nil
+        }
+
+        // fail out if separation distance is too much
+        guard withinMergeableDistance(from: otherPath) else {
+            return nil
+        }
+
+        // get the activity types
+        guard let myActivityType = movingActivityType, let theirActivityType = otherPath.movingActivityType else {
+            return nil
+        }
+
+        // can't path-path cleanse two paths of same type
+        if myActivityType == theirActivityType {
+            return nil
+        }
+
+        // get the edges
+        guard let myEdge = self.edgeSample(with: otherPath), let theirEdge = otherPath.edgeSample(with: self) else {
+            return nil
+        }
+        guard myEdge.hasUsableCoordinate, theirEdge.hasUsableCoordinate else {
+            return nil
+        }
+        guard let myEdgeLocation = myEdge.location, let theirEdgeLocation = theirEdge.location else {
+            return nil
+        }
+
+        let modeShiftSpeed = TimelineManager.highlander.maximumModeShiftSpeed
+        let mySpeedIsSlow = myEdgeLocation.speed < modeShiftSpeed
+        let theirSpeedIsSlow = theirEdgeLocation.speed < modeShiftSpeed
+
+        // are the edges on opposite sides of the mode change speed boundary?
+        if mySpeedIsSlow != theirSpeedIsSlow {
+            NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
+                                                         userInfo: ["info": "edges are opposite sides of the mode shift boundary"]))
+            return nil
+        }
+        
+        // is their edge my activity type?
+        if theirEdge.activityType == myActivityType {
+            self.add(theirEdge)
+            NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
+                                                         userInfo: ["info": "moved path edge (\(theirActivityType)) to adjacent path"]))
+            return theirEdge
+        }
+
+        return nil
     }
 
     override func samplesChanged() {

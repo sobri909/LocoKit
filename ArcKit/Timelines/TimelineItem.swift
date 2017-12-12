@@ -261,13 +261,53 @@ import CoreLocation
         fatalError("Shouldn't be here.")
     }
 
+    public func withinMergeableDistance(from otherItem: TimelineItem) -> Bool {
+        if let gap = distance(from: otherItem), gap <= maximumMergeableDistance(from: otherItem) {
+            return true
+        }
+        return false
+    }
+
     // subclasses handle this
     public func maximumMergeableDistance(from: TimelineItem) -> CLLocationDistance {
         fatalError("Shouldn't be here.")
     }
 
-    // implemented in the subclasses
-    public func sanitiseEdges() {
+    internal func sanitiseEdges() {
+        var lastPreviousChanged: LocomotionSample?
+        var lastNextChanged: LocomotionSample?
+
+        while true {
+            var previousChanged: LocomotionSample?
+            var nextChanged: LocomotionSample?
+
+            if let previousPath = previousItem as? Path {
+                previousChanged = cleanseEdge(with: previousPath)
+            }
+
+            if let nextPath = nextItem as? Path {
+                nextChanged = cleanseEdge(with: nextPath)
+            }
+
+            // no changes, so we're done
+            if previousChanged == nil && nextChanged == nil {
+                break
+            }
+
+            // break from an infinite loop
+            if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged {
+                NotificationCenter.default.post(Notification(name: .debugInfo, object: TimelineManager.highlander,
+                                                             userInfo: ["info": "sanitiseEdges: break from infinite loop"]))
+                break
+            }
+
+            lastPreviousChanged = previousChanged
+            lastNextChanged = nextChanged
+        }
+    }
+
+    // subclasses handle this
+    internal func cleanseEdge(with path: Path) -> LocomotionSample? {
         fatalError("Shouldn't be here.")
     }
 

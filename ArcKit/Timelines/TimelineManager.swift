@@ -52,7 +52,7 @@ public extension NSNotification.Name {
 
     public var minimumTransportCoverage = 0.10
 
-    public var maxModeShiftSpeed = CLLocationSpeed(kmh: 8)
+    public var maximumModeShiftSpeed = CLLocationSpeed(kmh: 8)
 
     // MARK: Starting and Stopping Recording
 
@@ -169,7 +169,7 @@ public extension NSNotification.Name {
 
                 // if edge speeds are above the mode change threshold, reuse current
                 if let currentSpeed = currentItem.samples.last?.location?.speed, let sampleSpeed = sample.location?.speed {
-                    if currentSpeed > maxModeShiftSpeed && sampleSpeed > maxModeShiftSpeed {
+                    if currentSpeed > maximumModeShiftSpeed && sampleSpeed > maximumModeShiftSpeed {
                         currentItem.add(sample)
                         return
                     }
