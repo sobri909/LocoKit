@@ -7,39 +7,23 @@
 //
 
 import ArcKit
-import MapKit
 import SwiftNotes
 import Cartography
 import CoreLocation
 
 class ViewController: UIViewController {
-    
-    var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
-    var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
-   
-    var settings = SettingsView()
 
-    var showDebugTimelineDetails = true
-    
+    let mapView = MapView()
+    let timelineView = TimelineView()
+    let classifierView = ClassifierView()
+    let settingsView = SettingsView()
+    let locoView = LocoView()
+    let logView = LogView()
+
     // MARK: controller lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        view.backgroundColor = .white
-       
-        buildViewTree()
-
-        updateLogView()
-        updateResultsView()
-        updateTimelineView()
-
-        /**
-         An ArcKit API key is necessary if you are using ActivityTypeClassifier.
-         This key is the Demo App's key, and cannot be used in another app.
-         API keys can be created at: https://www.bigpaua.com/arckit/account
-        */
-        ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
 
         // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
@@ -47,19 +31,38 @@ class ViewController: UIViewController {
         // the Visits / Paths management singelton
         let timeline = TimelineManager.highlander
 
+        /** SETTINGS **/
+
+        // An ArcKit API key is necessary if you are using ActivityTypeClassifier.
+        // This key is the Demo App's key, and cannot be used in another app.
+        // API keys can be created at: https://www.bigpaua.com/arckit/account
+        ArcKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
+
+        // this accuracy level is excessive, and is for demo purposes only.
+        // the default value (30 metres) best balances accuracy with energy use.
+        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
+
+        // how many hours of finalised timeline items to retain
+        timeline.timelineItemHistoryRetention = 60 * 60 * 3
+
+        // this is independent of the user's setting, and will show a blue bar if user has denied "always"
+        loco.locationManager.allowsBackgroundLocationUpdates = true
+
+        /** OBSERVERS **/
+
         // observe new timeline items
         when(timeline, does: .newTimelineItem) { _ in
             if let currentItem = timeline.currentItem {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
-            self.updateTheMap()
-            self.updateTimelineView()
+            self.mapView.update()
+            self.timelineView.update()
         }
 
         // observe timeline item updates
         when(timeline, does: .updatedTimelineItem) { _ in
-            self.updateTheMap()
-            self.updateTimelineView()
+            self.mapView.update()
+            self.timelineView.update()
         }
 
         // observe timeline items finalised after post processing
@@ -67,14 +70,14 @@ class ViewController: UIViewController {
             if let item = note.userInfo?["timelineItem"] as? TimelineItem {
                 log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
             }
-            self.updateTimelineView()
+            self.timelineView.update()
         }
 
         when(timeline, does: .mergedTimelineItems) { note in
             if let description = note.userInfo?["merge"] as? String {
                 log(".mergedItems (\(description))")
             }
-            self.updateTimelineView()
+            self.timelineView.update()
         }
 
         // observe incoming location / locomotion updates
@@ -88,7 +91,7 @@ class ViewController: UIViewController {
             if loco.recordingState == .recording || loco.recordingState == .off {
                 log(".recordingStateChanged (\(loco.recordingState))")
             }
-            self.updateResultsView()
+            self.locoView.update()
         }
 
         // observe changes in the moving state (moving / stationary)
@@ -98,7 +101,7 @@ class ViewController: UIViewController {
 
         when(loco, does: .startedSleepMode) { _ in
             log(".startedSleepMode")
-            self.updateTheMap()
+            self.mapView.update()
         }
 
         when(loco, does: .stoppedSleepMode) { _ in
@@ -113,19 +116,21 @@ class ViewController: UIViewController {
             }
         }
 
-        when(settings, does: .settingsChanged) { _ in
-            self.updateTheMap()
+        when(settingsView, does: .settingsChanged) { _ in
+            self.mapView.update()
+            self.setNeedsStatusBarAppearanceUpdate()
         }
 
-        when(.logFileUpdated) { _ in
-            self.updateLogView()
-        }
+        // view tree stuff
+        view.backgroundColor = .white
+        buildViewTree()
 
+        // get things started by asking permission
         loco.requestLocationPermission()
     }
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return map.mapType == .standard ? .default : .lightContent
+        return mapView.mapType == .standard ? .default : .lightContent
     }
   
     // MARK: process incoming locations
@@ -138,70 +143,19 @@ class ViewController: UIViewController {
             return
         }
 
-        updateTheBaseClassifier()
-        updateTheTransportClassifier()
-
-        // get the latest sample and update the detailed results view
+        // get the latest sample and update the results views
         let sample = loco.locomotionSample()
-        updateResultsView(sample: sample)
+        locoView.update(sample: sample)
+        classifierView.update(sample: sample)
     }
-    
-    func updateTheBaseClassifier() {
-        guard settings.enableTheClassifier else {
-            return
-        }
-       
-        // need a coordinate to know what classifier to fetch (there's thousands of them)
-        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
-            return
-        }
-       
-        // no need to update anything if the current classifier is still valid
-        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
-        
-        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
-        baseClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate)
-    }
-    
-    func updateTheTransportClassifier() {
-        guard settings.enableTheClassifier && settings.enableTransportClassifier else {
-            return
-        }
-        
-        // need a coordinate to know what classifier to fetch (there's thousands of them)
-        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
-            return
-        }
-        
-        // no need to update anything if the current classifier is still valid
-        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
-        
-        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
-        transportClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate)
-    }
-    
+
     // MARK: tap actions
     
     @objc func tappedStart() {
         log("tappedStart()")
 
-        let loco = LocomotionManager.highlander
         let timeline = TimelineManager.highlander
-        
-        // for demo purposes only. this accuracy level is excessive
-        // the default value (30 metres) best balances accuracy with battery use
-        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
 
-        // how many hours of finalised timeline items to retain 
-        timeline.timelineItemHistoryRetention = 60 * 60 * 3
-        
-        // this is independent of the user's setting, and will show a blue bar if user has denied "always"
-        loco.locationManager.allowsBackgroundLocationUpdates = true
-        
         timeline.startRecording()
 
         startButton.isHidden = true
@@ -221,160 +175,36 @@ class ViewController: UIViewController {
     
     @objc func tappedClear() {
         DebugLog.deleteLogFile()
-
         // TODO: flush the timeline data
-
-        updateTheMap()
-        updateResultsView()
     }
     
     @objc func tappedViewToggle() {
+        var chosenView: UIScrollView
+
         switch viewToggle.selectedSegmentIndex {
         case 0:
-            view.bringSubview(toFront: timelineScroller)
-            view.bringSubview(toFront: viewToggleBar)
-            timelineScroller.flashScrollIndicators()
+            chosenView = timelineView
         case 1:
-            view.bringSubview(toFront: resultsScroller)
-            view.bringSubview(toFront: viewToggleBar)
-            resultsScroller.flashScrollIndicators()
+            chosenView = locoView
         case 2:
-            view.bringSubview(toFront: logScroller)
-            view.bringSubview(toFront: viewToggleBar)
-            logScroller.flashScrollIndicators()
-            updateLogView()
+            chosenView = classifierView
+        case 3:
+            chosenView = logView
         default:
-            view.bringSubview(toFront: settings)
-            view.bringSubview(toFront: viewToggleBar)
-            settings.flashScrollIndicators()
-        }
-    }
-    
-    // MARK: UI updating
-    
-    func updateTheMap() {
-        let loco = LocomotionManager.highlander
-        let timeline = TimelineManager.highlander
-
-        // don't bother updating the map when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
-        
-        map.removeOverlays(map.overlays)
-        map.removeAnnotations(map.annotations)
-
-        map.showsUserLocation = settings.showUserLocation && (loco.recordingState == .recording || loco.recordingState == .wakeup)
-
-        let mapType: MKMapType = settings.showSatelliteMap ? .hybrid : .standard
-        if mapType != map.mapType {
-            map.mapType = mapType
-            setNeedsStatusBarAppearanceUpdate()
+            chosenView = settingsView
         }
 
-        // let's combine active and finalised items lists, for convenience
-        let timelineItems = timeline.finalisedTimelineItems + timeline.activeTimelineItems
-
-        if settings.showTimelineItems {
-            for timelineItem in timelineItems {
-                if let path = timelineItem as? Path {
-                    addToMap(path)
-
-                } else if let visit = timelineItem as? Visit {
-                    addToMap(visit)
-                }
-            }
-
-        } else {
-            var rawLocations: [CLLocation] = []
-            var filteredLocations: [CLLocation] = []
-            var samples: [LocomotionSample] = []
-
-            // collect samples and locations from the timeline items
-            for timelineItem in timelineItems {
-                for sample in timelineItem.samples {
-                    samples.append(sample)
-                    rawLocations.append(contentsOf: sample.rawLocations)
-                    filteredLocations.append(contentsOf: sample.filteredLocations)
-                }
-            }
-
-            if settings.showRawLocations {
-                addToMap(rawLocations, color: .red)
-            }
-
-            if settings.showFilteredLocations {
-                addToMap(filteredLocations, color: .purple)
-            }
-
-            if settings.showLocomotionSamples {
-                let groups = sampleGroups(from: samples)
-                for group in groups {
-                    addToMap(group)
-                }
-            }
-        }
-
-        if settings.autoZoomMap {
-            zoomToShow(overlays: map.overlays)
-        }
-    }
-
-    func sampleGroups(from samples: [LocomotionSample]) -> [[LocomotionSample]] {
-        var groups: [[LocomotionSample]] = []
-        var currentGroup: [LocomotionSample]?
-
-        for sample in samples where sample.location != nil {
-            let currentState = sample.movingState
-
-            // state changed? close off the previous group, add to the collection, and start a new one
-            if let previousState = currentGroup?.last?.movingState, previousState != currentState {
-
-                // add new sample to previous grouping, to link them end to end
-                currentGroup?.append(sample)
-
-                // add it to the collection
-                groups.append(currentGroup!)
-
-                currentGroup = nil
-            }
-
-            currentGroup = currentGroup ?? []
-            currentGroup?.append(sample)
-        }
-
-        // add the final grouping to the collection
-        if let grouping = currentGroup {
-            groups.append(grouping)
-        }
-
-        return groups
-    }
-    
-    func zoomToShow(overlays: [MKOverlay]) {
-        guard !overlays.isEmpty else {
-            return
-        }
-        
-        var mapRect: MKMapRect?
-        for overlay in overlays {
-            if mapRect == nil {
-                mapRect = overlay.boundingMapRect
-            } else {
-                mapRect = MKMapRectUnion(mapRect!, overlay.boundingMapRect)
-            }
-        }
-        
-        let padding = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        
-        map.setVisibleMapRect(mapRect!, edgePadding: padding, animated: true)
+        view.bringSubview(toFront: chosenView)
+        view.bringSubview(toFront: viewToggleBar)
+        chosenView.flashScrollIndicators()
+        Settings.visibleTab = chosenView
     }
     
     // MARK: view tree building
     
     func buildViewTree() {        
-        view.addSubview(map)
-        constrain(map) { map in
+        view.addSubview(mapView)
+        constrain(mapView) { map in
             map.top == map.superview!.top
             map.left == map.superview!.left
             map.right == map.superview!.right
@@ -382,7 +212,7 @@ class ViewController: UIViewController {
         }
 
         view.addSubview(topButtons)
-        constrain(map, topButtons) { map, topButtons in
+        constrain(mapView, topButtons) { map, topButtons in
             topButtons.top == map.bottom
             topButtons.left == topButtons.superview!.left
             topButtons.right == topButtons.superview!.right
@@ -407,11 +237,13 @@ class ViewController: UIViewController {
             clearButton.right == clearButton.superview!.right
         }
        
-        view.addSubview(settings)
-        view.addSubview(logScroller)
-        view.addSubview(resultsScroller)
-        view.addSubview(timelineScroller)
+        view.addSubview(locoView)
+        view.addSubview(classifierView)
+        view.addSubview(logView)
+        view.addSubview(settingsView)
+        view.addSubview(timelineView)
         view.addSubview(viewToggleBar)
+        Settings.visibleTab = timelineView
         
         constrain(viewToggleBar) { bar in
             bar.bottom == bar.superview!.bottom
@@ -419,421 +251,22 @@ class ViewController: UIViewController {
             bar.right == bar.superview!.right
         }
 
-        constrain(topButtons, resultsScroller, viewToggleBar) { topButtons, scroller, viewToggleBar in
+        constrain(topButtons, locoView, viewToggleBar) { topButtons, scroller, viewToggleBar in
             scroller.top == topButtons.bottom
             scroller.left == scroller.superview!.left
             scroller.right == scroller.superview!.right
             scroller.bottom == viewToggleBar.top
         }
         
-        constrain(timelineScroller, logScroller, resultsScroller, settings) { timelineScroller, logScroller, resultsScroller, settingsScroller in
-            settingsScroller.edges == resultsScroller.edges
-            timelineScroller.edges == resultsScroller.edges
-            logScroller.edges == resultsScroller.edges
-        }
-
-        timelineScroller.addSubview(timelineRows)
-        constrain(timelineRows, view) { box, view in
-            box.top == box.superview!.top
-            box.bottom == box.superview!.bottom - 16
-            box.left == box.superview!.left + 16
-            box.right == box.superview!.right - 16
-            box.right == view.right - 16
-        }
-
-        resultsScroller.addSubview(resultsRows)
-        constrain(resultsRows, view) { box, view in
-            box.top == box.superview!.top
-            box.bottom == box.superview!.bottom
-            box.left == box.superview!.left + 16
-            box.right == box.superview!.right - 16
-            box.right == view.right - 16
-        }
-
-        logScroller.addSubview(logRows)
-        constrain(logRows, view) { box, view in
-            box.top == box.superview!.top + 10
-            box.bottom == box.superview!.bottom - 10
-            box.left == box.superview!.left + 8
-            box.right == box.superview!.right - 8
-            box.right == view.right - 8
+        constrain(timelineView, locoView, classifierView, logView, settingsView) { timeline, loco, classifier, log, settings in
+            settings.edges == loco.edges
+            timeline.edges == loco.edges
+            classifier.edges == loco.edges
+            log.edges == loco.edges
         }
     }
 
-    func updateTimelineView() {
-        let timeline = TimelineManager.highlander
-
-        // don't bother updating the UI when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
-
-        timelineRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
-
-        timelineRows.addGap(height: 18)
-        timelineRows.addHeading(title: "Active Timeline Items")
-        timelineRows.addGap(height: 2)
-
-        var nextItem: TimelineItem?
-
-        if timeline.activeTimelineItems.isEmpty {
-            timelineRows.addRow(leftText: "-")
-        } else {
-            for timelineItem in timeline.activeTimelineItems.reversed() {
-                if let next = nextItem, next.previousItem != timelineItem {
-                    addDataGapToTimeline()
-                }
-                nextItem = timelineItem
-
-                addToTimelineView(timelineItem)
-            }
-        }
-
-        timelineRows.addGap(height: 18)
-        timelineRows.addHeading(title: "Finalised Timeline Items")
-        timelineRows.addGap(height: 2)
-
-        if timeline.finalisedTimelineItems.isEmpty {
-            timelineRows.addRow(leftText: "-")
-        } else {
-            for timelineItem in timeline.finalisedTimelineItems.reversed() {
-                if let next = nextItem, next.previousItem != timelineItem {
-                    addDataGapToTimeline()
-                }
-                nextItem = timelineItem
-
-                addToTimelineView(timelineItem)
-            }
-        }
-    }
-
-    func addToTimelineView(_ timelineItem: TimelineItem) {
-        let timeline = TimelineManager.highlander
-
-        timelineRows.addGap(height: 14)
-        var title = ""
-        if let start = timelineItem.start {
-            title += "[\(timelineDateFormatter.string(from: start))] "
-        }
-        if timelineItem == timeline.currentItem {
-            title += "Current "
-        }
-        title += timelineItem is Visit ? "Visit" : "Path"
-        if let path = timelineItem as? Path, let activityType = path.movingActivityType {
-            title += " (\(activityType)"
-            if let modeType = path.modeMovingActivityType {
-                title += ", mode: \(modeType)"
-            }
-            title += ")"
-        }
-        timelineRows.addSubheading(title: title)
-        timelineRows.addGap(height: 6)
-
-        timelineRows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
-
-        if let path = timelineItem as? Path {
-            timelineRows.addRow(leftText: "Distance", rightText: String(metres: path.distance))
-            timelineRows.addRow(leftText: "Speed", rightText: String(metresPerSecond: path.metresPerSecond))
-        }
-
-        if let visit = timelineItem as? Visit {
-            timelineRows.addRow(leftText: "Radius", rightText: String(metres: visit.radius2sd))
-        }
-
-        let keeperString = timelineItem.isInvalid ? "invalid" : timelineItem.isWorthKeeping ? "keeper" : "valid"
-        timelineRows.addRow(leftText: "Keeper status", rightText: keeperString)
-
-        // the rest of the rows are debug bits, mostly for my benefit only
-        guard showDebugTimelineDetails else {
-            return
-        }
-
-        let debugColor = UIColor(white: 0.94, alpha: 1)
-
-        if timelineItem != timeline.currentItem, let end = timelineItem.end {
-            timelineRows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago",
-                background: debugColor)
-        }
-
-        if let previousItem = timelineItem.previousItem {
-            if
-                let timeGap = timelineItem.timeIntervalFrom(previousItem),
-                let distGap = timelineItem.distance(from: previousItem)
-            {
-                timelineRows.addRow(leftText: "Gap from previous",
-                                    rightText: "\(String(duration: timeGap)) (\(String(metres: distGap)))",
-                    background: debugColor)
-            }
-            let acceptableGap = timelineItem.withinMergeableDistance(from: previousItem)
-            timelineRows.addRow(leftText: "Within mergeable distance", rightText: acceptableGap ? "yes" : "no",
-                                background: debugColor)
-            if !acceptableGap {
-                let maxMerge = timelineItem.maximumMergeableDistance(from: previousItem)
-                timelineRows.addRow(leftText: "Max merge from previous", rightText: "\(String(metres: maxMerge))",
-                    background: debugColor)
-            }
-        }
-
-        timelineRows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)", background: debugColor)
-
-    }
-
-    func addDataGapToTimeline(duration: TimeInterval? = nil) {
-        timelineRows.addGap(height: 14)
-        timelineRows.addUnderline()
-        timelineRows.addGap(height: 14)
-
-        if let duration = duration {
-            timelineRows.addSubheading(title: "Timeline Gap (\(String(duration: duration)))")
-        } else {
-            timelineRows.addSubheading(title: "Timeline Gap")
-        }
-
-        timelineRows.addGap(height: 14)
-        timelineRows.addUnderline()
-    }
-
-    func updateResultsView(sample: LocomotionSample? = nil) {
-        let loco = LocomotionManager.highlander
-        
-        // don't bother updating the UI when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
-
-        resultsRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
-
-        resultsRows.addGap(height: 18)
-        resultsRows.addSubheading(title: "Locomotion Manager")
-        resultsRows.addGap(height: 6)
-
-        resultsRows.addRow(leftText: "Recording state", rightText: loco.recordingState.rawValue)
-
-        if loco.recordingState == .off {
-            resultsRows.addRow(leftText: "Requesting accuracy", rightText: "-")
-
-        } else { // must be recording or in sleep mode
-            let requesting = loco.locationManager.desiredAccuracy
-            if requesting == kCLLocationAccuracyBest {
-                resultsRows.addRow(leftText: "Requesting accuracy", rightText: "kCLLocationAccuracyBest")
-            } else if requesting == Double.greatestFiniteMagnitude {
-                resultsRows.addRow(leftText: "Requesting accuracy", rightText: "Double.greatestFiniteMagnitude")
-            } else {
-                resultsRows.addRow(leftText: "Requesting accuracy", rightText: String(format: "%.0f metres", requesting))
-            }
-        }
-        
-        var receivingString = "-"
-        if loco.recordingState == .recording, let sample = sample {
-            var receivingHertz = 0.0
-            if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
-                receivingHertz = Double(sample.filteredLocations.count) / duration
-            }
-            
-            if let location = sample.filteredLocations.last {
-                receivingString = String(format: "%.0f metres @ %.1f Hz", location.horizontalAccuracy, receivingHertz)
-            }
-        }
-        resultsRows.addRow(leftText: "Receiving accuracy", rightText: receivingString)
-
-        resultsRows.addGap(height: 14)
-        resultsRows.addSubheading(title: "Locomotion Sample")
-        resultsRows.addGap(height: 6)
-        
-        if let sample = sample {
-            resultsRows.addRow(leftText: "Latest sample", rightText: sample.description)
-            resultsRows.addRow(leftText: "Behind now", rightText: String(duration: sample.date.age))
-            resultsRows.addRow(leftText: "Moving state", rightText: sample.movingState.rawValue)
-
-            if loco.recordPedometerEvents {
-                resultsRows.addRow(leftText: "Steps per second", rightText: String(format: "%.1f Hz", sample.stepHz))
-            }
-
-            if loco.recordAccelerometerEvents {
-                resultsRows.addRow(leftText: "XY Acceleration",
-                                   rightText: String(format: "%.2f g", sample.xyAcceleration))
-                resultsRows.addRow(leftText: "Z Acceleration",
-                                   rightText: String(format: "%.2f g", sample.zAcceleration))
-            }
-
-            if loco.recordCoreMotionActivityTypeEvents {
-                if let coreMotionType = sample.coreMotionActivityType {
-                    resultsRows.addRow(leftText: "Core Motion activity", rightText: coreMotionType.rawValue)
-                } else {
-                    resultsRows.addRow(leftText: "Core Motion activity", rightText: "-")
-                }
-            }
-
-        } else {
-            resultsRows.addRow(leftText: "Latest sample", rightText: "-")
-        }
-
-        resultsRows.addGap(height: 14)
-        resultsRows.addSubheading(title: "Activity Type Classifier (baseTypes)")
-        resultsRows.addGap(height: 6)
-        
-        if let classifier = baseClassifier {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
-        } else {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
-        }
-        resultsRows.addGap(height: 6)
-        
-        if loco.recordingState == .recording, let sample = sample {
-            if let classifier = baseClassifier {
-                let results = classifier.classify(sample)
-                
-                for result in results {
-                    let row = resultsRows.addRow(leftText: result.name.rawValue.capitalized,
-                                                 rightText: String(format: "%.4f", result.score))
-                    
-                    if result.score < 0.01 {
-                        row.subviews.forEach { subview in
-                            if let label = subview as? UILabel {
-                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
-                            }
-                        }
-                    }
-                }
-                
-            } else if settings.enableTheClassifier {
-                resultsRows.addRow(leftText: "Fetching ML models...")
-            } else {
-                resultsRows.addRow(leftText: "Classifier is turned off")
-            }
-        }
-        
-        resultsRows.addGap(height: 14)
-        resultsRows.addSubheading(title: "Activity Type Classifier (transportTypes)")
-        resultsRows.addGap(height: 6)
-        
-        if let classifier = transportClassifier {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
-        } else {
-            resultsRows.addRow(leftText: "Region coverageScore", rightText: "-")
-        }
-        resultsRows.addGap(height: 6)
-        
-        if loco.recordingState == .recording, let sample = sample {
-            if let classifier = transportClassifier {
-                let results = classifier.classify(sample)
-                
-                for result in results {
-                    let row = resultsRows.addRow(leftText: result.name.rawValue.capitalized,
-                                                 rightText: String(format: "%.4f", result.score))
-                    
-                    if result.score < 0.01 {
-                        row.subviews.forEach { subview in
-                            if let label = subview as? UILabel {
-                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
-                            }
-                        }
-                    }
-                }
-                
-            } else if settings.enableTheClassifier && settings.enableTransportClassifier {
-                resultsRows.addRow(leftText: "Fetching ML models...")
-            } else {
-                resultsRows.addRow(leftText: "Classifier is turned off")
-            }
-        }
-
-        resultsRows.addGap(height: 12)
-    }
-
-    func updateLogView() {
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
-
-        for subview in logRows.subviews {
-            subview.removeFromSuperview()
-        }
-        
-        guard let logString = try? String(contentsOf: DebugLog.logFile) else {
-            return
-        }
-        
-        let label = UILabel()
-        label.textColor = UIColor.black
-        label.font = UIFont(name: "Menlo", size: 8)
-        label.numberOfLines = 0
-        label.text = logString
-        logRows.addSubview(label)
-        
-        constrain(label) { label in
-            label.edges == label.superview!.edges
-        }
-    }
-   
-    // MARK: map building
-
-    func addToMap(_ locations: [CLLocation], color: UIColor) {
-        guard !locations.isEmpty else {
-            return
-        }
-        
-        var coords = locations.flatMap { $0.coordinate }
-        let path = PathPolyline(coordinates: &coords, count: coords.count)
-        path.color = color
-        
-        map.add(path)
-    }
-
-    
-    func addToMap(_ samples: [LocomotionSample]) {
-        guard let movingState = samples.first?.movingState else {
-            return
-        }
-        
-        let locations = samples.flatMap { $0.location }
-        
-        switch movingState {
-        case .moving:
-            addToMap(locations, color: .blue)
-            
-        case .stationary:
-            addToMap(locations, color: .orange)
-
-        case .uncertain:
-            addToMap(locations, color: .magenta)
-        }
-    }
-
-    func addToMap(_ path: Path) {
-        if path.samples.isEmpty {
-            return
-        }
-
-        var coords = path.samples.flatMap { $0.location?.coordinate }
-        let line = PathPolyline(coordinates: &coords, count: coords.count)
-        line.color = TimelineManager.highlander.activeTimelineItems.contains(path) ? .brown : .darkGray
-
-        map.add(line)
-    }
-
-    func addToMap(_ visit: Visit) {
-        if let center = visit.center {
-            map.addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
-           
-            let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
-            circle.color = TimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
-            map.add(circle, level: .aboveLabels)
-        }
-    }
-    
     // MARK: view property getters
-    
-    lazy var map: MKMapView = {
-        let map = MKMapView()
-        map.delegate = self
-        
-        map.isRotateEnabled = false
-        map.isPitchEnabled = false
-        map.showsScale = true
-        
-        return map
-    }()
     
     lazy var topButtons: UIView = {
         let box = UIView()
@@ -841,72 +274,6 @@ class ViewController: UIViewController {
         return box
     }()
 
-    lazy var timelineRows: UIStackView = {
-        let box = UIStackView()
-        box.axis = .vertical
-
-        let background = UIView()
-        background.backgroundColor = .white
-
-        box.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-
-        return box
-    }()
-
-    lazy var timelineScroller: UIScrollView = {
-        let scroller = UIScrollView()
-        scroller.backgroundColor = .white
-        scroller.alwaysBounceVertical = true
-        return scroller
-    }()
-
-    lazy var resultsRows: UIStackView = {
-        let box = UIStackView()
-        box.axis = .vertical
-        
-        let background = UIView()
-        background.backgroundColor = .white
-
-        box.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-        
-        return box
-    }()
-    
-    lazy var resultsScroller: UIScrollView = {
-        let scroller = UIScrollView()
-        scroller.backgroundColor = .white
-        scroller.alwaysBounceVertical = true
-        return scroller
-    }()
-
-    lazy var logRows: UIStackView = {
-        let box = UIStackView()
-        box.axis = .vertical
-
-        let background = UIView()
-        background.backgroundColor = .white
-
-        box.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-
-        return box
-    }()
-
-    lazy var logScroller: UIScrollView = {
-        let scroller = UIScrollView()
-        scroller.backgroundColor = .white
-        scroller.alwaysBounceVertical = true
-        return scroller
-    }()
-    
     lazy var startButton: UIButton = {
         let button = UIButton(type: .system)
        
@@ -951,48 +318,15 @@ class ViewController: UIViewController {
     }()
     
     lazy var viewToggle: UISegmentedControl = {
-        let toggle = UISegmentedControl(items: ["Timeline", "Details", "Log", "Settings"])
-        toggle.setWidth(84, forSegmentAt: 0)
-        toggle.setWidth(84, forSegmentAt: 1)
-        toggle.setWidth(84, forSegmentAt: 2)
-        toggle.setWidth(84, forSegmentAt: 3)
+        let toggle = UISegmentedControl(items: ["TM", "LM", "AC", "Log", "Settings"])
+        toggle.setWidth(66, forSegmentAt: 0)
+        toggle.setWidth(66, forSegmentAt: 1)
+        toggle.setWidth(66, forSegmentAt: 2)
+        toggle.setWidth(66, forSegmentAt: 3)
+        toggle.setWidth(66, forSegmentAt: 4)
         toggle.selectedSegmentIndex = 0
         toggle.addTarget(self, action: #selector(tappedViewToggle), for: .valueChanged)
         return toggle
     }()
-
-    lazy var timelineDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
 }
 
-// MARK: MKMapViewDelegate
-
-extension ViewController: MKMapViewDelegate {
-    
-    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        if let path = overlay as? PathPolyline {
-            return path.renderer
-            
-        } else if let circle = overlay as? VisitCircle {
-            return circle.renderer
-            
-        } else {
-            fatalError("you wot?")
-        }
-    }
-    
-    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        if let annotation = annotation as? VisitAnnotation {
-            let view = annotation.view
-            if !TimelineManager.highlander.activeTimelineItems.contains(annotation.visit) {
-                view.image = UIImage(named: "inactiveDot")
-            }
-            return view
-        }
-        return nil
-    }
-    
-}

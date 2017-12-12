@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		6CEEBA77AB545A262DBEC1DB /* Pods_ArcKit_Demo_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ADE405D96DF172351942B3A /* Pods_ArcKit_Demo_App.framework */; };
 		C91CAF4B1F8B88A300416418 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91CAF4A1F8B88A300416418 /* SettingsView.swift */; };
+		C95141541FE00B3F00A6A348 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95141531FE00B3F00A6A348 /* TimelineView.swift */; };
+		C95141561FE015CD00A6A348 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95141551FE015CD00A6A348 /* Settings.swift */; };
 		C95644241F5EAABF00E9F428 /* Array.helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95644231F5EAABF00E9F428 /* Array.helpers.swift */; };
 		C96981A71F3605860021238C /* ToggleBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96981A61F3605860021238C /* ToggleBox.swift */; };
 		C96981A91F360ADF0021238C /* String.helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96981A81F360ADF0021238C /* String.helpers.swift */; };
@@ -19,6 +21,10 @@
 		C9A023DC1F18A50D00DFFEBD /* VisitAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A023D71F18A50D00DFFEBD /* VisitAnnotationView.swift */; };
 		C9A023DD1F18A50D00DFFEBD /* VisitCircle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A023D81F18A50D00DFFEBD /* VisitCircle.swift */; };
 		C9AD5E3E1FD973AF00F88EAE /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */; };
+		C9B96BDB1FE01CAC00B44F38 /* LocoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B96BDA1FE01CAC00B44F38 /* LocoView.swift */; };
+		C9B96BDD1FE0217F00B44F38 /* ClassifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B96BDC1FE0217F00B44F38 /* ClassifierView.swift */; };
+		C9B96BDF1FE0252E00B44F38 /* LogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B96BDE1FE0252E00B44F38 /* LogView.swift */; };
+		C9B96BE21FE02D4E00B44F38 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B96BE11FE02D4E00B44F38 /* MapView.swift */; };
 		C9FE56681F18A35500F941FE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FE56671F18A35500F941FE /* AppDelegate.swift */; };
 		C9FE566A1F18A35500F941FE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FE56691F18A35500F941FE /* ViewController.swift */; };
 		C9FE566F1F18A35500F941FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C9FE566E1F18A35500F941FE /* Assets.xcassets */; };
@@ -43,6 +49,8 @@
 		9D09140A3DB2FF40D0A7B469 /* Pods-ArcKit Demo App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArcKit Demo App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ArcKit Demo App/Pods-ArcKit Demo App.debug.xcconfig"; sourceTree = "<group>"; };
 		C321DBC330016E56B038DACF /* Pods-ArcKit Demo App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArcKit Demo App.release.xcconfig"; path = "Pods/Target Support Files/Pods-ArcKit Demo App/Pods-ArcKit Demo App.release.xcconfig"; sourceTree = "<group>"; };
 		C91CAF4A1F8B88A300416418 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C95141531FE00B3F00A6A348 /* TimelineView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		C95141551FE015CD00A6A348 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		C95644231F5EAABF00E9F428 /* Array.helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.helpers.swift; sourceTree = "<group>"; };
 		C96981A61F3605860021238C /* ToggleBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToggleBox.swift; sourceTree = "<group>"; };
 		C96981A81F360ADF0021238C /* String.helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = String.helpers.swift; sourceTree = "<group>"; };
@@ -53,6 +61,10 @@
 		C9A023D71F18A50D00DFFEBD /* VisitAnnotationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisitAnnotationView.swift; sourceTree = "<group>"; };
 		C9A023D81F18A50D00DFFEBD /* VisitCircle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VisitCircle.swift; sourceTree = "<group>"; };
 		C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
+		C9B96BDA1FE01CAC00B44F38 /* LocoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocoView.swift; sourceTree = "<group>"; };
+		C9B96BDC1FE0217F00B44F38 /* ClassifierView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassifierView.swift; sourceTree = "<group>"; };
+		C9B96BDE1FE0252E00B44F38 /* LogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogView.swift; sourceTree = "<group>"; };
+		C9B96BE11FE02D4E00B44F38 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
 		C9FE56641F18A35500F941FE /* ArcKit Demo App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ArcKit Demo App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9FE56671F18A35500F941FE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9FE56691F18A35500F941FE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -113,6 +125,15 @@
 			name = Views;
 			sourceTree = "<group>";
 		};
+		C9B96BE01FE0255200B44F38 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */,
+				C95141551FE015CD00A6A348 /* Settings.swift */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
 		C9FE565B1F18A35500F941FE = {
 			isa = PBXGroup;
 			children = (
@@ -136,10 +157,15 @@
 			children = (
 				C9FE56671F18A35500F941FE /* AppDelegate.swift */,
 				C9FE56691F18A35500F941FE /* ViewController.swift */,
+				C9B96BE11FE02D4E00B44F38 /* MapView.swift */,
 				C91CAF4A1F8B88A300416418 /* SettingsView.swift */,
-				C9AD5E3D1FD973AF00F88EAE /* DebugLog.swift */,
-				C96981AA1F360B160021238C /* Extensions */,
+				C95141531FE00B3F00A6A348 /* TimelineView.swift */,
+				C9B96BDC1FE0217F00B44F38 /* ClassifierView.swift */,
+				C9B96BDA1FE01CAC00B44F38 /* LocoView.swift */,
+				C9B96BDE1FE0252E00B44F38 /* LogView.swift */,
+				C9B96BE01FE0255200B44F38 /* Models */,
 				C9A023DE1F18A51900DFFEBD /* Views */,
+				C96981AA1F360B160021238C /* Extensions */,
 				C9FE56731F18A35500F941FE /* Info.plist */,
 				C9FE566E1F18A35500F941FE /* Assets.xcassets */,
 				C9FE56701F18A35500F941FE /* LaunchScreen.storyboard */,
@@ -294,15 +320,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				C91CAF4B1F8B88A300416418 /* SettingsView.swift in Sources */,
+				C9B96BDB1FE01CAC00B44F38 /* LocoView.swift in Sources */,
+				C95141541FE00B3F00A6A348 /* TimelineView.swift in Sources */,
 				C9AD5E3E1FD973AF00F88EAE /* DebugLog.swift in Sources */,
 				C96981A71F3605860021238C /* ToggleBox.swift in Sources */,
 				C95644241F5EAABF00E9F428 /* Array.helpers.swift in Sources */,
 				C9A023DD1F18A50D00DFFEBD /* VisitCircle.swift in Sources */,
+				C9B96BDF1FE0252E00B44F38 /* LogView.swift in Sources */,
 				C9FE566A1F18A35500F941FE /* ViewController.swift in Sources */,
 				C96981A91F360ADF0021238C /* String.helpers.swift in Sources */,
 				C9A023D91F18A50D00DFFEBD /* CoreLocation.helpers.swift in Sources */,
+				C95141561FE015CD00A6A348 /* Settings.swift in Sources */,
 				C9A023DB1F18A50D00DFFEBD /* VisitAnnotation.swift in Sources */,
 				C9A023DA1F18A50D00DFFEBD /* PathPolyline.swift in Sources */,
+				C9B96BDD1FE0217F00B44F38 /* ClassifierView.swift in Sources */,
+				C9B96BE21FE02D4E00B44F38 /* MapView.swift in Sources */,
 				C9FE56681F18A35500F941FE /* AppDelegate.swift in Sources */,
 				C9A023DC1F18A50D00DFFEBD /* VisitAnnotationView.swift in Sources */,
 				C96B3C3E1F35EB590089854F /* UIStackView.helpers.swift in Sources */,

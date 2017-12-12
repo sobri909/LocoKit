@@ -15,36 +15,14 @@ extension NSNotification.Name {
 
 class SettingsView: UIScrollView {
 
-    var showTimelineItems = true
-
-    var showRawLocations = true
-    var showFilteredLocations = true
-    var showLocomotionSamples = true
-
-    var showSatelliteMap = false
-    var showUserLocation = true
-    var autoZoomMap = true
-    
-    var enableTheClassifier = true
-    var enableTransportClassifier = true
-
     var locoDataToggleBoxes: [ToggleBox] = []
 
     var transportClassifierToggleBox: UIView?
     var transportClassifierToggle: UISwitch?
     
-    lazy var settingsRows: UIStackView = {
+    lazy var rows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
-
-        let background = UIView()
-        background.backgroundColor = UIColor(white: 0.85, alpha: 1)
-        
-        box.addSubview(background)
-        constrain(background) { background in
-            background.edges == background.superview!.edges
-        }
-        
         return box
     }()
     
@@ -52,7 +30,7 @@ class SettingsView: UIScrollView {
         super.init(frame: CGRect.zero)
         backgroundColor = .white
         alwaysBounceVertical = true
-        buildSettingsViewTree()
+        buildViewTree()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -60,102 +38,102 @@ class SettingsView: UIScrollView {
     }
     
     override func didMoveToSuperview() {
-        addSubview(settingsRows)
-        constrain(settingsRows, superview!) { box, superview in
-            box.top == box.superview!.top
-            box.bottom == box.superview!.bottom
-            box.left == box.superview!.left + 8
-            box.right == box.superview!.right - 8
-            box.right == superview.right - 8
+        addSubview(rows)
+        constrain(rows, superview!) { rows, superview in
+            rows.top == rows.superview!.top
+            rows.bottom == rows.superview!.bottom
+            rows.left == rows.superview!.left + 8
+            rows.right == rows.superview!.right - 8
+            rows.right == superview.right - 8
         }
     }
     
-    func buildSettingsViewTree() {
-        settingsRows.addGap(height: 24)
-        settingsRows.addSubheading(title: "Map Style", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
+    func buildViewTree() {
+        rows.addGap(height: 24)
+        rows.addSubheading(title: "Map Style", alignment: .center)
+        rows.addGap(height: 6)
+        rows.addUnderline()
         
-        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: showUserLocation) { isOn in
-            self.showUserLocation = isOn
+        let currentLocation = ToggleBox(text: "Enable showsUserLocation", toggleDefault: Settings.showUserLocation) { isOn in
+            Settings.showUserLocation = isOn
             trigger(.settingsChanged, on: self)
         }
-        settingsRows.addRow(views: [currentLocation])
+        rows.addRow(views: [currentLocation])
         
-        settingsRows.addUnderline()
+        rows.addUnderline()
         
-        let satellite = ToggleBox(text: "Satellite map", toggleDefault: showSatelliteMap) { isOn in
-            self.showSatelliteMap = isOn
+        let satellite = ToggleBox(text: "Satellite map", toggleDefault: Settings.showSatelliteMap) { isOn in
+            Settings.showSatelliteMap = isOn
             trigger(.settingsChanged, on: self)
         }
         let zoom = ToggleBox(text: "Auto zoom") { isOn in
-            self.autoZoomMap = isOn
+            Settings.autoZoomMap = isOn
             trigger(.settingsChanged, on: self)
         }
-        settingsRows.addRow(views: [satellite, zoom])
+        rows.addRow(views: [satellite, zoom])
         
-        settingsRows.addGap(height: 18)
-        settingsRows.addSubheading(title: "Map Data", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
+        rows.addGap(height: 18)
+        rows.addSubheading(title: "Map Data", alignment: .center)
+        rows.addGap(height: 6)
+        rows.addUnderline()
 
         // toggle for showing timeline items
-        let visits = ToggleBox(dotColors: [.brown, .orange], text: "Timeline", toggleDefault: showTimelineItems) { isOn in
-            self.showTimelineItems = isOn
+        let visits = ToggleBox(dotColors: [.brown, .orange], text: "Timeline", toggleDefault: Settings.showTimelineItems) { isOn in
+            Settings.showTimelineItems = isOn
             self.locoDataToggleBoxes.forEach { $0.disabled = isOn }
             trigger(.settingsChanged, on: self)
         }
 
         // toggle for showing filtered locations
-        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered", toggleDefault: showFilteredLocations) { isOn in
-            self.showFilteredLocations = isOn
+        let filtered = ToggleBox(dotColors: [.purple], text: "Filtered", toggleDefault: Settings.showFilteredLocations) { isOn in
+            Settings.showFilteredLocations = isOn
             trigger(.settingsChanged, on: self)
         }
-        filtered.disabled = showTimelineItems
+        filtered.disabled = Settings.showTimelineItems
         locoDataToggleBoxes.append(filtered)
 
         // add the toggles to the view
-        settingsRows.addRow(views: [visits, filtered])
+        rows.addRow(views: [visits, filtered])
         
-        settingsRows.addUnderline()
+        rows.addUnderline()
         
         // toggle for showing locomotion samples
-        let samples = ToggleBox(dotColors: [.blue, .magenta], text: "Samples", toggleDefault: showLocomotionSamples) { isOn in
-            self.showLocomotionSamples = isOn
+        let samples = ToggleBox(dotColors: [.blue, .magenta], text: "Samples", toggleDefault: Settings.showLocomotionSamples) { isOn in
+            Settings.showLocomotionSamples = isOn
             trigger(.settingsChanged, on: self)
         }
-        samples.disabled = showTimelineItems
+        samples.disabled = Settings.showTimelineItems
         locoDataToggleBoxes.append(samples)
 
         // toggle for showing raw locations
-        let raw = ToggleBox(dotColors: [.red], text: "Raw", toggleDefault: showRawLocations) { isOn in
-            self.showRawLocations = isOn
+        let raw = ToggleBox(dotColors: [.red], text: "Raw", toggleDefault: Settings.showRawLocations) { isOn in
+            Settings.showRawLocations = isOn
             trigger(.settingsChanged, on: self)
         }
-        raw.disabled = showTimelineItems
+        raw.disabled = Settings.showTimelineItems
         locoDataToggleBoxes.append(raw)
 
         // add the toggles to the view
-        settingsRows.addRow(views: [samples, raw])
+        rows.addRow(views: [samples, raw])
 
-        settingsRows.addGap(height: 18)
-        settingsRows.addSubheading(title: "Activity Type Classifiers", alignment: .center)
-        settingsRows.addGap(height: 6)
-        settingsRows.addUnderline()
+        rows.addGap(height: 18)
+        rows.addSubheading(title: "Activity Type Classifiers", alignment: .center)
+        rows.addGap(height: 6)
+        rows.addUnderline()
         
         let classifierBox = ToggleBox(text: "Base types") { isOn in
-            self.enableTheClassifier = isOn
+            Settings.enableTheClassifier = isOn
             self.transportClassifierToggle?.isEnabled = isOn
             self.transportClassifierToggleBox?.subviews.forEach { $0.alpha = isOn ? 1 : 0.45 }
         }
         let extended = ToggleBox(text: "Transport") { isOn in
-            self.enableTransportClassifier = isOn
+            Settings.enableTransportClassifier = isOn
         }
-        settingsRows.addRow(views: [classifierBox, extended])
+        rows.addRow(views: [classifierBox, extended])
         
         transportClassifierToggleBox = extended
         transportClassifierToggle = extended.toggle
         
-        settingsRows.addGap(height: 18)
+        rows.addGap(height: 18)
     }
 }
