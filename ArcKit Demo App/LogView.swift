@@ -52,6 +52,7 @@ class LogView: UIScrollView {
         }
 
         guard let logString = try? String(contentsOf: DebugLog.logFile) else {
+            label.text = ""
             return
         }
 
