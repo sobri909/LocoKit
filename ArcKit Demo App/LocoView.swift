@@ -96,15 +96,23 @@ class LocoView: UIScrollView {
             rows.addRow(leftText: "Behind now", rightText: String(duration: sample.date.age))
             rows.addRow(leftText: "Moving state", rightText: sample.movingState.rawValue)
 
-            if loco.recordPedometerEvents {
-                rows.addRow(leftText: "Steps per second", rightText: String(format: "%.1f Hz", sample.stepHz))
+            if loco.recordPedometerEvents, let stepHz = sample.stepHz {
+                rows.addRow(leftText: "Steps per second", rightText: String(format: "%.1f Hz", stepHz))
+            } else {
+                rows.addRow(leftText: "Steps per second", rightText: "-")
             }
 
             if loco.recordAccelerometerEvents {
-                rows.addRow(leftText: "XY Acceleration",
-                                rightText: String(format: "%.2f g", sample.xyAcceleration))
-                rows.addRow(leftText: "Z Acceleration",
-                                rightText: String(format: "%.2f g", sample.zAcceleration))
+                if let xyAcceleration = sample.xyAcceleration {
+                    rows.addRow(leftText: "XY Acceleration", rightText: String(format: "%.2f g", xyAcceleration))
+                } else {
+                    rows.addRow(leftText: "XY Acceleration", rightText: "-")
+                }
+                if  let zAcceleration = sample.zAcceleration {
+                    rows.addRow(leftText: "Z Acceleration", rightText: String(format: "%.2f g", zAcceleration))
+                } else {
+                    rows.addRow(leftText: "Z Acceleration", rightText: "-")
+                }
             }
 
             if loco.recordCoreMotionActivityTypeEvents {

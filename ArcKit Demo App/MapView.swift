@@ -26,7 +26,7 @@ class MapView: MKMapView {
 
     func update() {
         let loco = LocomotionManager.highlander
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
 
         // don't bother updating the map when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else {
@@ -160,7 +160,7 @@ class MapView: MKMapView {
 
         var coords = path.samples.flatMap { $0.location?.coordinate }
         let line = PathPolyline(coordinates: &coords, count: coords.count)
-        line.color = TimelineManager.highlander.activeTimelineItems.contains(path) ? .brown : .darkGray
+        line.color = DefaultTimelineManager.highlander.activeTimelineItems.contains(path) ? .brown : .darkGray
 
         add(line)
     }
@@ -170,7 +170,7 @@ class MapView: MKMapView {
             addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
 
             let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
-            circle.color = TimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
+            circle.color = DefaultTimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
             add(circle, level: .aboveLabels)
         }
     }
@@ -213,7 +213,7 @@ extension MapView: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if let annotation = annotation as? VisitAnnotation {
             let view = annotation.view
-            if !TimelineManager.highlander.activeTimelineItems.contains(annotation.visit) {
+            if !DefaultTimelineManager.highlander.activeTimelineItems.contains(annotation.visit) {
                 view.image = UIImage(named: "inactiveDot")
             }
             return view

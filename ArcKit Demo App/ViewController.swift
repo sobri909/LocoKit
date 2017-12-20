@@ -29,7 +29,7 @@ class ViewController: UIViewController {
         let loco = LocomotionManager.highlander
 
         // the Visits / Paths management singelton
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
 
         /** SETTINGS **/
 
@@ -43,7 +43,7 @@ class ViewController: UIViewController {
         loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
 
         // how many hours of finalised timeline items to retain
-        timeline.timelineItemHistoryRetention = 60 * 60 * 3
+        timeline.timelineItemHistoryRetention = 60 * 60 * 6
 
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
@@ -108,7 +108,7 @@ class ViewController: UIViewController {
             log(".stoppedSleepMode")
         }
 
-        when(timeline, does: .debugInfo) { note in
+        when(.debugInfo) { note in
             if let info = note.userInfo?["info"] as? String {
                 log(".debug (\(info))")
             } else {
@@ -154,7 +154,7 @@ class ViewController: UIViewController {
     @objc func tappedStart() {
         log("tappedStart()")
 
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
 
         timeline.startRecording()
 
@@ -165,7 +165,7 @@ class ViewController: UIViewController {
     @objc func tappedStop() {
         log("tappedStop()")
 
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
         
         timeline.stopRecording()
 

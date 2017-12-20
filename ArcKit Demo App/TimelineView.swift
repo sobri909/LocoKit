@@ -40,7 +40,7 @@ class TimelineView: UIScrollView {
     }
 
     func update() {
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
 
         // don't bother updating the UI when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else {
@@ -87,11 +87,11 @@ class TimelineView: UIScrollView {
     }
 
     func add(_ timelineItem: TimelineItem) {
-        let timeline = TimelineManager.highlander
+        let timeline = DefaultTimelineManager.highlander
 
         rows.addGap(height: 14)
         var title = ""
-        if let start = timelineItem.start {
+        if let start = timelineItem.startDate {
             title += "[\(dateFormatter.string(from: start))] "
         }
         if timelineItem == timeline.currentItem {
@@ -131,7 +131,7 @@ class TimelineView: UIScrollView {
 
         let debugColor = UIColor(white: 0.94, alpha: 1)
 
-        if timelineItem != timeline.currentItem, let end = timelineItem.end {
+        if timelineItem != timeline.currentItem, let end = timelineItem.endDate {
             rows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago",
                 background: debugColor)
         }
