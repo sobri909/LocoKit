@@ -19,7 +19,7 @@ enum ConsumptionScore: Int {
 }
 
 class MergeScores {
-    
+
     static func consumptionScoreFor(_ consumer: TimelineItem, toConsume consumee: TimelineItem) -> ConsumptionScore {
         
         // if consumee has zero samples, call it a perfect merge
@@ -115,12 +115,13 @@ extension MergeScores {
 
     // MARK: PATH <- PATH
     fileprivate static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
-        guard TimelineManager.highlander.separatePathsByActivityType else {
-            return .medium
-        }
-
         let consumerType = consumer.movingActivityType ?? consumer.activityType
         let consumeeType = consumee.movingActivityType ?? consumee.activityType
+
+        // no types means it's a random guess
+        if consumerType == nil && consumeeType == nil {
+            return .medium
+        }
 
         // perfect type match
         if consumeeType == consumerType {

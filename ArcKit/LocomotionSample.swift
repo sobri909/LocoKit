@@ -24,8 +24,10 @@ import ArcKitCore
  Lesser quality or quantity of available data result in longer sample durations, thus representing the average or most
  common states and location over the sample period instead of a single specific moment.
  */
-public class LocomotionSample: NSObject, ActivityTypeClassifiable {
-    
+public class LocomotionSample: ActivityTypeClassifiable {
+
+    private(set) public var sampleId: UUID
+
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
     public let date: Date
     
@@ -51,6 +53,9 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
     
     /// The moving or stationary state for the sample. See `MovingState` for details on possible values.
     public let movingState: MovingState
+
+    // The recording state of the LocomotionManager at the time the sample was taken.
+    public let recordingState: RecordingState
     
     // MARK: Motion Properties
     
@@ -63,7 +68,7 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
      - Note: If the user is travelling by vehicle, this value may report a false value due to bumpy motion being 
      misinterpreted as steps by CMPedometer.
      */
-    public let stepHz: Double
+    public let stepHz: Double?
     
     /** 
      The degree of variance in course direction over the sample duration.
@@ -76,7 +81,7 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
      the filtered locations already have the majority of path jitter removed, this value should not be considered in
      isolation from other factors - no firm conclusions can be drawn from it alone.
      */
-    public let courseVariance: Double
+    public let courseVariance: Double?
     
     /**
      The average amount of accelerometer motion on the XY plane over the sample duration.
@@ -85,7 +90,7 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
      xyAccelerations being the recorded accelerometer X and Y values over the sample duration. Thus it represents the
      mean + 3SD of the unsigned acceleration values.
      */
-    public let xyAcceleration: Double
+    public let xyAcceleration: Double?
     
     /**
      The average amount of accelerometer motion on the Z axis over the sample duration.
@@ -94,7 +99,7 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
      zAccelerations being the recorded accelerometer Z values over the sample duration. Thus it represents the
      mean + 3SD of the unsigned acceleration values.
      */
-    public let zAcceleration: Double
+    public let zAcceleration: Double?
     
     // MARK: Activity Type Properties
     
@@ -139,6 +144,8 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
     }
     
     internal init(sample: ActivityBrainSample) {
+        self.sampleId = UUID()
+
         if let location = sample.location  {
             self.rawLocations = sample.rawLocations
             self.filteredLocations = sample.filteredLocations
@@ -154,6 +161,8 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
             self.location = nil
             self.date = Date()
         }
+
+        self.recordingState = LocomotionManager.highlander.recordingState
         
         self.movingState = sample.movingState
         self.courseVariance = sample.courseVariance
@@ -163,14 +172,23 @@ public class LocomotionSample: NSObject, ActivityTypeClassifiable {
         
         self.coreMotionActivityType = sample.coreMotionActivityType
     }
+}
 
-    // MARK: CustomStringConvertible
-
-    public override var description: String {
+extension LocomotionSample: CustomStringConvertible {
+    public var description: String {
         let seconds = filteredLocations.dateInterval?.duration ?? 0
         let locationsN = filteredLocations.count
         let locationsHz = locationsN > 0 && seconds > 0 ? Double(locationsN) / seconds : 0.0
         return String(format: "\(locationsN) locations (%.1f Hz), \(String(duration: seconds))", locationsHz)
+    }
+}
+
+extension LocomotionSample: Hashable {
+    public var hashValue: Int {
+        return sampleId.hashValue
+    }
+    public static func ==(lhs: LocomotionSample, rhs: LocomotionSample) -> Bool {
+        return lhs.sampleId == rhs.sampleId
     }
 }
 
@@ -197,6 +215,10 @@ public extension Array where Element: LocomotionSample {
 
     func radiusFrom(center: CLLocation) -> (mean: CLLocationDistance, sd: CLLocationDistance) {
         return flatMap { $0.location }.radiusFrom(center: center)
+    }
+
+    public var weightedMeanAltitude: CLLocationDistance? {
+        return flatMap { $0.location }.weightedMeanAltitude
     }
 
     public var horizontalAccuracyRange: AccuracyRange? {

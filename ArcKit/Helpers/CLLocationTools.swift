@@ -82,6 +82,10 @@ public extension CLLocation {
         return 1.0 - (horizontalAccuracy / (range.worst + 1.0))
     }
 
+    func verticalAccuracyWeight(inRange range: AccuracyRange) -> Double {
+        return 1.0 - (verticalAccuracy / (range.worst + 1.0))
+    }
+
     // The unweighted centre of an array of locations
     public convenience init?(centerFor locations: [CLLocation]) {
         if locations.isEmpty {
@@ -204,4 +208,23 @@ extension Array where Element: CLLocation {
         }
     }
 
+    public var weightedMeanAltitude: CLLocationDistance? {
+        guard let accuracyRange = verticalAccuracyRange else {
+            return nil
+        }
+
+        var totalAltitude: Double = 0, totalWeight: Double = 0
+
+        for location in self where location.verticalAccuracy > 0 {
+            let weight = location.verticalAccuracyWeight(inRange: accuracyRange)
+            totalAltitude += location.altitude * weight
+            totalWeight += weight
+        }
+
+        guard totalWeight > 0 else {
+            return nil
+        }
+
+        return totalAltitude / totalWeight
+    }
 }

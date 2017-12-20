@@ -110,7 +110,7 @@ public extension NSNotification.Name {
     internal static let maximumDesiredLocationAccuracyInVisit = kCLLocationAccuracyHundredMeters
     internal static let wiggleHz: Double = 4
     
-    private let pedometer = CMPedometer()
+    public let pedometer = CMPedometer()
     private let activityManager = CMMotionActivityManager()
 
     private lazy var wiggles: CMMotionManager = {
