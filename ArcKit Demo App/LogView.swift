@@ -6,6 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import ArcKit
 import SwiftNotes
 import Cartography
 
@@ -25,7 +26,7 @@ class LogView: UIScrollView {
         alwaysBounceVertical = true
 
         when(.logFileUpdated) { _ in
-            self.update()
+            onMain { self.update() }
         }
 
         update()
