@@ -19,6 +19,7 @@ Pod::Spec.new do |s|
   end
   s.subspec 'LocalStore' do |sp|
     sp.source_files = 'ArcKit/LocalStore/**/*'
+    sp.dependency 'ArcKit/Base'
     sp.dependency 'GRDB.swift', '~> 2.7'
   end
 end
