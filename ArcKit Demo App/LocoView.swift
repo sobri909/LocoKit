@@ -77,11 +77,11 @@ class LocoView: UIScrollView {
         var receivingString = "-"
         if loco.recordingState == .recording, let sample = sample {
             var receivingHertz = 0.0
-            if let duration = sample.filteredLocations.dateInterval?.duration, duration > 0 {
-                receivingHertz = Double(sample.filteredLocations.count) / duration
+            if let locations = sample.filteredLocations, let duration = locations.dateInterval?.duration, duration > 0 {
+                receivingHertz = Double(locations.count) / duration
             }
 
-            if let location = sample.filteredLocations.last {
+            if let location = sample.filteredLocations?.last {
                 receivingString = String(format: "%.0f metres @ %.1f Hz", location.horizontalAccuracy, receivingHertz)
             }
         }

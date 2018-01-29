@@ -11,7 +11,11 @@ import MapKit
 
 class MapView: MKMapView {
 
-    init() {
+    let timeline: TimelineManager
+
+    init(timeline: TimelineManager) {
+        self.timeline = timeline
+
         super.init(frame: CGRect.zero)
 
         self.delegate = self
@@ -24,14 +28,11 @@ class MapView: MKMapView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update() {
+    func update(with items: [TimelineItem]) {
         let loco = LocomotionManager.highlander
-        let timeline = DefaultTimelineManager.highlander
 
         // don't bother updating the map when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
+        guard UIApplication.shared.applicationState == .active else { return }
 
         removeOverlays(overlays)
         removeAnnotations(annotations)
@@ -43,11 +44,8 @@ class MapView: MKMapView {
             self.mapType = newMapType
         }
 
-        // let's combine active and finalised items lists, for convenience
-        let timelineItems = timeline.finalisedTimelineItems + timeline.activeTimelineItems
-
         if Settings.showTimelineItems {
-            for timelineItem in timelineItems {
+            for timelineItem in items {
                 if let path = timelineItem as? Path {
                     add(path)
 
@@ -57,25 +55,31 @@ class MapView: MKMapView {
             }
 
         } else {
-            var rawLocations: [CLLocation] = []
-            var filteredLocations: [CLLocation] = []
             var samples: [LocomotionSample] = []
 
+            // do these as sets, because need to deduplicate
+            var rawLocations: Set<CLLocation> = []
+            var filteredLocations: Set<CLLocation> = []
+
             // collect samples and locations from the timeline items
-            for timelineItem in timelineItems {
+            for timelineItem in items {
                 for sample in timelineItem.samples {
                     samples.append(sample)
-                    rawLocations.append(contentsOf: sample.rawLocations)
-                    filteredLocations.append(contentsOf: sample.filteredLocations)
+                    if let locations = sample.rawLocations {
+                        rawLocations = rawLocations.union(locations)
+                    }
+                    if let locations = sample.filteredLocations {
+                        filteredLocations = filteredLocations.union(locations)
+                    }
                 }
             }
 
             if Settings.showRawLocations {
-                add(rawLocations, color: .red)
+                add(rawLocations.sorted { $0.timestamp < $1.timestamp }, color: .red)
             }
 
             if Settings.showFilteredLocations {
-                add(filteredLocations, color: .purple)
+                add(filteredLocations.sorted { $0.timestamp < $1.timestamp }, color: .purple)
             }
 
             if Settings.showLocomotionSamples {
@@ -160,7 +164,7 @@ class MapView: MKMapView {
 
         var coords = path.samples.flatMap { $0.location?.coordinate }
         let line = PathPolyline(coordinates: &coords, count: coords.count)
-        line.color = DefaultTimelineManager.highlander.activeTimelineItems.contains(path) ? .brown : .darkGray
+        line.color = timeline.activeItems.contains(path) ? .brown : .darkGray
 
         add(line)
     }
@@ -170,7 +174,7 @@ class MapView: MKMapView {
             addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
 
             let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
-            circle.color = DefaultTimelineManager.highlander.activeTimelineItems.contains(visit) ? .orange : .darkGray
+            circle.color = timeline.activeItems.contains(visit) ? .orange : .darkGray
             add(circle, level: .aboveLabels)
         }
     }
@@ -213,7 +217,7 @@ extension MapView: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if let annotation = annotation as? VisitAnnotation {
             let view = annotation.view
-            if !DefaultTimelineManager.highlander.activeTimelineItems.contains(annotation.visit) {
+            if !timeline.activeItems.contains(annotation.visit) {
                 view.image = UIImage(named: "inactiveDot")
             }
             return view

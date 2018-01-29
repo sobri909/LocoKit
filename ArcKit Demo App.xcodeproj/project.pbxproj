@@ -187,6 +187,7 @@
 				ED1FDDEF8FD69960ACDA7050 /* [CP] Embed Pods Frameworks */,
 				66D824C2B384A5F690FB10C8 /* [CP] Copy Pods Resources */,
 				C9650DB51F6BD02D00EDF791 /* Embed Frameworks */,
+				C9E07E43200906DE0090101D /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -284,6 +285,19 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ArcKit Demo App/Pods-ArcKit Demo App-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		C9E07E43200906DE0090101D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Fabric/run\" 8eb92dfc2cbb526daa9a955ff461a40f41f354e0 6b3f3c4ddc08e61bf73728b14e854cee7c36d1ff622a52eb125da383d1f684a9";
+		};
 		ED1FDDEF8FD69960ACDA7050 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -294,6 +308,7 @@
 				"${BUILT_PRODUCTS_DIR}/ArcKit/ArcKit.framework",
 				"${PODS_ROOT}/ArcKitCore/ArcKitCore.framework",
 				"${BUILT_PRODUCTS_DIR}/Cartography/Cartography.framework",
+				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
 				"${BUILT_PRODUCTS_DIR}/ReachabilitySwift/Reachability.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftNotes/SwiftNotes.framework",
 				"${BUILT_PRODUCTS_DIR}/Upsurge/Upsurge.framework",
@@ -303,6 +318,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ArcKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ArcKitCore.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Cartography.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GRDB.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Reachability.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftNotes.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Upsurge.framework",
@@ -465,6 +481,7 @@
 			baseConfigurationReference = 9D09140A3DB2FF40D0A7B469 /* Pods-ArcKit Demo App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = U5N7VG8DUG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",

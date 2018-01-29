@@ -11,8 +11,8 @@ import Cartography
 
 class ClassifierView: UIScrollView {
 
-    var baseClassifier: ActivityTypeClassifier<ActivityTypesCache>?
-    var transportClassifier: ActivityTypeClassifier<ActivityTypesCache>?
+    var baseClassifier: ActivityTypeClassifier?
+    var transportClassifier: ActivityTypeClassifier?
 
     lazy var rows: UIStackView = {
         let box = UIStackView()

@@ -13,8 +13,11 @@ import CoreLocation
 
 class ViewController: UIViewController {
 
-    let mapView = MapView()
-    let timelineView = TimelineView()
+    // the Visits / Paths manager
+    let timeline = PersistentTimelineManager()
+
+    lazy var mapView = { return MapView(timeline: self.timeline) }()
+    lazy var timelineView = { return TimelineView(timeline: self.timeline) }()
     let classifierView = ClassifierView()
     let settingsView = SettingsView()
     let locoView = LocoView()
@@ -27,9 +30,6 @@ class ViewController: UIViewController {
 
         // the Core Location / Core Motion singleton
         let loco = LocomotionManager.highlander
-
-        // the Visits / Paths management singelton
-        let timeline = DefaultTimelineManager.highlander
 
         /** SETTINGS **/
 
@@ -48,21 +48,26 @@ class ViewController: UIViewController {
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
 
+        // restore the active timeline items from local db
+        timeline.bootstrapActiveItems()
+
         /** OBSERVERS **/
 
         // observe new timeline items
         when(timeline, does: .newTimelineItem) { _ in
-            if let currentItem = timeline.currentItem {
+            if let currentItem = self.timeline.currentItem {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
-            self.mapView.update()
-            self.timelineView.update()
+            let items = self.itemsToShow
+            self.mapView.update(with: items)
+            self.timelineView.update(with: items)
         }
 
         // observe timeline item updates
         when(timeline, does: .updatedTimelineItem) { _ in
-            self.mapView.update()
-            self.timelineView.update()
+            let items = self.itemsToShow
+            self.mapView.update(with: items)
+            self.timelineView.update(with: items)
         }
 
         // observe timeline items finalised after post processing
@@ -70,14 +75,14 @@ class ViewController: UIViewController {
             if let item = note.userInfo?["timelineItem"] as? TimelineItem {
                 log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
             }
-            self.timelineView.update()
+            self.timelineView.update(with: self.itemsToShow)
         }
 
         when(timeline, does: .mergedTimelineItems) { note in
             if let description = note.userInfo?["merge"] as? String {
                 log(".mergedItems (\(description))")
             }
-            self.timelineView.update()
+            self.timelineView.update(with: self.itemsToShow)
         }
 
         // observe incoming location / locomotion updates
@@ -92,6 +97,7 @@ class ViewController: UIViewController {
                 log(".recordingStateChanged (\(loco.recordingState))")
             }
             self.locoView.update()
+            self.mapView.update(with: self.itemsToShow)
         }
 
         // observe changes in the moving state (moving / stationary)
@@ -101,7 +107,6 @@ class ViewController: UIViewController {
 
         when(loco, does: .startedSleepMode) { _ in
             log(".startedSleepMode")
-            self.mapView.update()
         }
 
         when(loco, does: .stoppedSleepMode) { _ in
@@ -117,8 +122,12 @@ class ViewController: UIViewController {
         }
 
         when(settingsView, does: .settingsChanged) { _ in
-            self.mapView.update()
+            self.mapView.update(with: self.itemsToShow)
             self.setNeedsStatusBarAppearanceUpdate()
+        }
+
+        when(.UIApplicationDidReceiveMemoryWarning) { _ in
+            log("UIApplicationDidReceiveMemoryWarning")
         }
 
         // view tree stuff
@@ -154,8 +163,6 @@ class ViewController: UIViewController {
     @objc func tappedStart() {
         log("tappedStart()")
 
-        let timeline = DefaultTimelineManager.highlander
-
         timeline.startRecording()
 
         startButton.isHidden = true
@@ -165,8 +172,6 @@ class ViewController: UIViewController {
     @objc func tappedStop() {
         log("tappedStop()")
 
-        let timeline = DefaultTimelineManager.highlander
-        
         timeline.stopRecording()
 
         stopButton.isHidden = true
@@ -264,6 +269,25 @@ class ViewController: UIViewController {
             classifier.edges == loco.edges
             log.edges == loco.edges
         }
+    }
+
+    func update() {
+        let items = itemsToShow
+        timelineView.update(with: items)
+        mapView.update(with: items)
+        logView.update()
+        locoView.update()
+        classifierView.update()
+    }
+
+    var itemsToShow: [TimelineItem] {
+
+        // make sure the db is fresh
+        timeline.store.saveQueuedObjects()
+
+        // feth all items in the past 24 hours
+        let boundary = Date(timeIntervalSinceNow: -60 * 60 * 24)
+        return timeline.store.items(where: "deleted = 0 AND endDate > ? ORDER BY startDate DESC", arguments: [boundary])
     }
 
     // MARK: view property getters

@@ -9,6 +9,9 @@
 import UIKit
 import ArcKit
 
+import Fabric
+import Crashlytics
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -16,6 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        Fabric.with([Crashlytics.self])
+
         window = UIWindow(frame: UIScreen.main.bounds)
         
         window?.rootViewController = ViewController()
@@ -25,22 +30,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         return true
     }
-    
-    func applicationWillResignActive(_ application: UIApplication) {
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        // request "always" location permission
         LocomotionManager.highlander.requestLocationPermission(background: true)
     }
-    
+
     func applicationDidBecomeActive(_ application: UIApplication) {
-        guard let controller = window?.rootViewController as? ViewController else {
-            return
-        }
+        guard let controller = window?.rootViewController as? ViewController else { return }
         
         // update the UI on appear
-        controller.mapView.update()
-        controller.logView.update()
-        controller.locoView.update()
-        controller.classifierView.update()
-        controller.timelineView.update()
+        controller.update()
     }
 
 }

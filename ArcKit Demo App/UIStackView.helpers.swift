@@ -39,11 +39,12 @@ extension UIStackView {
         addArrangedSubview(header)
     }
     
-    func addSubheading(title: String, alignment: NSTextAlignment = .left) {
+    func addSubheading(title: String, alignment: NSTextAlignment = .left, color: UIColor = .black) {
         let header = UILabel()
         header.backgroundColor = .white
         header.font = UIFont.preferredFont(forTextStyle: .subheadline)
         header.textAlignment = alignment
+        header.textColor = color
         header.text = title
         addArrangedSubview(header)
     }

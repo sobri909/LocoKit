@@ -11,17 +11,19 @@ import Cartography
 
 class TimelineView: UIScrollView {
 
+    let timeline: TimelineManager
+
     lazy var rows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
         return box
     }()
 
-    init() {
+    init(timeline: TimelineManager) {
+        self.timeline = timeline
         super.init(frame: CGRect.zero)
         backgroundColor = .white
         alwaysBounceVertical = true
-        update()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -39,65 +41,43 @@ class TimelineView: UIScrollView {
         }
     }
 
-    func update() {
-        let timeline = DefaultTimelineManager.highlander
-
+    func update(with items: [TimelineItem]) {
         // don't bother updating the UI when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
+        guard UIApplication.shared.applicationState == .active else { return }
 
         rows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         rows.addGap(height: 18)
-        rows.addHeading(title: "Active Timeline Items")
+        rows.addHeading(title: "Timeline Items")
         rows.addGap(height: 2)
 
-        var nextItem: TimelineItem?
-
-        if timeline.activeTimelineItems.isEmpty {
+        if items.isEmpty {
             rows.addRow(leftText: "-")
-        } else {
-            for timelineItem in timeline.activeTimelineItems.reversed() {
-                if let next = nextItem, next.previousItem != timelineItem {
-                    addDataGap()
-                }
-                nextItem = timelineItem
-
-                add(timelineItem)
-            }
+            return
         }
 
-        rows.addGap(height: 18)
-        rows.addHeading(title: "Finalised Timeline Items")
-        rows.addGap(height: 2)
-
-        if timeline.finalisedTimelineItems.isEmpty {
-            rows.addRow(leftText: "-")
-        } else {
-            for timelineItem in timeline.finalisedTimelineItems.reversed() {
-                if let next = nextItem, next.previousItem != timelineItem {
-                    addDataGap()
-                }
-                nextItem = timelineItem
-
-                add(timelineItem)
-            }
+        var nextItem: TimelineItem?
+        for timelineItem in items {
+            if let next = nextItem, next.previousItem != timelineItem { addDataGap() }
+            nextItem = timelineItem
+            add(timelineItem)
         }
     }
 
     func add(_ timelineItem: TimelineItem) {
-        let timeline = DefaultTimelineManager.highlander
-
         rows.addGap(height: 14)
         var title = ""
         if let start = timelineItem.startDate {
             title += "[\(dateFormatter.string(from: start))] "
         }
-        if timelineItem == timeline.currentItem {
+        if timelineItem.isCurrentItem {
             title += "Current "
+        } else if timeline.activeItems.contains(timelineItem) {
+            title += "Active "
+        } else {
+            title += "Finalised "
         }
-        title += timelineItem is Visit ? "Visit" : "Path"
+        title += timelineItem.isNolo ? "Nolo" : timelineItem is Visit ? "Visit" : "Path"
         if let path = timelineItem as? Path, let activityType = path.movingActivityType {
             title += " (\(activityType)"
             if Settings.showDebugTimelineDetails {
@@ -131,28 +111,20 @@ class TimelineView: UIScrollView {
 
         let debugColor = UIColor(white: 0.94, alpha: 1)
 
-        if timelineItem != timeline.currentItem, let end = timelineItem.endDate {
-            rows.addRow(leftText: "Ended", rightText: "\(String(duration: end.age)) ago",
-                background: debugColor)
-        }
-
-        if let previousItem = timelineItem.previousItem {
+        if let previous = timelineItem.previousItem, !timelineItem.withinMergeableDistance(from: previous) {
             if
-                let timeGap = timelineItem.timeIntervalFrom(previousItem),
-                let distGap = timelineItem.distance(from: previousItem)
+                let timeGap = timelineItem.timeInterval(from: previous),
+                let distGap = timelineItem.distance(from: previous)
             {
-                rows.addRow(leftText: "Gap from previous",
-                                    rightText: "\(String(duration: timeGap)) (\(String(metres: distGap)))",
+                rows.addRow(leftText: "Unmergeable gap from previous",
+                            rightText: "\(String(duration: timeGap)) (\(String(metres: distGap)))",
                     background: debugColor)
+            } else {
+                rows.addRow(leftText: "Unmergeable gap from previous", rightText: "unknown gap size",
+                            background: debugColor)
             }
-            let acceptableGap = timelineItem.withinMergeableDistance(from: previousItem)
-            rows.addRow(leftText: "Within mergeable distance", rightText: acceptableGap ? "yes" : "no",
-                                background: debugColor)
-            if !acceptableGap {
-                let maxMerge = timelineItem.maximumMergeableDistance(from: previousItem)
-                rows.addRow(leftText: "Max merge from previous", rightText: "\(String(metres: maxMerge))",
-                    background: debugColor)
-            }
+            let maxMerge = timelineItem.maximumMergeableDistance(from: previous)
+            rows.addRow(leftText: "Max mergeable gap", rightText: "\(String(metres: maxMerge))", background: debugColor)
         }
 
         rows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)", background: debugColor)
@@ -164,9 +136,9 @@ class TimelineView: UIScrollView {
         rows.addGap(height: 14)
 
         if let duration = duration {
-            rows.addSubheading(title: "Timeline Gap (\(String(duration: duration)))")
+            rows.addSubheading(title: "Timeline Gap (\(String(duration: duration)))", color: .red)
         } else {
-            rows.addSubheading(title: "Timeline Gap")
+            rows.addSubheading(title: "Timeline Gap", color: .red)
         }
 
         rows.addGap(height: 14)
