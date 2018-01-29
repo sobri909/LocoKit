@@ -42,9 +42,6 @@ class ViewController: UIViewController {
         // the default value (30 metres) best balances accuracy with energy use.
         loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
 
-        // how many hours of finalised timeline items to retain
-        timeline.timelineItemHistoryRetention = 60 * 60 * 6
-
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
 
@@ -65,24 +62,30 @@ class ViewController: UIViewController {
 
         // observe timeline item updates
         when(timeline, does: .updatedTimelineItem) { _ in
-            let items = self.itemsToShow
-            self.mapView.update(with: items)
-            self.timelineView.update(with: items)
+            onMain {
+                let items = self.itemsToShow
+                self.mapView.update(with: items)
+                self.timelineView.update(with: items)
+            }
         }
 
         // observe timeline items finalised after post processing
         when(timeline, does: .finalisedTimelineItem) { note in
-            if let item = note.userInfo?["timelineItem"] as? TimelineItem {
-                log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
+            onMain {
+                if let item = note.userInfo?["timelineItem"] as? TimelineItem {
+                    log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
+                }
+                self.timelineView.update(with: self.itemsToShow)
             }
-            self.timelineView.update(with: self.itemsToShow)
         }
 
         when(timeline, does: .mergedTimelineItems) { note in
-            if let description = note.userInfo?["merge"] as? String {
-                log(".mergedItems (\(description))")
+            onMain {
+                if let description = note.userInfo?["merge"] as? String {
+                    log(".mergedItems (\(description))")
+                }
+                self.timelineView.update(with: self.itemsToShow)
             }
-            self.timelineView.update(with: self.itemsToShow)
         }
 
         // observe incoming location / locomotion updates
