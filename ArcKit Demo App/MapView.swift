@@ -62,7 +62,7 @@ class MapView: MKMapView {
             var filteredLocations: Set<CLLocation> = []
 
             // collect samples and locations from the timeline items
-            for timelineItem in items {
+            for timelineItem in items.reversed() {
                 for sample in timelineItem.samples {
                     samples.append(sample)
                     if let locations = sample.rawLocations {

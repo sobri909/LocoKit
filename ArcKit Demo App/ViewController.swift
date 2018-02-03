@@ -46,7 +46,9 @@ class ViewController: UIViewController {
         loco.locationManager.allowsBackgroundLocationUpdates = true
 
         // restore the active timeline items from local db
-        timeline.bootstrapActiveItems()
+        if let timeline = timeline as? PersistentTimelineManager {
+            timeline.bootstrapActiveItems()
+        }
 
         /** OBSERVERS **/
 
@@ -284,6 +286,23 @@ class ViewController: UIViewController {
     }
 
     var itemsToShow: [TimelineItem] {
+        if timeline is PersistentTimelineManager { return persistentItemsToShow }
+
+        guard let currentItem = timeline.currentItem else { return [] }
+
+        // collect the linked list of timeline items
+        var items: [TimelineItem] = [currentItem]
+        var workingItem = currentItem
+        while let previous = workingItem.previousItem {
+            items.append(previous)
+            workingItem = previous
+        }
+
+        return items
+    }
+
+    var persistentItemsToShow: [TimelineItem] {
+        guard let timeline = timeline as? PersistentTimelineManager else { return [] }
 
         // make sure the db is fresh
         timeline.store.saveQueuedObjects()
