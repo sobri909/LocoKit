@@ -27,10 +27,7 @@ public protocol PersistentObject: TimelineObject {
 
 public extension PersistentObject {
     public var unsaved: Bool { return lastSaved == nil }
-    public func save(immediate: Bool = false) {
-        guard inTheStore else { os_log("OBJECT NOT IN THE STORE"); return }
-        persistentStore.save(self, immediate: immediate)
-    }
+    public func save(immediate: Bool = false) { persistentStore.save(self, immediate: immediate) }
     public func save(in db: Database) throws { if unsaved { try insert(in: db) } else { try update(in: db) } }
 }
 

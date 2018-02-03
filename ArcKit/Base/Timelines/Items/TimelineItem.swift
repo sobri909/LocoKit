@@ -6,6 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import os.log
 import ArcKitCore
 import CoreLocation
 
@@ -34,7 +35,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
             if willDelete {
                 self.previousItem = nil
                 self.nextItem = nil
-                guard self.samples.isEmpty else { fatalError("CAN'T DELETE ITEM THAT HAS SAMPLES") }
+                if !self.samples.isEmpty { os_log("Can't delete item that has samples") }
             }
         }
     }
@@ -80,7 +81,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
     public var nextItemId: UUID?
 
     private weak var _previousItem: TimelineItem?
-    open var previousItem: TimelineItem? {
+    public var previousItem: TimelineItem? {
         get {
             if let cached = self._previousItem, cached.itemId == self.previousItemId { return cached.currentInstance }
             if let itemId = self.previousItemId, let item = store?.item(for: itemId) {
@@ -90,6 +91,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
             return nil
         }
         set(newValue) {
+            guard newValue != self else { fatalError("previousItem can't be self") }
             self._previousItem = newValue
             self.previousItemId = newValue?.itemId
             if newValue?.nextItemId != self.itemId {
@@ -99,7 +101,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
     }
 
     private weak var _nextItem: TimelineItem?
-    open var nextItem: TimelineItem? {
+    public var nextItem: TimelineItem? {
         get {
             if let cached = self._nextItem, cached.itemId == self.nextItemId { return cached.currentInstance }
             if let itemId = self.nextItemId, let item = store?.item(for: itemId) {
@@ -109,6 +111,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
             return nil
         }
         set(newValue) {
+            guard newValue != self else { fatalError("nextItem can't be self") }
             self._nextItem = newValue
             self.nextItemId = newValue?.itemId
             if newValue?.previousItemId != self.itemId {

@@ -16,7 +16,6 @@ open class PersistentTimelineStore: TimelineStore {
     open let keepDeletedItemsFor: TimeInterval = 60 * 60
     public var sqlDebugLogging = false
 
-    public let mutex = UnfairLock()
     public var itemsToSave: Set<TimelineItem> = []
     public var samplesToSave: Set<PersistentSample> = []
 
@@ -52,6 +51,19 @@ open class PersistentTimelineStore: TimelineStore {
         guard let persistentItem = timelineItem as? PersistentItem else { fatalError("NOT A PERSISTENT ITEM") }
         super.add(persistentItem)
         if persistentItem.unsaved { persistentItem.save(immediate: true) }
+    }
+
+    open override func release(_ objects: [TimelineObject]) {
+        var filtered: [TimelineObject] = []
+        mutex.sync {
+            // don't release objects that're in the save queues
+            for object in objects {
+                if let item = object as? TimelineItem, itemsToSave.contains(item) { continue }
+                if let sample = object as? PersistentSample, samplesToSave.contains(sample) { continue }
+                filtered.append(object)
+            }
+        }
+        super.release(filtered)
     }
 
     // MARK: Item / Sample creation
@@ -160,6 +172,8 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Saving
 
     public func save(_ object: PersistentObject, immediate: Bool = false) {
+        guard object.inTheStore else { os_log("OBJECT NOT IN THE STORE"); return }
+        retain(object)
         mutex.sync {
             if let item = object as? TimelineItem {
                 itemsToSave.insert(item)
@@ -192,6 +206,7 @@ open class PersistentTimelineStore: TimelineStore {
             for case let item as PersistentObject in savingItems { try item.save(in: db) }
             db.afterNextTransactionCommit { db in
                 for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
+                self.release(Array(savingItems))
             }
             return .commit
         }
@@ -201,6 +216,7 @@ open class PersistentTimelineStore: TimelineStore {
             for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
             db.afterNextTransactionCommit { db in
                 for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
+                self.release(Array(savingSamples))
             }
             return .commit
         }

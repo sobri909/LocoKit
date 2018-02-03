@@ -44,22 +44,14 @@ open class TimelineManager {
      */
     public var samplesPerMinute: Double = 10
 
-    /**
-     The duration of historical timeline items to retain in `finalisedTimelineItems`.
-
-     Once a timeline item is older than this (measured from the item's `end` date) it will be removed from
-     `finalisedTimelineItems`.
-     */
-    public var timelineItemHistoryRetention: TimeInterval = 60 * 60 * 6
-
     public var activityTypeClassifySamples = true
 
     // MARK: The Recorded Timeline Items
 
     /**
-     The current (most recent) timeline item.
+     The current (most recent) timeline item, representing the user's current activity while recording.
 
-     - Note: This value is equivalent to `activeTimelineItems.last`.
+     - Note: This value is equivalent to `activeItems.last`.
      */
     public var currentItem: TimelineItem? { return activeItems.last?.currentInstance }
 
@@ -67,19 +59,9 @@ open class TimelineManager {
      The timeline items that are still being considered for modification by the processing engine, in ascending date
      order.
 
-     Once each timeline item is finalised, it is moved to `finalisedTimelineItems`, at which point it will no longer
-     be modified by the processing engine.
+     - Note: Once a timeline item is finalised it will no longer be modified by the processing engine.
      */
     private(set) public var activeItems: [TimelineItem] = []
-
-    /**
-     The timeline items that have received their final processing and will no longer be modified, in ascending date
-     order.
-
-     - Note: The last item in this array will usually be linked to the first item in `activeTimelineItems` by its
-     `nextItem` property. And in turn, that item will be linked back by its `previousItem` property.
-     */
-    private(set) public var finalisedItems: [TimelineItem] = []
 
     public func startRecording() { recording = true }
     public func stopRecording() { recording = false }
@@ -100,20 +82,21 @@ open class TimelineManager {
         if activeItems.isEmpty { activeItems.append(timelineItem); return }
         guard let prevIndex = activeItems.index(where: { $0 == timelineItem.previousItem }) else { return }
         activeItems.insert(timelineItem, at: prevIndex + 1)
+        store.retain(timelineItem)
     }
 
     public func remove(_ timelineItem: TimelineItem) { remove([timelineItem]) }
 
     public func remove(_ timelineItems: [TimelineItem]) {
         activeItems.removeObjects(timelineItems)
-        finalisedItems.removeObjects(timelineItems)
+        store.release(timelineItems)
     }
 
-    public func finalise(_ timelineItems: [TimelineItem]) {
+    private func finalise(_ timelineItems: [TimelineItem]) {
         if timelineItems.isEmpty { return }
         activeItems.removeObjects(timelineItems)
-        finalisedItems.append(contentsOf: timelineItems)
         for item in timelineItems {
+            store.release(item)
             let note = Notification(name: .finalisedTimelineItem, object: self, userInfo: ["timelineItem": item])
             NotificationCenter.default.post(note)
         }
@@ -278,7 +261,6 @@ open class TimelineManager {
 
         // final housekeeping
         trimTheActiveItems()
-        trimTheFinalisedItems()
 
         // make sure sleep mode doesn't happen prematurely
         if let currentVisit = currentItem as? Visit, currentVisit.isWorthKeeping {
@@ -304,23 +286,15 @@ open class TimelineManager {
         if let finalised = itemsToTrim { finalise(Array(finalised)) }
     }
 
-    private func trimTheFinalisedItems() {
-        let itemsToTrim = finalisedItems.prefix {
-            guard let end = $0.endDate else { return true }
-            return end.age > timelineItemHistoryRetention
-        }
-        if !itemsToTrim.isEmpty {
-            remove(Array(itemsToTrim))
-            os_log("Released %d historical timeline item(s).", type: .debug, itemsToTrim.count)
-        }
-    }
-
     /// Processing timeline items from an arbitrary point in the timeline.
     public func processTimelineItems(from fromItem: TimelineItem) {
         processingQueue.async {
-            guard let workingItem = fromItem.currentInstance else { os_log("WORKINGITEM NOT AVAILABLE"); return }
+            guard let workingItem = fromItem.currentInstance else {
+                os_log("workingItem.currentInstance not available for processing")
+                return
+            }
 
-            if workingItem.deleted { fatalError("CAN'T PROCESS A DELETED ITEM") }
+            if workingItem.deleted { os_log("Attempted to process a deleted item"); return }
 
             var merges: [Merge] = []
 
