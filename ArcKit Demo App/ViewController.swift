@@ -13,8 +13,8 @@ import CoreLocation
 
 class ViewController: UIViewController {
 
-    // the Visits / Paths manager
-    let timeline = PersistentTimelineManager()
+    // the Visits / Paths manager (use a plain TimelineManager() if you don't require persistent SQL storage)
+    let timeline: TimelineManager = PersistentTimelineManager()
 
     lazy var mapView = { return MapView(timeline: self.timeline) }()
     lazy var timelineView = { return TimelineView(timeline: self.timeline) }()
@@ -44,6 +44,9 @@ class ViewController: UIViewController {
 
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
+
+        // enable this if you have an API key and want to determine activity types
+        timeline.activityTypeClassifySamples = true
 
         // restore the active timeline items from local db
         if let timeline = timeline as? PersistentTimelineManager {
