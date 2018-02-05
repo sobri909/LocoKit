@@ -14,16 +14,12 @@ Pod::Spec.new do |s|
   s.subspec 'Base' do |sp|
     sp.source_files = 'ArcKit/Base/**/*'
     sp.dependency 'ArcKitCore', '5.0.0.pre.2'
-  end
-  s.subspec 'Timelines' do |sp|
-    sp.source_files = 'ArcKit/Timelines/**/*'
-    sp.dependency 'ArcKit/Base'
     sp.dependency 'ReachabilitySwift', '~> 4.1'
     sp.dependency 'Upsurge', '~> 0.10'
   end
   s.subspec 'LocalStore' do |sp|
     sp.source_files = 'ArcKit/LocalStore/**/*'
-    sp.dependency 'ArcKit/Timelines'
+    sp.dependency 'ArcKit/Base'
     sp.dependency 'GRDB.swift', '~> 2.8'
   end
 end
