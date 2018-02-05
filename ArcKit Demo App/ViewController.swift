@@ -13,7 +13,11 @@ import CoreLocation
 
 class ViewController: UIViewController {
 
-    // the Visits / Paths manager (use a plain TimelineManager() if you don't require persistent SQL storage)
+    /**
+     The Timeline Items (Visits and Paths) recording manager
+
+     - Note: Use a plain TimelineManager() instead if you don't require persistent SQL storage
+    **/
     let timeline: TimelineManager = PersistentTimelineManager()
 
     lazy var mapView = { return MapView(timeline: self.timeline) }()
@@ -28,7 +32,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // the Core Location / Core Motion singleton
+        // the CoreLocation / CoreMotion recording singleton
         let loco = LocomotionManager.highlander
 
         /** SETTINGS **/

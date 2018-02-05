@@ -158,9 +158,7 @@ class MapView: MKMapView {
     }
 
     func add(_ path: Path) {
-        if path.samples.isEmpty {
-            return
-        }
+        if path.samples.isEmpty { return }
 
         var coords = path.samples.flatMap { $0.location?.coordinate }
         let line = PathPolyline(coordinates: &coords, count: coords.count)
@@ -170,20 +168,18 @@ class MapView: MKMapView {
     }
 
     func add(_ visit: Visit) {
-        if let center = visit.center {
-            addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
+        guard let center = visit.center else { return }
 
-            let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
-            circle.color = timeline.activeItems.contains(visit) ? .orange : .darkGray
-            add(circle, level: .aboveLabels)
-        }
+        addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
+
+        let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
+        circle.color = timeline.activeItems.contains(visit) ? .orange : .darkGray
+        add(circle, level: .aboveLabels)
     }
 
 
     func zoomToShow(overlays: [MKOverlay]) {
-        guard !overlays.isEmpty else {
-            return
-        }
+        guard !overlays.isEmpty else { return }
 
         var mapRect: MKMapRect?
         for overlay in overlays {
