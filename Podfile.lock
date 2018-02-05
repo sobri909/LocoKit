@@ -1,13 +1,13 @@
 PODS:
-  - ArcKit (5.0.0.pre.3):
-    - ArcKit/Base (= 5.0.0.pre.3)
-  - ArcKit/Base (5.0.0.pre.3):
+  - ArcKit (5.0.0.pre.4):
+    - ArcKit/Base (= 5.0.0.pre.4)
+  - ArcKit/Base (5.0.0.pre.4):
     - ArcKitCore (= 5.0.0.pre.2)
     - ReachabilitySwift (~> 4.1)
     - Upsurge (~> 0.10)
-  - ArcKit/LocalStore (5.0.0.pre.3):
+  - ArcKit/LocalStore (5.0.0.pre.4):
     - ArcKit/Base
-    - GRDB.swift (~> 2.7)
+    - GRDB.swift (~> 2.8)
   - ArcKitCore (5.0.0.pre.2)
   - Cartography (3.0.1)
   - Crashlytics (3.9.3):
@@ -19,15 +19,15 @@ PODS:
   - Upsurge (0.10.0)
 
 DEPENDENCIES:
-  - ArcKit (= 5.0.0.pre.3)
-  - ArcKit/LocalStore (= 5.0.0.pre.3)
+  - ArcKit (= 5.0.0.pre.4)
+  - ArcKit/LocalStore (= 5.0.0.pre.4)
   - Cartography
   - Crashlytics
   - Fabric
   - SwiftNotes
 
 SPEC CHECKSUMS:
-  ArcKit: e9d62c0bbc6a0edf4018a0d3aef575f9e3829adc
+  ArcKit: 84586dc00c36e2dd080336e535dd76282e03b597
   ArcKitCore: d2010bf45d12dac215552011c586dda7beef3aa6
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
   Crashlytics: dbb07d01876c171c5ccbdf7826410380189e452c
@@ -37,6 +37,6 @@ SPEC CHECKSUMS:
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 07095027bbabc0d5c15b61616421eb87018852fa
 
-PODFILE CHECKSUM: 860a83aefabd5cb9679147fa477ce53a1439c609
+PODFILE CHECKSUM: 5f7b64f1c50bc91c55e4b63039cf8050833db119
 
 COCOAPODS: 1.4.0
