@@ -19,8 +19,8 @@ PODS:
   - Upsurge (0.10.0)
 
 DEPENDENCIES:
-  - ArcKit (= 5.0.0.pre.4)
-  - ArcKit/LocalStore (= 5.0.0.pre.4)
+  - ArcKit (~> 5.0.0.pre)
+  - ArcKit/LocalStore (~> 5.0.0.pre)
   - Cartography
   - Crashlytics
   - Fabric
@@ -37,6 +37,6 @@ SPEC CHECKSUMS:
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 07095027bbabc0d5c15b61616421eb87018852fa
 
-PODFILE CHECKSUM: 5f7b64f1c50bc91c55e4b63039cf8050833db119
+PODFILE CHECKSUM: b4737539e5795a5491fe74eeda62094acb0d8e63
 
 COCOAPODS: 1.4.0
