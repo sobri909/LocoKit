@@ -52,40 +52,35 @@ open class PersistentVisit: Visit, PersistentObject {
         save()
     }
 
+    // MARK: Persistable
+
+    public static let databaseTableName = "TimelineItem"
+    
+    open func encode(to container: inout PersistenceContainer) {
+        container["itemId"] = itemId.uuidString
+        container["lastSaved"] = transactionDate ?? lastSaved
+        container["deleted"] = deleted
+        container["isVisit"] = true
+        container["startDate"] = _dateRange?.start
+        container["endDate"] = _dateRange?.end
+        container["previousItemId"] = previousItemId?.uuidString
+        container["nextItemId"] = nextItemId?.uuidString
+        container["radiusMean"] = _radius?.mean
+        container["radiusSD"] = _radius?.sd
+        container["altitude"] = _altitude
+        container["stepCount"] = stepCount
+        container["floorsAscended"] = floorsAscended
+        container["floorsDescended"] = floorsDescended
+        container["activityType"] = activityType?.rawValue
+        container["latitude"] = _center?.coordinate.latitude
+        container["longitude"] = _center?.coordinate.longitude
+    }
+
     // MARK: PersistentObject
 
     public var transactionDate: Date?
     public var lastSaved: Date?
 
-    open func insert(in db: Database) throws {
-        guard unsaved else { return }
-        try db.execute("""
-            REPLACE INTO TimelineItem (
-                itemId, lastSaved, isVisit, deleted, previousItemId, nextItemId, startDate, endDate, radiusMean,
-                radiusSD, altitude, stepCount, floorsAscended, floorsDescended, latitude, longitude, activityType
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, arguments: [
-                itemId.uuidString, transactionDate, true, deleted, previousItemId?.uuidString, nextItemId?.uuidString,
-                _dateRange?.start, _dateRange?.end, _radius?.mean, _radius?.sd, _altitude, stepCount, floorsAscended,
-                floorsDescended, _center?.coordinate.latitude, _center?.coordinate.longitude, _activityType?.rawValue
-            ])
-    }
-
-    open func update(in db: Database) throws {
-        if unsaved { return }
-        try db.execute("""
-            UPDATE TimelineItem SET
-                lastSaved = ?, isVisit = ?, deleted = ?, previousItemId = ?, nextItemId = ?, startDate = ?,
-                endDate = ?, radiusMean = ?, radiusSD = ?, altitude = ?, stepCount = ?, floorsAscended = ?,
-                floorsDescended = ?, latitude = ?, longitude = ?, activityType = ?
-            WHERE itemId = ?
-            """, arguments: [
-                transactionDate, true, deleted, previousItemId?.uuidString, nextItemId?.uuidString, _dateRange?.start,
-                _dateRange?.end, _radius?.mean, _radius?.sd, _altitude, stepCount, floorsAscended, floorsDescended,
-                _center?.coordinate.latitude, _center?.coordinate.longitude, _activityType?.rawValue, itemId.uuidString
-            ])
-    }
-    
     // MARK: Initialisers
 
     public required init(in store: TimelineStore) { super.init(in: store) }
@@ -95,16 +90,18 @@ open class PersistentVisit: Visit, PersistentObject {
         super.init(from: dict, in: store)
     }
     
-    // MARK: Decodable
+    // MARK: Codable
 
     public required init(from decoder: Decoder) throws {
-        do {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
-            try super.init(from: decoder)
-        } catch {
-            fatalError("DECODE FAIL: \(error)")
-        }
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
+        try super.init(from: decoder)
+    }
+
+    open override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(lastSaved, forKey: .lastSaved)
+        try super.encode(to: encoder)
     }
 
     enum CodingKeys: String, CodingKey {

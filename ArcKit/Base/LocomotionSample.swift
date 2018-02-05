@@ -24,7 +24,7 @@ import ArcKitCore
  Lesser quality or quantity of available data result in longer sample durations, thus representing the average or most
  common states and location over the sample period instead of a single specific moment.
  */
-open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Decodable {
+open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     // MARK: TimelineObject
 
@@ -264,7 +264,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Decodable {
         self.coreMotionActivityType = nil
     }
 
-    // MARK: Decodable
+    // MARK: Codable
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -289,6 +289,22 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Decodable {
         
         self.rawLocations = nil
         self.filteredLocations = nil
+    }
+
+    open func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(sampleId, forKey: .sampleId)
+        try container.encode(timelineItemId, forKey: .timelineItemId)
+        try container.encode(date, forKey: .date)
+        try container.encode(location?.codable, forKey: .location)
+        try container.encode(movingState, forKey: .movingState)
+        try container.encode(recordingState, forKey: .recordingState)
+        try container.encode(stepHz, forKey: .stepHz)
+        try container.encode(courseVariance, forKey: .courseVariance)
+        try container.encode(xyAcceleration, forKey: .xyAcceleration)
+        try container.encode(zAcceleration, forKey: .zAcceleration)
+        try container.encode(coreMotionActivityType, forKey: .coreMotionActivityType)
+        try container.encode(confirmedType, forKey: .confirmedType)
     }
 
     private enum CodingKeys: String, CodingKey {

@@ -11,7 +11,7 @@ import GRDB
 
 public typealias PersistentItem = PersistentObject & TimelineItem
 
-public protocol PersistentObject: TimelineObject {
+public protocol PersistentObject: TimelineObject, Persistable {
 
     var persistentStore: PersistentTimelineStore { get }
     var transactionDate: Date? { get set }
@@ -20,15 +20,13 @@ public protocol PersistentObject: TimelineObject {
 
     func save(immediate: Bool)
     func save(in db: Database) throws
-    func insert(in db: Database) throws
-    func update(in db: Database) throws
 
 }
 
 public extension PersistentObject {
     public var unsaved: Bool { return lastSaved == nil }
     public func save(immediate: Bool = false) { persistentStore.save(self, immediate: immediate) }
-    public func save(in db: Database) throws { if unsaved { try insert(in: db) } else { try update(in: db) } }
+    public func save(in db: Database) throws { if unsaved { try insert(db) } else { try update(db) } }
 }
 
 public extension PersistentObject where Self: TimelineItem {

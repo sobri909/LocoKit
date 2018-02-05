@@ -24,7 +24,7 @@ open class TimelineManager {
     private lazy var _store = TimelineStore()
     open var store: TimelineStore { return _store }
     
-    private(set) open var classifier = TimelineClassifier.highlander
+    private(set) open var classifier: TimelineClassifier? = TimelineClassifier.highlander
     public let processingQueue = DispatchQueue(label: "TimelineProcessing")
 
     public init() {
@@ -44,7 +44,9 @@ open class TimelineManager {
      */
     public var samplesPerMinute: Double = 10
 
-    public var activityTypeClassifySamples = true
+    public var activityTypeClassifySamples = true {
+        didSet { classifier = activityTypeClassifySamples ? TimelineClassifier.highlander : nil }
+    }
 
     // MARK: The Recorded Timeline Items
 
@@ -113,8 +115,8 @@ open class TimelineManager {
         let sample = store.createSample(from: ActivityBrain.highlander.presentSample)
 
         if activityTypeClassifySamples {
-            sample.classifierResults = classifier.classify(sample, filtered: true)
-            sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+            sample.classifierResults = classifier?.classify(sample, filtered: true)
+            sample.unfilteredClassifierResults = classifier?.classify(sample, filtered: false)
         }
 
         processingQueue.async {

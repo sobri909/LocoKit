@@ -11,7 +11,7 @@ import ArcKitCore
 import CoreLocation
 
 /// The abstract base class for timeline items.
-open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
+open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: TimelineObject
 
@@ -20,7 +20,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
     internal(set) public var inTheStore = false
     open var currentInstance: TimelineItem? { return inTheStore ? self : store?.item(for: itemId) }
 
-    public let classifier = TimelineClassifier.highlander
+    public var classifier: TimelineClassifier? { return store?.manager?.classifier }
 
     public var mutex = UnfairLock()
 
@@ -213,7 +213,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
     public var classifierResults: ClassifierResults? {
         if let cached = _classifierResults { return cached }
 
-        guard let results = classifier.classify(self, filtered: true) else { return nil }
+        guard let results = classifier?.classify(self, filtered: true) else { return nil }
 
         // don't cache if it's incomplete
         if results.moreComing { return results }
@@ -228,7 +228,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
     public var unfilteredClassifierResults: ClassifierResults? {
         if let cached = _unfilteredClassifierResults { return cached }
 
-        guard let results = classifier.classify(self, filtered: false) else { return nil }
+        guard let results = classifier?.classify(self, filtered: false) else { return nil }
 
         // don't cache if it's incomplete
         if results.moreComing { return results }
@@ -527,7 +527,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
         store.add(self)
     }
 
-    // MARK: Decodable
+    // MARK: Codable
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -552,6 +552,24 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Decodable {
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .center) {
             self._center = CLLocation(from: codableLocation)
         }
+    }
+
+    open func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(itemId, forKey: .itemId)
+        try container.encode(deleted, forKey: .deleted)
+        try container.encode(previousItemId, forKey: .previousItemId)
+        try container.encode(nextItemId, forKey: .nextItemId)
+        try container.encode(startDate, forKey: .startDate)
+        try container.encode(endDate, forKey: .endDate)
+        try container.encode(lastModified, forKey: .lastModified)
+        try container.encode(center?.codable, forKey: .center)
+        try container.encode(radius, forKey: .radius)
+        try container.encode(altitude, forKey: .altitude)
+        try container.encode(stepCount, forKey: .stepCount)
+        try container.encode(activityType, forKey: .activityType)
+        try container.encode(floorsAscended, forKey: .floorsAscended)
+        try container.encode(floorsDescended, forKey: .floorsDescended)
     }
 
     private enum CodingKeys: String, CodingKey {

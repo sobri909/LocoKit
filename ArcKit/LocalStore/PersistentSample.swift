@@ -46,48 +46,39 @@ open class PersistentSample: LocomotionSample, PersistentObject {
 
     public override var timelineItemId: UUID? { didSet { if oldValue != timelineItemId { save() } } }
 
+    // MARK: Persistable
+    
+    public static let databaseTableName = "LocomotionSample"
+
+    open func encode(to container: inout PersistenceContainer) {
+        container["sampleId"] = sampleId.uuidString
+        container["date"] = date
+        container["lastSaved"] = transactionDate ?? lastSaved
+        container["movingState"] = movingState.rawValue
+        container["recordingState"] = recordingState.rawValue
+        container["timelineItemId"] = timelineItemId?.uuidString
+        container["stepHz"] = stepHz
+        container["courseVariance"] = courseVariance
+        container["xyAcceleration"] = xyAcceleration
+        container["zAcceleration"] = zAcceleration
+        container["coreMotionActivityType"] = coreMotionActivityType?.rawValue
+        container["confirmedType"] = confirmedType?.rawValue
+
+        // location
+        container["latitude"] = location?.coordinate.latitude
+        container["longitude"] = location?.coordinate.longitude
+        container["altitude"] = location?.altitude
+        container["horizontalAccuracy"] = location?.horizontalAccuracy
+        container["verticalAccuracy"] = location?.verticalAccuracy
+        container["speed"] = location?.speed
+        container["course"] = location?.course
+    }
+    
     // MARK: PersistentObject
 
     public var persistentStore: PersistentTimelineStore { return store as! PersistentTimelineStore }
     public var transactionDate: Date?
     public var lastSaved: Date?
 
-    open func insert(in db: Database) throws {
-        guard unsaved else { return }
-        try db.execute("""
-            INSERT INTO LocomotionSample (
-                sampleId, lastSaved, timelineItemId, date, movingState,
-                recordingState, stepHz, courseVariance, xyAcceleration, zAcceleration,
-                coreMotionActivityType, confirmedType, latitude,
-                longitude, altitude, horizontalAccuracy,
-                verticalAccuracy, speed, course
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, arguments: [
-                sampleId.uuidString, transactionDate, timelineItemId?.uuidString, date, movingState.rawValue,
-                recordingState.rawValue, stepHz, courseVariance, xyAcceleration, zAcceleration,
-                coreMotionActivityType?.rawValue, confirmedType?.rawValue, location?.coordinate.latitude,
-                location?.coordinate.longitude, location?.altitude, location?.horizontalAccuracy,
-                location?.verticalAccuracy, location?.speed, location?.course
-            ])
-    }
-
-    open func update(in db: Database) throws {
-        if unsaved { return }
-        try db.execute("""
-            UPDATE LocomotionSample SET
-                lastSaved = ?, timelineItemId = ?, date = ?, movingState = ?, recordingState = ?, stepHz = ?,
-                courseVariance = ?, xyAcceleration = ?, zAcceleration = ?, coreMotionActivityType = ?,
-                confirmedType = ?, latitude = ?, longitude = ?,
-                altitude = ?, horizontalAccuracy = ?, verticalAccuracy = ?, speed = ?,
-                course = ?
-            WHERE sampleId = ?
-            """, arguments: [
-                transactionDate, timelineItemId?.uuidString, date, movingState.rawValue, recordingState.rawValue, stepHz,
-                courseVariance, xyAcceleration, zAcceleration, coreMotionActivityType?.rawValue,
-                confirmedType?.rawValue, location?.coordinate.latitude, location?.coordinate.longitude,
-                location?.altitude, location?.horizontalAccuracy, location?.verticalAccuracy, location?.speed,
-                location?.course, sampleId.uuidString
-            ])
-    }
 }
 

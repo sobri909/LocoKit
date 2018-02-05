@@ -172,7 +172,7 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Saving
 
     public func save(_ object: PersistentObject, immediate: Bool = false) {
-        guard object.inTheStore else { os_log("OBJECT NOT IN THE STORE"); return }
+        guard object.inTheStore else { os_log("Can't queue an object for save that isn't in the store"); return }
         retain(object)
         mutex.sync {
             if let item = object as? TimelineItem {
