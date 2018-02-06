@@ -14,7 +14,7 @@ import CoreLocation
 class ViewController: UIViewController {
 
     /**
-     The Timeline Items (Visits and Paths) recording manager
+     The recording manager for Timeline Items (Visits and Paths)
 
      - Note: Use a plain TimelineManager() instead if you don't require persistent SQL storage
     **/
@@ -64,9 +64,11 @@ class ViewController: UIViewController {
             if let currentItem = self.timeline.currentItem {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
-            let items = self.itemsToShow
-            self.mapView.update(with: items)
-            self.timelineView.update(with: items)
+            onMain {
+                let items = self.itemsToShow
+                self.mapView.update(with: items)
+                self.timelineView.update(with: items)
+            }
         }
 
         // observe timeline item updates
@@ -80,21 +82,17 @@ class ViewController: UIViewController {
 
         // observe timeline items finalised after post processing
         when(timeline, does: .finalisedTimelineItem) { note in
-            onMain {
-                if let item = note.userInfo?["timelineItem"] as? TimelineItem {
-                    log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
-                }
-                self.timelineView.update(with: self.itemsToShow)
+            if let item = note.userInfo?["timelineItem"] as? TimelineItem {
+                log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
             }
+            onMain { self.timelineView.update(with: self.itemsToShow) }
         }
 
         when(timeline, does: .mergedTimelineItems) { note in
-            onMain {
-                if let description = note.userInfo?["merge"] as? String {
-                    log(".mergedItems (\(description))")
-                }
-                self.timelineView.update(with: self.itemsToShow)
+            if let description = note.userInfo?["merge"] as? String {
+                log(".mergedItems (\(description))")
             }
+            onMain { self.timelineView.update(with: self.itemsToShow) }
         }
 
         // observe incoming location / locomotion updates
@@ -312,11 +310,11 @@ class ViewController: UIViewController {
         guard let timeline = timeline as? PersistentTimelineManager else { return [] }
 
         // make sure the db is fresh
-        timeline.store.saveQueuedObjects()
+        timeline.store.save()
 
         // feth all items in the past 24 hours
         let boundary = Date(timeIntervalSinceNow: -60 * 60 * 24)
-        return timeline.store.items(where: "deleted = 0 AND endDate > ? ORDER BY startDate DESC", arguments: [boundary])
+        return timeline.store.items(where: "deleted = 0 AND endDate > ? ORDER BY endDate DESC", arguments: [boundary])
     }
 
     // MARK: view property getters

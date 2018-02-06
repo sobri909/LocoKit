@@ -1,11 +1,11 @@
 PODS:
-  - ArcKit (5.0.0.pre.4):
-    - ArcKit/Base (= 5.0.0.pre.4)
-  - ArcKit/Base (5.0.0.pre.4):
+  - ArcKit (5.0.0.pre.5):
+    - ArcKit/Base (= 5.0.0.pre.5)
+  - ArcKit/Base (5.0.0.pre.5):
     - ArcKitCore (= 5.0.0.pre.2)
     - ReachabilitySwift (~> 4.1)
     - Upsurge (~> 0.10)
-  - ArcKit/LocalStore (5.0.0.pre.4):
+  - ArcKit/LocalStore (5.0.0.pre.5):
     - ArcKit/Base
     - GRDB.swift (~> 2.8)
   - ArcKitCore (5.0.0.pre.2)
@@ -27,7 +27,7 @@ DEPENDENCIES:
   - SwiftNotes
 
 SPEC CHECKSUMS:
-  ArcKit: 84586dc00c36e2dd080336e535dd76282e03b597
+  ArcKit: 91796d034c234ad3f106e0a4f4b3215553ffbba9
   ArcKitCore: d2010bf45d12dac215552011c586dda7beef3aa6
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
   Crashlytics: dbb07d01876c171c5ccbdf7826410380189e452c
