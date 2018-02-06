@@ -104,6 +104,8 @@ open class TimelineManager {
         }
     }
 
+    // MARK: The processing loop
+
     public func sampleUpdated() {
         guard recording else { return }
 
@@ -122,13 +124,16 @@ open class TimelineManager {
         processingQueue.async {
             self.processSample(sample)
             self.processTimelineItems()
+            #if DEBUG
+                self.sanityCheckActiveItems()
+            #endif
             onMain {
                 NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
             }
         }
     }
 
-    public func processSample(_ sample: LocomotionSample) {
+    private func processSample(_ sample: LocomotionSample) {
         let loco = LocomotionManager.highlander
 
         // first timeline item?
@@ -138,7 +143,7 @@ open class TimelineManager {
         }
 
         let previouslyMoving = currentItem is Path
-        let currentlyMoving = sample.movingState == .moving || sample.movingState == .uncertain
+        let currentlyMoving = sample.movingState != .stationary
 
         // stationary -> stationary
         if !currentlyMoving && !previouslyMoving {
@@ -194,7 +199,7 @@ open class TimelineManager {
         }
     }
 
-    public func processTimelineItems() {
+    private func processTimelineItems() {
         if activeItems.isEmpty { return }
 
         // only process from a keeper current item
@@ -205,8 +210,8 @@ open class TimelineManager {
         var merges: [Merge] = []
 
         // collect all possible merges for active items
-        while activeItems.contains(workingItem) {
-
+        while true {
+            
             // clean up item edges before calculating any merge scores
             workingItem.sanitiseEdges()
 
@@ -292,7 +297,7 @@ open class TimelineManager {
     public func processTimelineItems(from fromItem: TimelineItem) {
         processingQueue.async {
             guard let workingItem = fromItem.currentInstance else {
-                os_log("workingItem.currentInstance not available for processing")
+                os_log("currentInstance not found")
                 return
             }
 
@@ -429,6 +434,19 @@ open class TimelineManager {
              */
 
             os_log("COULDN'T SAFE DELETE TIMELINE ITEM: %@", deadman.itemId.uuidString)
+        }
+    }
+
+    private func sanityCheckActiveItems() {
+        var previous: TimelineItem?
+        for item in activeItems {
+            if let previous = previous, item.previousItem != previous {
+                fatalError("BROKEN PREVIOUS LINK")
+            }
+            if let previous = previous, previous.nextItem != item {
+                fatalError("BROKEN NEXT LINK")
+            }
+            previous = item
         }
     }
 }

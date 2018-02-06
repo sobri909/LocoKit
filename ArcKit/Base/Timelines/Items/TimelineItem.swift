@@ -22,7 +22,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public var classifier: TimelineClassifier? { return store?.manager?.classifier }
 
-    public var mutex = UnfairLock()
+    public var mutex = PThreadMutex(type: .recursive)
 
     public let itemId: UUID
 
@@ -33,9 +33,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     internal(set) public var deleted = false {
         willSet(willDelete) {
             if willDelete {
+                guard self.samples.isEmpty else {
+                    fatalError("Can't delete item that has samples")
+                }
                 self.previousItem = nil
                 self.nextItem = nil
-                if !self.samples.isEmpty { os_log("Can't delete item that has samples") }
             }
         }
     }
@@ -83,19 +85,31 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _previousItem: TimelineItem?
     public var previousItem: TimelineItem? {
         get {
-            if let cached = self._previousItem, cached.itemId == self.previousItemId { return cached.currentInstance }
-            if let itemId = self.previousItemId, let item = store?.item(for: itemId) {
-                self._previousItem = item
-                return item
-            }
-            return nil
+            if let cached = self._previousItem?.currentInstance, cached.itemId == self.previousItemId { return cached }
+            if let itemId = self.previousItemId, let item = store?.item(for: itemId) { self._previousItem = item }
+            return self._previousItem
         }
         set(newValue) {
-            guard newValue != self else { fatalError("previousItem can't be self") }
-            self._previousItem = newValue
-            self.previousItemId = newValue?.itemId
-            if newValue?.nextItemId != self.itemId {
-                newValue?.nextItemId = self.itemId
+            if newValue == self { fatalError("CAN'T LINK TO SELF") }
+            mutex.sync {
+                let oldValue = self.previousItem
+
+                // no change? do nothing
+                if newValue == oldValue { return }
+
+                // store the new value
+                self._previousItem = newValue
+                self.previousItemId = newValue?.itemId
+
+                // disconnect the old relationship
+                if oldValue?.nextItemId == self.itemId {
+                    oldValue?.nextItemId = nil
+                }
+
+                // complete the other side of the new relationship
+                if newValue?.nextItemId != self.itemId {
+                    newValue?.nextItemId = self.itemId
+                }
             }
         }
     }
@@ -103,19 +117,31 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _nextItem: TimelineItem?
     public var nextItem: TimelineItem? {
         get {
-            if let cached = self._nextItem, cached.itemId == self.nextItemId { return cached.currentInstance }
-            if let itemId = self.nextItemId, let item = store?.item(for: itemId) {
-                self._nextItem = item
-                return item
-            }
-            return nil
+            if let cached = self._nextItem?.currentInstance, cached.itemId == self.nextItemId { return cached }
+            if let itemId = self.nextItemId, let item = store?.item(for: itemId) { self._nextItem = item }
+            return self._nextItem
         }
         set(newValue) {
-            guard newValue != self else { fatalError("nextItem can't be self") }
-            self._nextItem = newValue
-            self.nextItemId = newValue?.itemId
-            if newValue?.previousItemId != self.itemId {
-                newValue?.previousItemId = self.itemId
+            if newValue == self { fatalError("CAN'T LINK TO SELF") }
+            mutex.sync {
+                let oldValue = self.nextItem
+
+                // no change? do nothing
+                if newValue == oldValue { return }
+
+                // store the new value
+                self._nextItem = newValue
+                self.nextItemId = newValue?.itemId
+
+                // disconnect the old relationship
+                if oldValue?.previousItemId == self.itemId {
+                    oldValue?.previousItemId = nil
+                }
+
+                // complete the other side of the new relationship
+                if newValue?.previousItemId != self.itemId {
+                    newValue?.previousItemId = self.itemId
+                }
             }
         }
     }
@@ -350,24 +376,26 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public func sanitiseEdges() {
-        var lastPreviousChanged: LocomotionSample?
-        var lastNextChanged: LocomotionSample?
+        edit { item in
+            var lastPreviousChanged: LocomotionSample?
+            var lastNextChanged: LocomotionSample?
 
-        while true {
-            var previousChanged: LocomotionSample?
-            var nextChanged: LocomotionSample?
+            while true {
+                var previousChanged: LocomotionSample?
+                var nextChanged: LocomotionSample?
 
-            if let previousPath = previousItem as? Path { previousChanged = cleanseEdge(with: previousPath) }
-            if let nextPath = nextItem as? Path { nextChanged = cleanseEdge(with: nextPath) }
+                if let previousPath = item.previousItem as? Path { previousChanged = item.cleanseEdge(with: previousPath) }
+                if let nextPath = item.nextItem as? Path { nextChanged = item.cleanseEdge(with: nextPath) }
 
-            // no changes, so we're done
-            if previousChanged == nil && nextChanged == nil { break }
+                // no changes, so we're done
+                if previousChanged == nil && nextChanged == nil { break }
 
-            // break from an infinite loop
-            if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged { break }
+                // break from an infinite loop
+                if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged { break }
 
-            lastPreviousChanged = previousChanged
-            lastNextChanged = nextChanged
+                lastPreviousChanged = previousChanged
+                lastNextChanged = nextChanged
+            }
         }
     }
 
@@ -387,22 +415,36 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: Modifying the timeline item
 
+    open func edit(changes: (TimelineItem) -> Void) {
+        mutex.sync {
+            guard let instance = self.currentInstance else { return }
+            store?.retain(instance)
+            changes(instance)
+            store?.release(instance)
+        }
+    }
+
     public func add(_ sample: LocomotionSample) { add([sample]) }
 
     public func remove(_ sample: LocomotionSample) { remove([sample]) }
     
     open func add(_ samples: [LocomotionSample]) {
-        for sample in samples where sample.timelineItem != self {
-            sample.timelineItem?.remove(sample)
-            sample.timelineItem = self
+        mutex.sync {
+            if deleted { fatalError("Can't add samples to a deleted item") }
+            for sample in samples where sample.timelineItem != self {
+                sample.timelineItem?.remove(sample)
+                sample.timelineItem = self
+            }
+            _samples = Set(_samples + samples).sorted { $0.date < $1.date }
         }
-        mutex.sync { _samples = Set(_samples + samples).sorted { $0.date < $1.date } }
         samplesChanged()
     }
 
     open func remove(_ samples: [LocomotionSample]) {
-        for sample in samples where sample.timelineItem == self { sample.timelineItem = nil }
-        mutex.sync { _samples.removeObjects(samples) }
+        mutex.sync {
+            for sample in samples where sample.timelineItem == self { sample.timelineItem = nil }
+            _samples.removeObjects(samples)
+        }
         samplesChanged()
     }
 

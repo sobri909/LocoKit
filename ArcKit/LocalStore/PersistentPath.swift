@@ -10,6 +10,8 @@ import GRDB
 
 open class PersistentPath: Path, PersistentObject {
 
+    open override var currentInstance: PersistentPath? { return super.currentInstance as? PersistentPath }
+
     public override var deleted: Bool { didSet { if oldValue != deleted { save(immediate: true) } } }
 
     // MARK: Relationships
@@ -20,10 +22,9 @@ open class PersistentPath: Path, PersistentObject {
     private var _samples: [LocomotionSample]?
     open override var samples: [LocomotionSample] {
         return mutex.sync {
-            if let samples = _samples { return samples }
+            if let existing = _samples { return existing }
             if lastSaved == nil { _samples = [] } else {
-                let found = persistentStore.samples(where: "timelineItemId = ?", arguments: [itemId.uuidString])
-                _samples = found.sorted { $0.date < $1.date }
+                _samples = persistentStore.samples(where: "timelineItemId = ? ORDER BY date", arguments: [itemId.uuidString])
             }
             return _samples!
         }
@@ -31,19 +32,31 @@ open class PersistentPath: Path, PersistentObject {
 
     // MARK: Data modification
 
-    open override func add(_ samples: [LocomotionSample]) {
-        for sample in samples where sample.timelineItem != self {
-            sample.timelineItem?.remove(sample)
-            sample.timelineItem = self
+    open override func edit(changes: (PersistentPath) -> Void) {
+        mutex.sync {
+            guard let instance = self.currentInstance else { return }
+            store?.retain(instance)
+            changes(instance)
+            instance.save()
         }
-        let deduplicated = Set(self.samples + samples)
-        mutex.sync { _samples = deduplicated.sorted { $0.date < $1.date } }
+    }
+
+    open override func add(_ samples: [LocomotionSample]) {
+        mutex.sync {
+            _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
+            for sample in samples where sample.timelineItem != self {
+                sample.timelineItem = nil
+                sample.timelineItemId = self.itemId
+            }
+        }
         samplesChanged()
     }
 
     open override func remove(_ samples: [LocomotionSample]) {
-        for sample in samples where sample.timelineItem == self { sample.timelineItem = nil }
-        mutex.sync { _samples?.removeObjects(samples) }
+        mutex.sync {
+            _samples?.removeObjects(samples)
+            for sample in samples where sample.timelineItemId == self.itemId { sample.timelineItemId = nil }
+        }
         samplesChanged()
     }
 

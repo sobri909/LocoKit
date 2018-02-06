@@ -16,9 +16,9 @@ open class TimelineStore {
     public let cacheDelegate = TimelineStoreCacheDelegate()
 
     public let mutex = UnfairLock()
-    public let itemCache = NSCache<NSUUID, TimelineItem>()
-    public let sampleCache = NSCache<NSUUID, LocomotionSample>()
-    private(set) public var retainedObjects = Dictionary<UUID, TimelineObject>()
+    private let itemCache = NSCache<NSUUID, TimelineItem>()
+    private let sampleCache = NSCache<NSUUID, LocomotionSample>()
+    private var retainedObjects = Dictionary<UUID, TimelineObject>()
 
     init() {
         self.itemCache.delegate = cacheDelegate
@@ -32,8 +32,6 @@ open class TimelineStore {
         if let sample = sampleCache.object(forKey: objectId as NSUUID) { return sample }
         return nil
     }
-
-
 
     open func item(for itemId: UUID) -> TimelineItem? { return object(for: itemId) as? TimelineItem }
 
@@ -75,15 +73,19 @@ open class TimelineStore {
      Add a timeline object to the store, and retain it. This ensures that the object will not be removed until it is
      explictly released.
      */
-    public func retain(_ object: TimelineObject) {
+    public func retain(_ object: TimelineObject) { retain([object]) }
+
+    public func retain(_ objects: [TimelineObject]) {
         mutex.sync {
-            retainedObjects[object.objectId] = object
-            if let item = object as? TimelineItem {
-                itemCache.removeObject(forKey: item.itemId as NSUUID)
-                item.inTheStore = true
-            } else if let sample = object as? LocomotionSample {
-                sampleCache.removeObject(forKey: sample.sampleId as NSUUID)
-                sample.inTheStore = true
+            for object in objects {
+                retainedObjects[object.objectId] = object
+                if let item = object as? TimelineItem {
+                    itemCache.removeObject(forKey: item.itemId as NSUUID)
+                    item.inTheStore = true
+                } else if let sample = object as? LocomotionSample {
+                    sampleCache.removeObject(forKey: sample.sampleId as NSUUID)
+                    sample.inTheStore = true
+                }
             }
         }
     }
@@ -112,4 +114,6 @@ open class TimelineStore {
             }
         }
     }
+
+    open func save(immediate: Bool = true) {}
 }

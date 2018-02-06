@@ -24,7 +24,7 @@ open class PersistentTimelineManager: TimelineManager {
         var activeItems: [TimelineItem] = []
 
         // get current item
-        let query = "SELECT * FROM TimelineItem WHERE deleted = 0 ORDER BY endDate DESC"
+        let query = "SELECT * FROM TimelineItem WHERE deleted = 0 ORDER BY endDate DESC LIMIT 1"
         guard let item = store.item(for: query) else { return }
         activeItems.append(item)
 
@@ -33,7 +33,7 @@ open class PersistentTimelineManager: TimelineManager {
         while keeperCount < 2 {
             if workingItem.isWorthKeeping { keeperCount += 1 }
 
-            guard let previousItem = workingItem.previousItem else { break }
+            guard let previousItem = workingItem.previousItem, !previousItem.deleted else { break }
 
             activeItems.append(previousItem)
             workingItem = previousItem

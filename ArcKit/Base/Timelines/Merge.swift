@@ -14,20 +14,32 @@ public class Merge: CustomStringConvertible {
     var deadman: TimelineItem
 
     lazy var score: MergeScore = {
-        // if there's a locked betweener, the merge is invalid
         if betweener?.isMergeLocked == true { return .impossible }
+        if keeper.deleted || deadman.deleted { fatalError("TRYING TO MERGE DELETED ITEMS") }
         return self.keeper.scoreForConsuming(item: self.deadman)
     }()
 
-    init(keeper: TimelineItem, deadman: TimelineItem) {
+    init(keeper: TimelineItem, betweener: TimelineItem? = nil, deadman: TimelineItem) {
+        guard let store = keeper.store else { fatalError("NO STORE") }
+
+        guard let keeper = keeper.currentInstance else { fatalError("NO KEEPER") }
+        guard let deadman = deadman.currentInstance else { fatalError("NO DEADMAN") }
+
+        store.retain([keeper, deadman])
         self.keeper = keeper
         self.deadman = deadman
+
+        if let betweener = betweener?.currentInstance {
+            store.retain(betweener)
+            self.betweener = betweener
+        }
     }
     
-    init(keeper: TimelineItem, betweener: TimelineItem, deadman: TimelineItem) {
-        self.keeper = keeper
-        self.betweener = betweener
-        self.deadman = deadman
+    deinit {
+        guard let store = keeper.store else { fatalError("NO STORE") }
+        store.release(keeper)
+        store.release(deadman)
+        if let betweener = betweener { store.release(betweener) }
     }
 
     func doIt() -> (kept: TimelineItem, killed: [TimelineItem]) {
@@ -41,13 +53,17 @@ public class Merge: CustomStringConvertible {
     }
 
     private func merge(_ deadman: TimelineItem, into keeper: TimelineItem) {
-
+        
         // deadman is previous
         if keeper.previousItem == deadman || (betweener != nil && keeper.previousItem == betweener) {
             keeper.previousItem = deadman.previousItem
 
-        } else { // keeper is previous
+            // deadman is next
+        } else if keeper.nextItem == deadman || (betweener != nil && keeper.nextItem == betweener) {
             keeper.nextItem = deadman.nextItem
+
+        } else {
+            fatalError("BROKEN MERGE")
         }
 
         // deal with a betweener

@@ -86,21 +86,21 @@ open class PersistentTimelineStore: TimelineStore {
 
     open func item(for row: Row) -> TimelineItem {
         guard let itemId = row["itemId"] as String? else { fatalError("MISSING ITEMID") }
-        if let cached = itemCache.object(forKey: UUID(uuidString: itemId)! as NSUUID) { return cached }
+        if let cached = object(for: UUID(uuidString: itemId)!) as? TimelineItem { return cached }
         guard let isVisit = row["isVisit"] as Bool? else { fatalError("MISSING ISVISIT BOOL") }
         return isVisit ? PersistentVisit(from: row.asDict, in: self) : PersistentPath(from: row.asDict, in: self)
     }
 
     open func sample(for row: Row) -> PersistentSample {
         guard let sampleId = row["sampleId"] as String? else { fatalError("MISSING SAMPLEID") }
-        if let cached = sampleCache.object(forKey: UUID(uuidString: sampleId)! as NSUUID) as? PersistentSample { return cached }
+        if let cached = object(for: UUID(uuidString: sampleId)!) as? PersistentSample { return cached }
         return PersistentSample(from: row.asDict, in: self)
     }
 
     // MARK: Item fetching
 
     open override func item(for itemId: UUID) -> TimelineItem? {
-        if let cached = itemCache.object(forKey: itemId as NSUUID) { return cached }
+        if let cached = object(for: itemId) as? TimelineItem { return cached }
         return item(for: "SELECT * FROM TimelineItem WHERE itemId = ? LIMIT 1", arguments: [itemId.uuidString])
     }
 
@@ -113,6 +113,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func item(for query: String, arguments: StatementArguments? = nil) -> TimelineItem? {
+        save(immediate: true)
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
             return item(for: row)
@@ -120,6 +121,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func items(for query: String, arguments: StatementArguments? = nil) -> [TimelineItem] {
+        save(immediate: true)
         return try! pool.read { db in
             var items: [TimelineItem] = []
             let itemRows = try Row.fetchCursor(db, query, arguments: arguments)
@@ -131,7 +133,7 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Sample fetching
 
     open override func sample(for sampleId: UUID) -> PersistentSample? {
-        if let sample = sampleCache.object(forKey: sampleId as NSUUID) as? PersistentSample { return sample }
+        if let cached = object(for: sampleId) as? PersistentSample { return cached }
         return sample(for: "SELECT * FROM LocomotionSample WHERE sampleId = ?", arguments: [sampleId.uuidString])
     }
 
@@ -140,6 +142,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func sample(for query: String, arguments: StatementArguments? = nil) -> PersistentSample? {
+        save(immediate: true)
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
             return sample(for: row)
@@ -147,6 +150,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func samples(for query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
+        save(immediate: true)
         return try! pool.read { db in
             var samples: [PersistentSample] = []
             let rows = try Row.fetchCursor(db, query, arguments: arguments)
@@ -172,7 +176,11 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Saving
 
     public func save(_ object: PersistentObject, immediate: Bool = false) {
-        guard object.inTheStore else { os_log("Can't queue an object for save that isn't in the store"); return }
+        if !object.inTheStore {
+            if object is TimelineItem {
+                os_log("UNSAFE SAVE: Item not in the store")
+            }
+        }
         retain(object)
         mutex.sync {
             if let item = object as? TimelineItem {
@@ -181,10 +189,10 @@ open class PersistentTimelineStore: TimelineStore {
                 samplesToSave.insert(sample)
             }
         }
-        saveQueuedObjects(immediate: immediate)
+        save(immediate: immediate)
     }
 
-    public func saveQueuedObjects(immediate: Bool = true) {
+    open override func save(immediate: Bool = true) {
         var savingItems: Set<TimelineItem> = []
         var savingSamples: Set<PersistentSample> = []
 

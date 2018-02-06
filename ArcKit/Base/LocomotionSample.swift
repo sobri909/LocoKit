@@ -124,23 +124,27 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
     private weak var _timelineItem: TimelineItem?
 
     /// The sample's parent `TimelineItem`, if recording is being done via a `TimelineManager`.
-    open var timelineItem: TimelineItem? {
+    public var timelineItem: TimelineItem? {
         get {
             if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached.currentInstance }
-            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) {
-                self._timelineItem = item
-                return item
-            }
-            return nil
+            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item }
+            return self._timelineItem
         }
         set(newValue) {
-            if newValue?.itemId != timelineItemId {
-                let oldValue = _timelineItem
-                self._timelineItem = newValue
-                self.timelineItemId = newValue?.itemId
-                oldValue?.remove(self)
-                newValue?.add(self)
-            }
+            let oldValue = self.timelineItem
+
+            // no change? do nothing
+            if newValue == oldValue { return }
+
+            // store the new value
+            self._timelineItem = newValue
+            self.timelineItemId = newValue?.itemId
+
+            // disconnect the old relationship
+            oldValue?.remove(self)
+
+            // complete the other side of the new relationship
+            newValue?.add(self)
         }
     }
 
