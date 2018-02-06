@@ -19,7 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-//        Fabric.with([Crashlytics.self])
+        if Bundle.main.bundleIdentifier == "com.bigpaua.ArcKit-Demo-App" {
+            Fabric.with([Crashlytics.self])
+        }
 
         window = UIWindow(frame: UIScreen.main.bounds)
         
