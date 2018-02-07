@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
   s.name         = "ArcKit"
-  s.version      = "5.0.0.pre.5"
+  s.version      = "5.0.0.pre.6"
   s.summary      = "Location and activity recording framework"
   s.homepage     = "https://arc-web.herokuapp.com"
   s.author       = { "Matt Greenfield" => "matt@bigpaua.com" }
   s.license      = { :text => "Copyright 2018 Matt Greenfield. All rights reserved.", 
                      :type => "Commercial" }
-  s.source       = { :git => 'https://github.com/sobri909/ArcKit.git', :tag => '5.0.0.pre.5' }
+  s.source       = { :git => 'https://github.com/sobri909/ArcKit.git', :tag => '5.0.0.pre.6' }
   s.frameworks   = 'CoreLocation', 'CoreMotion' 
   s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
   s.ios.deployment_target = '10.0'

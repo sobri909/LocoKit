@@ -212,7 +212,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             }
 
             // can add it to the current segment?
-            if current?.recordingState == sample.recordingState && current?.activityType == sample.activityType {
+            if current?.canAdd(sample) == true {
                 current?.add(sample)
                 continue
             }
@@ -416,12 +416,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     // MARK: Modifying the timeline item
 
     open func edit(changes: (TimelineItem) -> Void) {
-        mutex.sync {
-            guard let instance = self.currentInstance else { return }
-            store?.retain(instance)
-            changes(instance)
-            store?.release(instance)
-        }
+        guard let instance = self.currentInstance else { return }
+        store?.retain(instance)
+        mutex.sync { changes(instance) }
+        store?.release(instance)
     }
 
     public func add(_ sample: LocomotionSample) { add([sample]) }

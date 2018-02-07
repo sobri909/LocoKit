@@ -50,7 +50,7 @@ open class PersistentTimelineStore: TimelineStore {
     open override func add(_ timelineItem: TimelineItem) {
         guard let persistentItem = timelineItem as? PersistentItem else { fatalError("NOT A PERSISTENT ITEM") }
         super.add(persistentItem)
-        if persistentItem.unsaved { persistentItem.save(immediate: true) }
+        if persistentItem.unsaved { persistentItem.save() }
     }
 
     open override func release(_ objects: [TimelineObject]) {
@@ -113,7 +113,6 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func item(for query: String, arguments: StatementArguments? = nil) -> TimelineItem? {
-        save(immediate: true)
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
             return item(for: row)
@@ -121,7 +120,6 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func items(for query: String, arguments: StatementArguments? = nil) -> [TimelineItem] {
-        save(immediate: true)
         return try! pool.read { db in
             var items: [TimelineItem] = []
             let itemRows = try Row.fetchCursor(db, query, arguments: arguments)
@@ -142,7 +140,6 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func sample(for query: String, arguments: StatementArguments? = nil) -> PersistentSample? {
-        save(immediate: true)
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
             return sample(for: row)
@@ -150,7 +147,6 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func samples(for query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
-        save(immediate: true)
         return try! pool.read { db in
             var samples: [PersistentSample] = []
             let rows = try Row.fetchCursor(db, query, arguments: arguments)
@@ -206,27 +202,29 @@ open class PersistentTimelineStore: TimelineStore {
             samplesToSave.removeAll(keepingCapacity: true)
         }
 
-        guard savingItems.count > 0 || savingSamples.count > 0 else { return }
-
-        try! pool.writeInTransaction { db in
-            let now = Date()
-            for case let item as PersistentObject in savingItems { item.transactionDate = now }
-            for case let item as PersistentObject in savingItems { try item.save(in: db) }
-            db.afterNextTransactionCommit { db in
-                for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
-                self.release(Array(savingItems))
+        if !savingItems.isEmpty {
+            try! pool.writeInTransaction { db in
+                let now = Date()
+                for case let item as PersistentObject in savingItems { item.transactionDate = now }
+                for case let item as PersistentObject in savingItems { try item.save(in: db) }
+                db.afterNextTransactionCommit { db in
+                    for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
+                    self.release(Array(savingItems))
+                }
+                return .commit
             }
-            return .commit
         }
-        try! pool.writeInTransaction { db in
-            let now = Date()
-            for case let sample as PersistentObject in savingSamples { sample.transactionDate = now  }
-            for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
-            db.afterNextTransactionCommit { db in
-                for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
-                self.release(Array(savingSamples))
+        if !savingSamples.isEmpty {
+            try! pool.writeInTransaction { db in
+                let now = Date()
+                for case let sample as PersistentObject in savingSamples { sample.transactionDate = now  }
+                for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
+                db.afterNextTransactionCommit { db in
+                    for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
+                    self.release(Array(savingSamples))
+                }
+                return .commit
             }
-            return .commit
         }
     }
 
@@ -254,8 +252,8 @@ open class PersistentTimelineStore: TimelineStore {
                 table.column("startDate", .datetime).indexed()
                 table.column("endDate", .datetime).indexed()
 
-                table.column("previousItemId", .text).references("TimelineItem", deferred: true)
-                table.column("nextItemId", .text).references("TimelineItem", deferred: true)
+                table.column("previousItemId", .text).references("TimelineItem", deferred: true).indexed()
+                table.column("nextItemId", .text).references("TimelineItem", deferred: true).indexed()
 
                 table.column("radiusMean", .double)
                 table.column("radiusSD", .double)
@@ -277,7 +275,7 @@ open class PersistentTimelineStore: TimelineStore {
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
 
-                table.column("timelineItemId", .text).references("TimelineItem", deferred: true)
+                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).indexed()
 
                 table.column("stepHz", .double)
                 table.column("courseVariance", .double)

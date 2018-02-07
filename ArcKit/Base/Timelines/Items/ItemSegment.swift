@@ -105,6 +105,22 @@ public class ItemSegment: Equatable {
 
     // MARK: Modifying the item segment
 
+    func canAdd(_ sample: LocomotionSample) -> Bool {
+        // exact match
+        if sample.recordingState == recordingState && sample.activityType == activityType { return true }
+
+        guard let recordingState = self.recordingState else { return false }
+
+        // off samples go together, regardless of activity type
+        if recordingState == .off && sample.recordingState == .off { return true }
+
+        // sleep samples go together, regardless of activity type
+        let sleepTypes: [RecordingState] = [.wakeup, .sleeping]
+        if sleepTypes.contains(recordingState) && sleepTypes.contains(sample.recordingState) { return true }
+
+        return false
+    }
+
     public func add(_ sample: LocomotionSample) {
         add([sample])
     }

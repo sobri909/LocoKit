@@ -33,12 +33,10 @@ open class PersistentVisit: Visit, PersistentObject {
     // MARK: Data modification
 
     open override func edit(changes: (PersistentVisit) -> Void) {
-        mutex.sync {
-            guard let instance = self.currentInstance else { return }
-            store?.retain(instance)
-            changes(instance)
-            instance.save()
-        }
+        guard let instance = self.currentInstance else { return }
+        store?.retain(instance)
+        mutex.sync { changes(instance) }
+        instance.save()
     }
 
     open override func add(_ samples: [LocomotionSample]) {
