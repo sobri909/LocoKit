@@ -58,7 +58,7 @@ class TimelineView: UIScrollView {
 
         var nextItem: TimelineItem?
         for timelineItem in items {
-            if let next = nextItem, next.previousItem != timelineItem { addDataGap() }
+            if let next = nextItem, next.previousItem != timelineItem || timelineItem.nextItem != next { addDataGap() }
             nextItem = timelineItem
             add(timelineItem)
         }
@@ -128,6 +128,8 @@ class TimelineView: UIScrollView {
         }
 
         rows.addRow(leftText: "Samples", rightText: "\(timelineItem.samples.count)", background: debugColor)
+
+        rows.addRow(leftText: "ItemId", rightText: timelineItem.itemId.uuidString, background: debugColor)
     }
 
     func addDataGap(duration: TimeInterval? = nil) {
