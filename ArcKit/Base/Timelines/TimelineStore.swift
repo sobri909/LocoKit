@@ -25,7 +25,12 @@ open class TimelineStore {
         self.sampleCache.delegate = cacheDelegate
     }
 
-    public func object(for objectId: UUID) -> TimelineObject? {
+    public func flushTheCaches() {
+        itemCache.removeAllObjects()
+        sampleCache.removeAllObjects()
+    }
+
+    public func cachedObject(for objectId: UUID) -> TimelineObject? {
         let retained = mutex.sync { retainedObjects[objectId] }
         if let object = retained { return object }
         if let item = itemCache.object(forKey: objectId as NSUUID) { return item }
@@ -33,9 +38,9 @@ open class TimelineStore {
         return nil
     }
 
-    open func item(for itemId: UUID) -> TimelineItem? { return object(for: itemId) as? TimelineItem }
+    open func item(for itemId: UUID) -> TimelineItem? { return cachedObject(for: itemId) as? TimelineItem }
 
-    open func sample(for sampleId: UUID) -> LocomotionSample? { return object(for: sampleId) as? LocomotionSample }
+    open func sample(for sampleId: UUID) -> LocomotionSample? { return cachedObject(for: sampleId) as? LocomotionSample }
     
     open func createVisit(from sample: LocomotionSample) -> Visit {
         let visit = Visit(in: self)

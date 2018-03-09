@@ -81,10 +81,10 @@ open class TimelineManager {
     private(set) public var lastRecorded: Date?
 
     public func add(_ timelineItem: TimelineItem) {
+        defer { store.retain(timelineItem) }
         if activeItems.isEmpty { activeItems.append(timelineItem); return }
         guard let prevIndex = activeItems.index(where: { $0 == timelineItem.previousItem }) else { return }
         activeItems.insert(timelineItem, at: prevIndex + 1)
-        store.retain(timelineItem)
     }
 
     public func remove(_ timelineItem: TimelineItem) { remove([timelineItem]) }
@@ -121,15 +121,31 @@ open class TimelineManager {
             sample.unfilteredClassifierResults = classifier?.classify(sample, filtered: false)
         }
 
+        // make sure sleep mode doesn't happen prematurely
+        updateSleepModeAcceptability()
+
         processingQueue.async {
             self.processSample(sample)
             self.processTimelineItems()
+            self.updateSleepModeAcceptability()
             #if DEBUG
                 self.sanityCheckActiveItems()
             #endif
             onMain {
                 NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
             }
+        }
+    }
+
+    private func updateSleepModeAcceptability() {
+        let loco = LocomotionManager.highlander
+        if let currentVisit = currentItem as? Visit, currentVisit.isWorthKeeping {
+            loco.useLowPowerSleepModeWhileStationary = true
+            
+        } else {
+            loco.useLowPowerSleepModeWhileStationary = false
+            // not recording, but should be?
+            if loco.recordingState != .recording { loco.startRecording() }
         }
     }
 
@@ -268,13 +284,6 @@ open class TimelineManager {
 
         // final housekeeping
         trimTheActiveItems()
-
-        // make sure sleep mode doesn't happen prematurely
-        if let currentVisit = currentItem as? Visit, currentVisit.isWorthKeeping {
-            LocomotionManager.highlander.useLowPowerSleepModeWhileStationary = true
-        } else {
-            LocomotionManager.highlander.useLowPowerSleepModeWhileStationary = false
-        }
     }
 
     private func trimTheActiveItems() {
@@ -440,11 +449,13 @@ open class TimelineManager {
     private func sanityCheckActiveItems() {
         var previous: TimelineItem?
         for item in activeItems {
-            if let previous = previous, item.previousItem != previous {
-                fatalError("BROKEN PREVIOUS LINK")
-            }
-            if let previous = previous, previous.nextItem != item {
-                fatalError("BROKEN NEXT LINK")
+            if let previous = previous {
+                if item.previousItem != previous {
+                    print("[\(item.itemId)] BROKEN PREVIOUS LINK")
+                }
+                if previous.nextItem != item {
+                    print("[\(previous.itemId)] BROKEN NEXT LINK")
+                }
             }
             previous = item
         }

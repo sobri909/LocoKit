@@ -30,7 +30,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     open var isMergeLocked: Bool { return false }
 
-    internal(set) public var deleted = false {
+    public var deleted = false {
         willSet(willDelete) {
             if willDelete {
                 guard self.samples.isEmpty else {
@@ -85,12 +85,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _previousItem: TimelineItem?
     public var previousItem: TimelineItem? {
         get {
-            if let cached = self._previousItem?.currentInstance, cached.itemId == self.previousItemId { return cached }
-            if let itemId = self.previousItemId, let item = store?.item(for: itemId) { self._previousItem = item }
+            if let cached = self._previousItem, cached.itemId == self.previousItemId, !cached.deleted { return cached }
+            if let itemId = self.previousItemId, let item = store?.item(for: itemId), !item.deleted { self._previousItem = item }
             return self._previousItem
         }
         set(newValue) {
             if newValue == self { fatalError("CAN'T LINK TO SELF") }
+            if newValue?.deleted == true { os_log("Can't link to a deleted item"); return }
             mutex.sync {
                 let oldValue = self.previousItem
 
@@ -117,12 +118,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _nextItem: TimelineItem?
     public var nextItem: TimelineItem? {
         get {
-            if let cached = self._nextItem?.currentInstance, cached.itemId == self.nextItemId { return cached }
-            if let itemId = self.nextItemId, let item = store?.item(for: itemId) { self._nextItem = item }
+            if let cached = self._nextItem, cached.itemId == self.nextItemId, !cached.deleted { return cached }
+            if let itemId = self.nextItemId, let item = store?.item(for: itemId), !item.deleted { self._nextItem = item }
             return self._nextItem
         }
         set(newValue) {
             if newValue == self { fatalError("CAN'T LINK TO SELF") }
+            if newValue?.deleted == true { os_log("Can't link to a deleted item"); return }
             mutex.sync {
                 let oldValue = self.nextItem
 
@@ -296,14 +298,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     /// The most common moving activity type for the timeline item's samples.
     public var modeMovingActivityType: ActivityTypeName? {
-        if let modeType = _modeMovingActivityType {
-            return modeType
-        }
-        let sampleTypes = samples.flatMap { $0.activityType != .stationary ? $0.activityType : nil }
+        if let modeType = _modeMovingActivityType { return modeType }
 
-        if sampleTypes.isEmpty {
-            return nil
-        }
+        let sampleTypes = samples.flatMap { $0.activityType != .stationary ? $0.activityType : nil }
+        if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
         let modeType = counted.max { counted.count(for: $0) < counted.count(for: $1) }

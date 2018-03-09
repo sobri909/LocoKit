@@ -357,12 +357,10 @@ public extension NSNotification.Name {
      Amongst other internal tasks, this will call `startUpdatingLocation()` on the internal location manager.
      */
     public func startRecording() {
-        if recordingState == .recording {
-            return
-        }
+        if recordingState == .recording { return }
 
         guard haveLocationPermission else {
-            os_log("NO LOCATION PERMISSION")
+            os_log("Can't start recording without location permission.")
             return
         }
 

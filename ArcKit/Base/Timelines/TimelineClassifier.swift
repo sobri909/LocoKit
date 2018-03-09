@@ -35,18 +35,14 @@ public class TimelineClassifier {
         }
 
         // get the base type results
-        guard let classifier = baseClassifier else {
-            return nil
-        }
+        guard let classifier = baseClassifier else { return nil }
         let results = classifier.classify(classifiable)
 
         // not asked to test every type every time?
         if filtered {
 
             // don't need to go further if transport didn't win the base round
-            if results.first?.name != .transport {
-                return results
-            }
+            if results.first?.name != .transport { return results }
 
             // don't go further if transport classifier has less than required coverage
             guard let coverage = transportClassifier?.coverageScore, coverage > minimumTransportCoverage else {
@@ -55,9 +51,7 @@ public class TimelineClassifier {
         }
 
         // get the transport type results
-        guard let transportClassifier = transportClassifier else {
-            return results
-        }
+        guard let transportClassifier = transportClassifier else { return results }
         let transportResults = transportClassifier.classify(classifiable)
 
         // combine and return the results
@@ -65,18 +59,12 @@ public class TimelineClassifier {
     }
 
     public func classify(_ timelineItem: TimelineItem, filtered: Bool) -> ClassifierResults? {
-        guard let results = classify(timelineItem.samples, filtered: filtered) else {
-            return nil
-        }
+        guard let results = classify(timelineItem.samples, filtered: filtered) else { return nil }
 
         // radius is small enough to consider stationary a valid result
-        if timelineItem.radius3sd < Visit.maximumRadius {
-            return results
-        }
+        if timelineItem.radius3sd < Visit.maximumRadius { return results }
 
-        guard let stationary = results[.stationary] else {
-            return results
-        }
+        guard let stationary = results[.stationary] else { return results }
 
         // radius is too big for stationary. so let's zero out its score
         var resultsArray = results.array
@@ -111,9 +99,7 @@ public class TimelineClassifier {
     }
     
     public func classify(_ samples: [LocomotionSample], filtered: Bool) -> ClassifierResults? {
-        if samples.isEmpty {
-            return nil
-        }
+        if samples.isEmpty { return nil }
 
         var allScores: [ActivityTypeName: ValueArray<Double>] = [:]
         var allAccuracies: [ActivityTypeName: ValueArray<Double>] = [:]
@@ -140,15 +126,13 @@ public class TimelineClassifier {
                 }
             }
 
-            guard let results = tmpResults else {
-                continue
-            }
+            guard let results = tmpResults else { continue }
 
-            if results.moreComing {
-                moreComing = true
-            }
+            if results.moreComing { moreComing = true }
 
             for typeName in ActivityTypeName.allTypes {
+                if !filtered && typeName == .transport { continue }
+
                 if let resultRow = results[typeName] {
                     allScores[resultRow.name]!.append(resultRow.score)
                     allAccuracies[resultRow.name]!.append(resultRow.modelAccuracyScore ?? 0)
@@ -163,6 +147,8 @@ public class TimelineClassifier {
         var finalResults: [ClassifierResultItem] = []
 
         for typeName in ActivityTypeName.allTypes {
+            if !filtered && typeName == .transport { continue }
+
             var finalScore = 0.0
             if let scores = allScores[typeName], !scores.isEmpty {
                 finalScore = mean(scores)

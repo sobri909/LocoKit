@@ -12,7 +12,7 @@ open class PersistentVisit: Visit, PersistentObject {
 
     open override var currentInstance: PersistentVisit? { return super.currentInstance as? PersistentVisit }
 
-    public override var deleted: Bool { didSet { if oldValue != deleted { save() } } }
+    public override var deleted: Bool { didSet { if oldValue != deleted { save(immediate: true) } } }
 
     // MARK: Relationships
 
