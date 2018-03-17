@@ -1,0 +1,4 @@
+framework module LocoKitCore {
+    header "LocoKitCore-Swift.h"
+    requires objc
+}
