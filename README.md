@@ -17,21 +17,24 @@ A Machine Learning based location recording and activity detection framework for
   automotive)
 - Distinguish between specific transport types (car, train, bus, motorcycle, airplane, boat)
 
-## Post Processed, High Level Timeline Items (Visits and Paths)
+## High Level Timeline Items (Visits and Paths)
 
-- A high level `TimelineManager` to manage recording, and output a series of Path and 
-  Visit timeline items, to represent the recording session at human level. For example a single Path 
-  might represent a car trip between home and work, and a Visit might represent a single visit 
-  to a cafe or office.
-- A `PersistentTimelineManager` to have your recorded timeline items persisted to a local 
-  SQL based store, for optionally retaining samples and timeline items between sessions.
+- A high level `TimelineManager` to manage recording, and output a series of `Path and 
+  `Visit` timeline items, to represent the recording session at human level. Similar to 
+  CoreLocation's `CLVisit`, but with much higher accuracy, much more detail, and also includes
+  Paths (ie the trips between Visits). 
+- An optional `PersistentTimelineManager`, to have your recorded timeline items persisted to a local 
+  SQL based store, for retaining both samples and timeline items between sessions.
 
 # Installation
 
-`pod 'LocoKit'`
-`pod 'LocoKit/LocalStore' # optional`
+```ruby
+pod 'LocoKit'
+pod 'LocoKit/LocalStore' # optional
+```
 
-Include the `LocalStore` subspec if you would like to use the SQL persistent store.
+**Note:** Include the optional `LocoKit/LocalStore` subspec if you would like to use the SQL
+persistent store (`PersistentTimelineManager`).
 
 # High Level Recording 
 
@@ -65,7 +68,7 @@ when(timeline, does: .updatedTimelineItem) { _ in
 
 # Low Level Recording
 
-## Record LocomotionSamples (CLLocations combined with CoreMotion data)
+## Record LocomotionSamples (CLLocations combined with Core Motion data)
 
 ```swift
 // the recording manager singleton
@@ -111,8 +114,8 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 
 Note that if you are using a `TimelineManager`, activity type classifying is already handled 
 for you by the manager, on both the sample and timeline item levels. You should only need to 
-directly interact with ActivityTypeClassifiers if you are either not using a TimelineManager, 
-or are wanting to do low level processing at the sample level.
+directly interact with clasifiers if you are either not using a TimelineManager, or are wanting 
+to do low level processing at the sample level.
 
 ```swift
 // fetch a geographically relevant classifier
@@ -153,15 +156,14 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: q
 - [LocoKit API reference](https://www.bigpaua.com/arckit/docs)
 - [LocoKitCore API reference](https://www.bigpaua.com/arckit/docs_core)
 
-## Try the Demo App
+## Try the LocoKit Demo App
 
-- To run the LocoKit Demo App:
-  1. Download or clone this repository
-  1. Run `pod install` in the project folder
-  2. In Xcode, change the Demo App project's "Team" to match your Apple Developer Account
-  3. In Xcode, change the Demo App project's "Bundle Identifier" to something unique
-  3. Build and run!
-  4. Go for a walk, cycle, drive, etc, and see the results :)
+1. Download or clone this repository
+2. `pod install`
+3. In Xcode, change the Demo App project's "Team" to match your Apple Developer Account
+4. In Xcode, change the Demo App project's "Bundle Identifier" to something unique
+5. Build and run!
+6. Go for a walk, cycle, drive, etc, and see the results :)
 
 ## Try Arc App on the App Store
 
