@@ -1,13 +1,14 @@
-# ArcKit
+# LocoKit
 
-A machine learning based location and activity recording and detection framework for iOS.
+A Machine Learning based location recording and activity detection framework for iOS.
 
 ## Location and Motion Recording
 
 - Combined, simplified Core Location and Core Motion recording
 - Filtered, smoothed, and simplified location and motion data
 - Near real time stationary / moving state detection
-- Automatic energy use management, enabling all day recording 
+- Automatic energy use management, enabling all day recording
+- Automatic stopping and restarting of recording, to avoid wasteful battery use
 
 ## Activity Type Detection
 
@@ -16,11 +17,55 @@ A machine learning based location and activity recording and detection framework
   automotive)
 - Distinguish between specific transport types (car, train, bus, motorcycle, airplane, boat)
 
-## Installation
+## Post Processed, High Level Timeline Items (Visits and Paths)
 
-`pod 'ArcKit'`
+- A high level `TimelineManager` to manage recording, and output a series of Path and 
+  Visit timeline items, to represent the recording session at human level. For example a single Path 
+  might represent a car trip between home and work, and a Visit might represent a single visit 
+  to a cafe or office.
+- A `PersistentTimelineManager` to have your recorded timeline items persisted to a local 
+  SQL based store, for optionally retaining samples and timeline items between sessions.
 
-## Record Location and Motion
+# Installation
+
+`pod 'LocoKit'`
+`pod 'LocoKit/LocalStore' # optional`
+
+Include the `LocalStore` subspec if you would like to use the SQL persistent store.
+
+# High Level Recording 
+
+## Record TimelineItems (Paths and Visits)
+
+```swift
+// retain a timeline manager
+self.timeline = TimelineManager()
+
+// start recording, and producing timeline items 
+self.timeline.startRecording()
+
+// observe timeline item updates
+when(timeline, does: .updatedTimelineItem) { _ in
+    let currentItem = timeline.currentItem
+
+    // duration of the current Path or Visit
+    print("item.duration: \(currentItem.duration)")
+
+    // activity type of the current Path (eg walking, cycling, car)
+    if let path = currentItem as? Path {
+        print("path.activityType: \(path.activityType)")
+    }
+
+    // examine each of the LocomotionSamples within the Path or Visit
+    for sample in currentItem.samples {
+        print("sample: \(sample)")
+    }
+}
+```
+
+# Low Level Recording
+
+## Record LocomotionSamples (CLLocations combined with CoreMotion data)
 
 ```swift
 // the recording manager singleton
@@ -47,9 +92,8 @@ loco.useLowPowerSleepModeWhileStationary = true
 loco.startRecording()
 ```
 
-## Watch For Location Updates
-
 ```swift
+// watch for updated LocomotionSamples
 when(loco, does: .locomotionSampleUpdated) { _ in
 
     // the raw CLLocation
@@ -63,18 +107,25 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
-## Watch For Moving State Changes
+## Detect Activity Types
+
+Note that if you are using a `TimelineManager`, activity type classifying is already handled 
+for you by the manager, on both the sample and timeline item levels. You should only need to 
+directly interact with ActivityTypeClassifiers if you are either not using a TimelineManager, 
+or are wanting to do low level processing at the sample level.
 
 ```swift
-when(loco, does: .movingStateChanged) { _ in
-    if loco.movingState == .moving {
-        print("started moving")
-    }
+// fetch a geographically relevant classifier
+let classifier = ActivityTypeClassifier(coordinate: location.coordinate)
 
-    if loco.movingState == .stationary {
-        print("stopped moving")
-    }
-}
+// classify a locomotion sample
+let results = classifier.classify(sample)
+
+// get the best match activity type
+let bestMatch = results.first
+
+// print the best match type's name ("walking", "car", etc)
+print(bestMatch.name)
 ```
 
 **Note:** The above code snippets use [SwiftNotes](https://github.com/sobri909/SwiftNotes) to make
@@ -91,38 +142,24 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: q
 }
 ```
 
-## Detect Activity Types
-
-```swift
-// fetch a geographically relevant classifier
-let classifier = ActivityTypeClassifier(coordinate: location.coordinate)
-
-// classify a locomotion sample
-let results = classifier.classify(sample)
-
-// get the best match activity type
-let bestMatch = results.first
-
-// print the best match type's name ("walking", "car", etc)
-print(bestMatch.name)
-```
-
 ## Examples and Screenshots
 
 - [Location filtering 
-  examples](https://github.com/sobri909/ArcKit/blob/master/LocationFilteringExamples.md)
-- [Activity type detection examples](https://github.com/sobri909/ArcKit/blob/master/ActivityTypeClassifierExamples.md)
+  examples](https://github.com/sobri909/LocoKit/blob/master/LocationFilteringExamples.md)
+- [Activity type detection examples](https://github.com/sobri909/LocoKit/blob/master/ActivityTypeClassifierExamples.md)
 
 ## Documentation 
 
-- [ArcKit API reference](https://www.bigpaua.com/arckit/docs)
+- [LocoKit API reference](https://www.bigpaua.com/arckit/docs)
+- [LocoKitCore API reference](https://www.bigpaua.com/arckit/docs_core)
 
 ## Try the Demo App
 
-- To run the ArcKit Demo App:
+- To run the LocoKit Demo App:
   1. Download or clone this repository
   1. Run `pod install` in the project folder
-  2. In Xcode, change the project's "Team" to match your Apple Developer Account
+  2. In Xcode, change the Demo App project's "Team" to match your Apple Developer Account
+  3. In Xcode, change the Demo App project's "Bundle Identifier" to something unique
   3. Build and run!
   4. Go for a walk, cycle, drive, etc, and see the results :)
 
@@ -130,5 +167,5 @@ print(bestMatch.name)
 
 - To see the SDK in action in a live, production app, install
   [Arc App](https://itunes.apple.com/app/arc-app-location-activity-tracker/id1063151918?mt=8) 
-  from the App Store, our free life logging app based on ArcKit
+  from the App Store, our free life logging app based on LocoKit
 
