@@ -1,9 +1,9 @@
-target 'ArcKit Demo App'
+target 'LocoKit Demo App'
 platform :ios, '11.0'
 use_frameworks!
 
-pod 'ArcKit', '~> 5.0.0.pre'
-pod 'ArcKit/LocalStore', '~> 5.0.0.pre'
+pod 'LocoKit'
+pod 'LocoKit/LocalStore'
 
 pod 'SwiftNotes'
 pod 'Cartography'

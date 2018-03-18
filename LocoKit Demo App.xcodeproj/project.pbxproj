@@ -308,7 +308,7 @@
 				"${BUILT_PRODUCTS_DIR}/Cartography/Cartography.framework",
 				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
 				"${BUILT_PRODUCTS_DIR}/LocoKit/LocoKit.framework",
-				"${BUILT_PRODUCTS_DIR}/LocoKitCore/LocoKitCore.framework",
+				"${PODS_ROOT}/LocoKitCore/LocoKitCore.framework",
 				"${BUILT_PRODUCTS_DIR}/ReachabilitySwift/Reachability.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftNotes/SwiftNotes.framework",
 				"${BUILT_PRODUCTS_DIR}/Upsurge/Upsurge.framework",

@@ -1,42 +1,42 @@
 PODS:
-  - ArcKit (5.0.0.pre.5):
-    - ArcKit/Base (= 5.0.0.pre.5)
-  - ArcKit/Base (5.0.0.pre.5):
-    - ArcKitCore (= 5.0.0.pre.2)
+  - Cartography (3.0.1)
+  - Crashlytics (3.10.1):
+    - Fabric (~> 1.7.5)
+  - Fabric (1.7.5)
+  - GRDB.swift (2.9.0)
+  - LocoKit (5.0.0):
+    - LocoKit/Base (= 5.0.0)
+  - LocoKit/Base (5.0.0):
+    - LocoKitCore (= 5.0.0)
     - ReachabilitySwift (~> 4.1)
     - Upsurge (~> 0.10)
-  - ArcKit/LocalStore (5.0.0.pre.5):
-    - ArcKit/Base
+  - LocoKit/LocalStore (5.0.0):
     - GRDB.swift (~> 2.8)
-  - ArcKitCore (5.0.0.pre.2)
-  - Cartography (3.0.1)
-  - Crashlytics (3.9.3):
-    - Fabric (~> 1.7.2)
-  - Fabric (1.7.2)
-  - GRDB.swift (2.8.0)
+    - LocoKit/Base
+  - LocoKitCore (5.0.0)
   - ReachabilitySwift (4.1.0)
   - SwiftNotes (1.1.0)
-  - Upsurge (0.10.0)
+  - Upsurge (0.10.1)
 
 DEPENDENCIES:
-  - ArcKit (~> 5.0.0.pre)
-  - ArcKit/LocalStore (~> 5.0.0.pre)
   - Cartography
   - Crashlytics
   - Fabric
+  - LocoKit
+  - LocoKit/LocalStore
   - SwiftNotes
 
 SPEC CHECKSUMS:
-  ArcKit: 91796d034c234ad3f106e0a4f4b3215553ffbba9
-  ArcKitCore: d2010bf45d12dac215552011c586dda7beef3aa6
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
-  Crashlytics: dbb07d01876c171c5ccbdf7826410380189e452c
-  Fabric: 9cd6a848efcf1b8b07497e0b6a2e7d336353ba15
-  GRDB.swift: 7456b5a8503d150ec0ef6aaf5ade45996565a779
+  Crashlytics: aee1a064cbbf99b32efa3f056a5f458d846bc8ff
+  Fabric: ae7146a5f505ea370a1e44820b4b1dc8890e2890
+  GRDB.swift: db8429f12d250f3056df82eb3409e5af083948ca
+  LocoKit: b09a8e045f519a5f785f3629cc8e7daca60e016a
+  LocoKitCore: 8489941d9ee5e19099aacd781054e4fb1f5da4ff
   ReachabilitySwift: 6849231cd4e06559f3b9ef4a97a0a0f96d41e09f
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
-  Upsurge: 07095027bbabc0d5c15b61616421eb87018852fa
+  Upsurge: 90efd9d4ca6c3086ece9d9acee4b4779db2efe56
 
-PODFILE CHECKSUM: b4737539e5795a5491fe74eeda62094acb0d8e63
+PODFILE CHECKSUM: e167a79684f4e0c51ede9ed0993bf440841e0da2
 
 COCOAPODS: 1.4.0
