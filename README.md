@@ -17,14 +17,13 @@ A Machine Learning based location recording and activity detection framework for
   automotive)
 - Distinguish between specific transport types (car, train, bus, motorcycle, airplane, boat)
 
-## High Level Timeline Items (Visits and Paths)
+## Record High Level Visits and Paths
 
-- A high level `TimelineManager` to manage recording, and output a series of `Path and 
-  `Visit` timeline items, to represent the recording session at human level. Similar to 
-  CoreLocation's `CLVisit`, but with much higher accuracy, much more detail, and also includes
-  Paths (ie the trips between Visits). 
-- An optional `PersistentTimelineManager`, to have your recorded timeline items persisted to a local 
-  SQL based store, for retaining both samples and timeline items between sessions.
+- Optionally produce high level `Path` and `Visit` timeline items, to represent the recording 
+  session at human level. Similar to CoreLocation's `CLVisit`, but with much higher accuracy, much 
+  more detail, and with the addition of Paths (ie the trips between Visits). 
+- Optionally persist your recorded samples and timeline items to a local SQL based store, for
+  retention between sessions.
 
 # Installation
 
@@ -33,8 +32,8 @@ pod 'LocoKit'
 pod 'LocoKit/LocalStore' # optional
 ```
 
-**Note:** Include the optional `LocoKit/LocalStore` subspec if you would like to use the SQL
-persistent store (`PersistentTimelineManager`).
+**Note:** Include the optional `LocoKit/LocalStore` subspec if you would like to use the
+`PersistentTimelineManager` SQL persistent store.
 
 # High Level Recording 
 
