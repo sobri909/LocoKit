@@ -9,7 +9,7 @@
 - Added `PersistentTimelineManager`, an optional persistent SQL store for timeline items. To make 
   use of the persistent store, add `pod "LocoKit/LocalStore"` to your Podfile and use 
   `PersistentTimelineManager` instead of `TimelineManager`. 
-- Added `ActivityTypeSetClassifier` to make it easier to classify collections of LocomotionSamples.
+- Added `TimelineClassifier` to make it easier to classify collections of LocomotionSamples.
 - Added convenience methods to arrays of LocomotionSamples, for example 
   `arrayOfSamples.weightedCenter`, `arrayOfSamples.duration`.
 

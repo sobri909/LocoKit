@@ -20,7 +20,7 @@ A Machine Learning based location recording and activity detection framework for
 ## Record High Level Visits and Paths
 
 - Optionally produce high level `Path` and `Visit` timeline items, to represent the recording 
-  session at human level. Similar to CoreLocation's `CLVisit`, but with much higher accuracy, much 
+  session at human level. Similar to Core Location's `CLVisit`, but with much higher accuracy, much 
   more detail, and with the addition of Paths (ie the trips between Visits). 
 - Optionally persist your recorded samples and timeline items to a local SQL based store, for
   retention between sessions.
@@ -32,8 +32,8 @@ pod 'LocoKit'
 pod 'LocoKit/LocalStore' # optional
 ```
 
-**Note:** Include the optional `LocoKit/LocalStore` subspec if you would like to use the
-`PersistentTimelineManager` SQL persistent store.
+**Note:** Include the optional `LocoKit/LocalStore` subspec if you would like to retain your samples
+and timeline items in the SQL persistent store.
 
 # High Level Recording 
 
