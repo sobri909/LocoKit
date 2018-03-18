@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.0.0] - 2018-03-18
+
+### Added
+
+- Added a high level `TimelineManager`, for post processing LocomotionSamples into Visits and 
+  Paths,  See the `TimelineManager` API docs for details, and the LocoKit Demo App for code examples.
+- Added `PersistentTimelineManager`, an optional persistent SQL store for timeline items. To make 
+  use of the persistent store, add `pod "LocoKit/LocalStore"` to your Podfile and use 
+  `PersistentTimelineManager` instead of `TimelineManager`. 
+- Added `ActivityTypeSetClassifier` to make it easier to classify collections of LocomotionSamples.
+- Added convenience methods to arrays of LocomotionSamples, for example 
+  `arrayOfSamples.weightedCenter`, `arrayOfSamples.duration`.
+
+### Changed
+
+- Renamed ArcKit to LocoKit, to avoid confusion with Arc App. Note that you now need to set 
+  your API key on `LocoKitService.apiKey` instead of `ArcKitService.apiKey`. All other methods 
+  and classes remain unaffected by the project name change. 
+- Made various `LocomotionSample` properties (`stepHz`, `courseVariance`, `xyAcceleration`, 
+  `zAcceleration`) optional, to avoid requiring magic numbers when 
+  their source data is unavailable. 
+
 ## [4.0.2] - 2017-11-27
 
 - Stopped doing unnecessary ArcKitService API requests, and tidied up some console logging
