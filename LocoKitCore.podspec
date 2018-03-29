@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
   s.name         = "LocoKitCore"
   s.version      = "5.1.0"
   s.summary      = "Location and activity recording framework"
-  s.homepage     = "https://www.bigpaua.com/arckit/"
+  s.homepage     = "https://www.bigpaua.com/locokit/"
   s.author       = { "Matt Greenfield" => "matt@bigpaua.com" }
   s.license      = { :text => "Copyright 2018 Matt Greenfield. All rights reserved.", 
                      :type => "Commercial" }
