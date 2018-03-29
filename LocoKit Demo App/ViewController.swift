@@ -35,15 +35,15 @@ class ViewController: UIViewController {
         // the CoreLocation / CoreMotion recording singleton
         let loco = LocomotionManager.highlander
 
-        /** SETTINGS **/
-
-        // An LocoKit API key is necessary if you are using ActivityTypeClassifier.
-        // This key is the Demo App's key, and cannot be used in another app.
-        // API keys can be created at: https://www.bigpaua.com/arckit/account
-        LocoKitService.apiKey = "13921b60be4611e7b6e021acca45d94f"
+        /** EXAMPLE SETTINGS **/
 
         // enable this if you have an API key and want to determine activity types
         timeline.activityTypeClassifySamples = false
+
+        if timeline.activityTypeClassifySamples {
+            // API keys can be created at: https://www.bigpaua.com/arckit/account
+            LocoKitService.apiKey = "<insert your API key here>"
+        }
 
         // this accuracy level is excessive, and is for demo purposes only.
         // the default value (30 metres) best balances accuracy with energy use.
@@ -52,12 +52,14 @@ class ViewController: UIViewController {
         // this is independent of the user's setting, and will show a blue bar if user has denied "always"
         loco.locationManager.allowsBackgroundLocationUpdates = true
 
+        /** TIMELINE STARTUP **/
+
         // restore the active timeline items from local db
         if let timeline = timeline as? PersistentTimelineManager {
             timeline.bootstrapActiveItems()
         }
 
-        /** OBSERVERS **/
+        /** EXAMPLE OBSERVERS **/
 
         // observe new timeline items
         when(timeline, does: .newTimelineItem) { _ in
