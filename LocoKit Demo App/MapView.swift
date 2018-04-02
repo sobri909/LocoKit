@@ -131,7 +131,7 @@ class MapView: MKMapView {
             return
         }
 
-        var coords = locations.flatMap { $0.coordinate }
+        var coords = locations.compactMap { $0.coordinate }
         let path = PathPolyline(coordinates: &coords, count: coords.count)
         path.color = color
 
@@ -143,7 +143,7 @@ class MapView: MKMapView {
             return
         }
 
-        let locations = samples.flatMap { $0.location }
+        let locations = samples.compactMap { $0.location }
 
         switch movingState {
         case .moving:
@@ -160,7 +160,7 @@ class MapView: MKMapView {
     func add(_ path: Path) {
         if path.samples.isEmpty { return }
 
-        var coords = path.samples.flatMap { $0.location?.coordinate }
+        var coords = path.samples.compactMap { $0.location?.coordinate }
         let line = PathPolyline(coordinates: &coords, count: coords.count)
         line.color = timeline.activeItems.contains(path) ? .brown : .darkGray
 

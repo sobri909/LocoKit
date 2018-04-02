@@ -37,13 +37,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Location is used to demonstrate LocoKit&apos;s functionality</string>
+	<string>Location is used to demonstrate LocoKit's functionality</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Location is used to demonstrate LocoKit&apos;s functionality</string>
+	<string>Location is used to demonstrate LocoKit's functionality</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location is used to demonstrate LocoKit&apos;s functionality</string>
+	<string>Location is used to demonstrate LocoKit's functionality</string>
 	<key>NSMotionUsageDescription</key>
-	<string>Motion data is used to demonstrate LocoKit&apos;s functionality</string>
+	<string>Motion data is used to demonstrate LocoKit's functionality</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

@@ -2,21 +2,21 @@ PODS:
   - Cartography (3.0.1)
   - Crashlytics (3.10.1):
     - Fabric (~> 1.7.5)
-  - Fabric (1.7.5)
-  - GRDB.swift (2.9.0)
-  - LocoKit (5.0.0):
-    - LocoKit/Base (= 5.0.0)
-  - LocoKit/Base (5.0.0):
-    - LocoKitCore (= 5.0.0)
+  - Fabric (1.7.6)
+  - GRDB.swift (2.10.0)
+  - LocoKit (5.1.1):
+    - LocoKit/Base (= 5.1.1)
+  - LocoKit/Base (5.1.1):
+    - LocoKitCore (= 5.1.1)
     - ReachabilitySwift (~> 4.1)
     - Upsurge (~> 0.10)
-  - LocoKit/LocalStore (5.0.0):
-    - GRDB.swift (~> 2.8)
+  - LocoKit/LocalStore (5.1.1):
+    - GRDB.swift (~> 2.10)
     - LocoKit/Base
-  - LocoKitCore (5.0.0)
+  - LocoKitCore (5.1.1)
   - ReachabilitySwift (4.1.0)
   - SwiftNotes (1.1.0)
-  - Upsurge (0.10.1)
+  - Upsurge (0.10.2)
 
 DEPENDENCIES:
   - Cartography
@@ -29,13 +29,13 @@ DEPENDENCIES:
 SPEC CHECKSUMS:
   Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
   Crashlytics: aee1a064cbbf99b32efa3f056a5f458d846bc8ff
-  Fabric: ae7146a5f505ea370a1e44820b4b1dc8890e2890
-  GRDB.swift: db8429f12d250f3056df82eb3409e5af083948ca
-  LocoKit: b09a8e045f519a5f785f3629cc8e7daca60e016a
-  LocoKitCore: 8489941d9ee5e19099aacd781054e4fb1f5da4ff
+  Fabric: f8d42c893bb187326a7968b62abe55c36a987a46
+  GRDB.swift: 9859cab1b990eac62ee550d3d2208ec1b44f76af
+  LocoKit: 79a51041411e90d554cfcb320431f4151d092b12
+  LocoKitCore: 083f145ee9bcaaf045373e6d0b0f78ef48e6c897
   ReachabilitySwift: 6849231cd4e06559f3b9ef4a97a0a0f96d41e09f
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
-  Upsurge: 90efd9d4ca6c3086ece9d9acee4b4779db2efe56
+  Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
 PODFILE CHECKSUM: e167a79684f4e0c51ede9ed0993bf440841e0da2
 
