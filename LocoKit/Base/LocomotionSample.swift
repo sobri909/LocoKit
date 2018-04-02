@@ -148,8 +148,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         }
     }
 
-    internal(set) public var classifierResults: ClassifierResults?
-    internal(set) public var unfilteredClassifierResults: ClassifierResults?
+    public var classifierResults: ClassifierResults?
+    public var unfilteredClassifierResults: ClassifierResults?
 
     public var activityType: ActivityTypeName? {
         if let confirmedType = confirmedType { return confirmedType }
@@ -349,13 +349,13 @@ public extension Array where Element: LocomotionSample {
         guard let firstDate = first?.date, let lastDate = last?.date else { return 0 }
         return lastDate.timeIntervalSince(firstDate)
     }
-    public var distance: CLLocationDistance { return flatMap { $0.location }.distance }
-    public var weightedMeanAltitude: CLLocationDistance? { return flatMap { $0.location }.weightedMeanAltitude }
-    public var horizontalAccuracyRange: AccuracyRange? { return flatMap { $0.location }.horizontalAccuracyRange }
-    public var verticalAccuracyRange: AccuracyRange? { return flatMap { $0.location }.verticalAccuracyRange }
+    public var distance: CLLocationDistance { return compactMap { $0.location }.distance }
+    public var weightedMeanAltitude: CLLocationDistance? { return compactMap { $0.location }.weightedMeanAltitude }
+    public var horizontalAccuracyRange: AccuracyRange? { return compactMap { $0.location }.horizontalAccuracyRange }
+    public var verticalAccuracyRange: AccuracyRange? { return compactMap { $0.location }.verticalAccuracyRange }
     public var haveAnyUsableLocations: Bool {
         for sample in self { if sample.hasUsableCoordinate { return false } }
         return true
     }
-    func radius(from center: CLLocation) -> Radius { return flatMap { $0.location }.radius(from: center) }
+    func radius(from center: CLLocation) -> Radius { return compactMap { $0.location }.radius(from: center) }
 }

@@ -20,6 +20,6 @@ Pod::Spec.new do |s|
   s.subspec 'LocalStore' do |sp|
     sp.source_files = 'LocoKit/LocalStore/**/*'
     sp.dependency 'LocoKit/Base'
-    sp.dependency 'GRDB.swift', '~> 2.9'
+    sp.dependency 'GRDB.swift', '~> 2.10'
   end
 end

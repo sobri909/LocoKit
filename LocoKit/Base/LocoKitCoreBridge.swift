@@ -11,7 +11,6 @@ public typealias MovingState = LocoKitCore.MovingState
 public typealias LocomotionMagicValue = LocoKitCore.LocomotionMagicValue
 
 public typealias ActivityTypeName = LocoKitCore.ActivityTypeName
-public typealias ActivityTypesCache = LocoKitCore.ActivityTypesCache
 public typealias ActivityTypeClassifier = LocoKitCore.ActivityTypeClassifier
 public typealias ActivityTypeClassifiable = LocoKitCore.ActivityTypeClassifiable
 

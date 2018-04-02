@@ -284,7 +284,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var modeActivityType: ActivityTypeName? {
         if let cached = _modeActivityType { return cached }
 
-        let sampleTypes = samples.flatMap { $0.activityType }
+        let sampleTypes = samples.compactMap { $0.activityType }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -300,7 +300,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var modeMovingActivityType: ActivityTypeName? {
         if let modeType = _modeMovingActivityType { return modeType }
 
-        let sampleTypes = samples.flatMap { $0.activityType != .stationary ? $0.activityType : nil }
+        let sampleTypes = samples.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)

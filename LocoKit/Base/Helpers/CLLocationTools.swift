@@ -69,11 +69,11 @@ extension CLLocationSpeed {
 public extension CLLocation {
 
     public convenience init?(weightedCenterFor samples: [LocomotionSample]) {
-        self.init(weightedCenterFor: samples.flatMap { $0.location })
+        self.init(weightedCenterFor: samples.compactMap { $0.location })
     }
 
     public convenience init?(centerFor samples: [LocomotionSample]) {
-        self.init(centerFor: samples.flatMap { $0.location })
+        self.init(centerFor: samples.compactMap { $0.location })
     }
 
     /// The weighted centre for an array of locations
@@ -286,22 +286,22 @@ extension Array where Element: CLLocation {
         guard count > 1 else {
             return Radius.zero 
         }
-        let distances = self.flatMap { $0.hasUsableCoordinate ? $0.distance(from: center) : nil }
+        let distances = self.compactMap { $0.hasUsableCoordinate ? $0.distance(from: center) : nil }
         return Radius(mean: distances.mean, sd: distances.standardDeviation)
     }
 
     public var horizontalAccuracy: CLLocationDistance {
-        let accuracies = self.flatMap { $0.horizontalAccuracy > 0 ? $0.horizontalAccuracy : nil }
+        let accuracies = self.compactMap { $0.horizontalAccuracy > 0 ? $0.horizontalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
     public var verticalAccuracy: CLLocationDistance {
-        let accuracies = self.flatMap { $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
+        let accuracies = self.compactMap { $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
     public var horizontalAccuracyRange: AccuracyRange? {
-        let accuracies = self.flatMap { return $0.hasUsableCoordinate ? $0.horizontalAccuracy : nil }
+        let accuracies = self.compactMap { return $0.hasUsableCoordinate ? $0.horizontalAccuracy : nil }
         if let range = accuracies.range {
             return AccuracyRange(best: range.min, worst: range.max)
         } else {
@@ -310,7 +310,7 @@ extension Array where Element: CLLocation {
     }
 
     public var verticalAccuracyRange: AccuracyRange? {
-        let accuracies = self.flatMap { return $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
+        let accuracies = self.compactMap { return $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
         if let range = accuracies.range {
             return AccuracyRange(best: range.min, worst: range.max)
         } else {

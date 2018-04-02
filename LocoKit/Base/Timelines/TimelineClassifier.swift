@@ -98,7 +98,7 @@ public class TimelineClassifier {
         return ClassifierResults(results: resultsArray, moreComing: results.moreComing)
     }
     
-    public func classify(_ samples: [LocomotionSample], filtered: Bool) -> ClassifierResults? {
+    public func classify(_ samples: [ActivityTypeClassifiable], filtered: Bool) -> ClassifierResults? {
         if samples.isEmpty { return nil }
 
         var allScores: [ActivityTypeName: ValueArray<Double>] = [:]
