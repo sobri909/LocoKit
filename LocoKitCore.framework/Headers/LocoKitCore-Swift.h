@@ -218,8 +218,6 @@ SWIFT_CLASS("_TtC11LocoKitCore12ActivityType")
 
 
 
-
-
 SWIFT_CLASS("_TtC11LocoKitCore19MutableActivityType")
 @interface MutableActivityType : ActivityType
 @end
