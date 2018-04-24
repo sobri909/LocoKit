@@ -43,4 +43,24 @@ open class PersistentTimelineManager: TimelineManager {
         for item in activeItems.reversed() { add(item) }
     }
 
+    public func addDataGapItem() {
+        guard let lastItem = currentItem, let lastEndDate = lastItem.endDate else { return }
+
+        // don't add a data gap after a data gap
+        if lastItem.isDataGap { return }
+
+        // the edge samples
+        let startSample = PersistentSample(date: lastEndDate, recordingState: .off, in: store)
+        let endSample = PersistentSample(date: Date(), recordingState: .off, in: store)
+
+        // the gap item
+        let gapItem = store.createPath(from: startSample)
+        gapItem.previousItem = lastItem
+        gapItem.add(endSample)
+        gapItem.save(immediate: true)
+
+        // make it current
+        add(gapItem)
+    }
+
 }

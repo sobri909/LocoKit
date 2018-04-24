@@ -159,8 +159,14 @@ open class TimelineManager {
     private func processSample(_ sample: LocomotionSample) {
         let loco = LocomotionManager.highlander
 
-        // first timeline item?
+        /** first timeline item **/
         guard let currentItem = currentItem else {
+            createTimelineItem(from: sample)
+            return
+        }
+
+        /** datagap -> anything **/
+        if currentItem.isDataGap {
             createTimelineItem(from: sample)
             return
         }
@@ -168,22 +174,13 @@ open class TimelineManager {
         let previouslyMoving = currentItem is Path
         let currentlyMoving = sample.movingState != .stationary
 
-        // stationary -> stationary
-        if !currentlyMoving && !previouslyMoving {
-
-            // if in sleep mode, only retain the last 10 sleep mode samples
-            if loco.recordingState != .recording {
-                let sleepSamples = currentItem.samples.suffix(10).filter { $0.recordingState != .recording }
-                if sleepSamples.count == 10, let oldestSleep = sleepSamples.first {
-                    currentItem.remove(oldestSleep)
-                }
-            }
-
-            currentItem.add(sample)
+        /** stationary -> moving || moving -> stationary **/
+        if currentlyMoving != previouslyMoving {
+            createTimelineItem(from: sample)
             return
         }
 
-        // moving -> moving
+        /** moving -> moving **/
         if previouslyMoving && currentlyMoving {
 
             // if activityType hasn't changed, reuse current
@@ -199,10 +196,23 @@ open class TimelineManager {
                     return
                 }
             }
+
+            // couldn't reuse current path
+            createTimelineItem(from: sample)
+            return
         }
 
-        // switched between stationary and moving, so let's make a new timeline item
-        createTimelineItem(from: sample)
+        /** stationary -> stationary **/
+
+        // if in sleep mode, only retain the last 10 sleep mode samples
+        if loco.recordingState != .recording {
+            let sleepSamples = currentItem.samples.suffix(10).filter { $0.recordingState != .recording }
+            if sleepSamples.count == 10, let oldestSleep = sleepSamples.first {
+                currentItem.remove(oldestSleep)
+            }
+        }
+
+        currentItem.add(sample)
     }
 
     private func createTimelineItem(from sample: LocomotionSample) {
