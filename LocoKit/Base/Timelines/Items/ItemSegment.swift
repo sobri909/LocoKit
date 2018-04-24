@@ -109,6 +109,9 @@ public class ItemSegment: Equatable {
         // exact match
         if sample.recordingState == recordingState && sample.activityType == activityType { return true }
 
+        // ignore recording state mismatches for segments in paths
+        if timelineItem is Path && sample.activityType == activityType { return true }
+
         guard let recordingState = self.recordingState else { return false }
 
         // off samples go together, regardless of activity type
