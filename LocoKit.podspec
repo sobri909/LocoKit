@@ -14,7 +14,6 @@ Pod::Spec.new do |s|
   s.subspec 'Base' do |sp|
     sp.source_files = 'LocoKit/Base/**/*'
     sp.dependency 'LocoKitCore', '5.1.1'
-    sp.dependency 'ReachabilitySwift', '~> 4.1'
     sp.dependency 'Upsurge', '~> 0.10'
   end
   s.subspec 'LocalStore' do |sp|

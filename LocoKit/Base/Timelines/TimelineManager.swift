@@ -24,15 +24,19 @@ open class TimelineManager {
     private lazy var _store = TimelineStore()
     open var store: TimelineStore { return _store }
     
-    private(set) open var classifier: TimelineClassifier? = TimelineClassifier.highlander
+    open var classifier: MLCompositeClassifier? 
     public let processingQueue = DispatchQueue(label: "TimelineProcessing")
 
     public init() {
         self.store.manager = self
+
+        updateTheClassifier()
         
         let notes = NotificationCenter.default
         notes.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { _ in self.sampleUpdated() }
         notes.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { _ in self.sampleUpdated() }
+    open func updateTheClassifier() {
+        classifier = activityTypeClassifySamples ? TimelineClassifier.highlander : nil
     }
 
     // MARK: Settings
@@ -44,9 +48,7 @@ open class TimelineManager {
      */
     public var samplesPerMinute: Double = 10
 
-    public var activityTypeClassifySamples = true {
-        didSet { classifier = activityTypeClassifySamples ? TimelineClassifier.highlander : nil }
-    }
+    public var activityTypeClassifySamples = true { didSet { updateTheClassifier() } }
 
     // MARK: The Recorded Timeline Items
 
@@ -69,8 +71,8 @@ open class TimelineManager {
     public func stopRecording() { recording = false }
 
     public var recording: Bool = false {
-        willSet(start) {
-            if start {
+        didSet {
+            if recording {
                 LocomotionManager.highlander.startRecording()
             } else {
                 LocomotionManager.highlander.stopRecording()
