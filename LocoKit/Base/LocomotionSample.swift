@@ -158,7 +158,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     public var confirmedType: ActivityTypeName?
 
-    public var classifiedType: ActivityTypeName? { return classifierResults?.first?.name }
+    public var classifiedType: ActivityTypeName? { return unfilteredClassifierResults?.first?.name }
 
     // MARK: Convenience Getters
     

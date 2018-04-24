@@ -82,7 +82,7 @@ open class PersistentPath: Path, PersistentObject {
         container["stepCount"] = stepCount
         container["floorsAscended"] = floorsAscended
         container["floorsDescended"] = floorsDescended
-        container["activityType"] = activityType?.rawValue
+        container["activityType"] = modeMovingActivityType?.rawValue
         container["latitude"] = _center?.coordinate.latitude
         container["longitude"] = _center?.coordinate.longitude
     }

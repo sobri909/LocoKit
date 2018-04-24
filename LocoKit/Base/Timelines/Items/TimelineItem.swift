@@ -265,13 +265,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return results
     }
 
-    private(set) public var _activityType: ActivityTypeName?
-    
-    /// The highest scoring activity type for the timeline's samples.
+    /**
+     The highest scoring activity type for the timeline's samples.
+     - Note: This property is deprecated. Please use `modeActivityType` instead.
+     */
+    @available(*, deprecated: 5.1.1, message: "Please use `modeActivityType` instead.")
     public var activityType: ActivityTypeName? {
-        if let cached = _activityType { return cached }
-        _activityType = classifierResults?.first?.name
-        return _activityType
+        return classifierResults?.first?.name
     }
 
     public var movingActivityType: ActivityTypeName? {
@@ -454,7 +454,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         _unfilteredClassifierResults = nil
         _modeMovingActivityType = nil
         _modeActivityType = nil
-        _activityType = nil
 
         let oldDateRange = dateRange
         _dateRange = nil
@@ -556,7 +555,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         self._stepCount = dict["stepCount"] as? Int
         self._floorsAscended = dict["floorsAscended"] as? Int
         self._floorsDescended = dict["floorsDescended"] as? Int
-        if let typeName = dict["activityType"] as? String { self._activityType = ActivityTypeName(rawValue: typeName) }
         if let center = dict["center"] as? CLLocation {
             self._center = center
         } else if let latitude = dict["latitude"] as? Double, let longitude = dict["longitude"] as? Double {
@@ -585,7 +583,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         self._stepCount = try? container.decode(Int.self, forKey: .stepCount)
         self._floorsAscended = try? container.decode(Int.self, forKey: .floorsAscended)
         self._floorsDescended = try? container.decode(Int.self, forKey: .floorsDescended)
-        self._activityType = try? container.decode(ActivityTypeName.self, forKey: .activityType)
 
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .center) {
             self._center = CLLocation(from: codableLocation)
@@ -605,7 +602,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         try container.encode(radius, forKey: .radius)
         try container.encode(altitude, forKey: .altitude)
         try container.encode(stepCount, forKey: .stepCount)
-        try container.encode(activityType, forKey: .activityType)
+        try container.encode(modeActivityType, forKey: .activityType)
         try container.encode(floorsAscended, forKey: .floorsAscended)
         try container.encode(floorsDescended, forKey: .floorsDescended)
     }
