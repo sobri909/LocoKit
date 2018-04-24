@@ -117,26 +117,20 @@ open class Visit: TimelineItem {
         if path.samples.isEmpty { return nil }
 
         // fail out if separation distance is too much
-        guard withinMergeableDistance(from: path) else {
-            return nil
-        }
+        guard withinMergeableDistance(from: path) else { return nil }
+
+        // fail out if separation time is too much
+        guard let timeGap = timeInterval(from: path), timeGap < 60 * 10 else { return nil }
 
         /** GET ALL THE REQUIRED VARS **/
 
-        guard
-            let visitEdge = self.edgeSample(with: path),
-            let pathEdge = path.edgeSample(with: self),
-            let pathEdgeNext = path.secondToEdgeSample(with: self) else
-        { return nil }
+        guard let visitEdge = self.edgeSample(with: path), visitEdge.hasUsableCoordinate else { return nil }
+        guard let pathEdge = path.edgeSample(with: self), pathEdge.hasUsableCoordinate else { return nil }
+        guard let pathEdgeNext = path.secondToEdgeSample(with: self), pathEdgeNext.hasUsableCoordinate else { return nil }
 
-        guard visitEdge.hasUsableCoordinate, pathEdge.hasUsableCoordinate, pathEdgeNext.hasUsableCoordinate else {
-            return nil
-        }
-        guard
-            let visitEdgeLocation = visitEdge.location,
-            let pathEdgeLocation = pathEdge.location,
-            let pathEdgeNextLocation = pathEdgeNext.location else
-        { return nil }
+        guard let visitEdgeLocation = visitEdge.location else { return nil }
+        guard let pathEdgeLocation = pathEdge.location else { return nil }
+        guard let pathEdgeNextLocation = pathEdgeNext.location else { return nil }
 
         let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 2)
         let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 2)

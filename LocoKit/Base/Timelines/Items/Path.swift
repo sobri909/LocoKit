@@ -208,9 +208,10 @@ open class Path: TimelineItem {
         if otherPath.samples.isEmpty { return nil }
 
         // fail out if separation distance is too much
-        guard withinMergeableDistance(from: otherPath) else {
-            return nil
-        }
+        guard withinMergeableDistance(from: otherPath) else { return nil }
+
+        // fail out if separation time is too much
+        guard let timeGap = timeInterval(from: otherPath), timeGap < 60 * 10 else { return nil }
 
         // get the activity types
         guard let myActivityType = movingActivityType, let theirActivityType = otherPath.movingActivityType else {
