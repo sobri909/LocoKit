@@ -36,7 +36,7 @@ open class PersistentPath: Path, PersistentObject {
         guard let instance = self.currentInstance else { return }
         store?.retain(instance)
         mutex.sync { changes(instance) }
-        instance.save()
+        instance.save(immediate: true)
     }
 
     open override func add(_ samples: [LocomotionSample]) {
