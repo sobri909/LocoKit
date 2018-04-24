@@ -46,6 +46,13 @@ public extension NSNotification.Name {
     public static let willStartSleepMode = Notification.Name("willStartSleepMode")
 
     /**
+     `willStartDeepSleepMode` is sent when deep sleep mode is about to begin or resume.
+
+     - Note: This includes both transitions from `recording` state and `wakeup` state.
+     */
+    public static let willStartDeepSleepMode = Notification.Name("willStartDeepSleepMode")
+
+    /**
      `startedSleepMode` is sent after transitioning from `recording` state to `sleeping` state.
      */
     public static let startedSleepMode = Notification.Name("startedSleepMode")
@@ -121,21 +128,12 @@ public extension NSNotification.Name {
         return wiggles
     }()
 
-    private var _recordingState: RecordingState = .off
-
     /**
      The LocomotionManager's current `RecordingState`.
      */
-    public private(set) var recordingState: RecordingState {
-        get {
-            return _recordingState
-        }
-        set(newValue) {
-            let oldValue = _recordingState
-            _recordingState = newValue
-
-            // notify on recording state changes
-            if newValue != oldValue {
+    public private(set) var recordingState: RecordingState = .off {
+        didSet(oldValue) {
+            if recordingState != oldValue {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
             }
         }
@@ -250,6 +248,12 @@ public extension NSNotification.Name {
      consumption and extend battery life during long recording sessions.
      */
     @objc public var useLowPowerSleepModeWhileStationary: Bool = true
+
+    /**
+     Whether LocomotionManager should turn off recording while stationary and not resume recording until woken up by
+     iOS, in order to reduce energy consumption and extend battery life during long recording sessions.
+     */
+    @objc public var useDeepSleepModeWhileStationary: Bool = false
 
     /**
      Whether or not LocomotionManager should wake from sleep mode and resume recording when no location data is
@@ -409,14 +413,17 @@ public extension NSNotification.Name {
 
         // stop the timers
         stopTheUpdateTimer()
-        wakeupTimer?.invalidate()
-        wakeupTimer = nil
+        stopTheWakeupTimer()
 
         // stop the location manager
         locationManager.stopUpdatingLocation()
 
         // stop the motion gimps
         stopCoreMotion()
+
+        // stop the safety nets
+        locationManager.stopMonitoringVisits()
+        locationManager.stopMonitoringSignificantLocationChanges()
         
         recordingState = .off
     }
@@ -532,19 +539,14 @@ public extension NSNotification.Name {
     
     // because there can be only one highlander
     private override init() {}
-}
 
-private extension LocomotionManager {
+    // MARK: - Sleep mode management
 
     private func startSleeping() {
-        if recordingState == .sleeping {
-            return
-        }
+        if recordingState == .sleeping { return }
 
-        // make sure we're supposed to be here
-        guard useLowPowerSleepModeWhileStationary else {
-            return
-        }
+        // make sure we're allowed to use sleep mode
+        guard useLowPowerSleepModeWhileStationary else { return }
 
         // notify that we're going to sleep
         let note = Notification(name: .willStartSleepMode, object: self, userInfo: nil)
@@ -557,11 +559,11 @@ private extension LocomotionManager {
         locationManager.desiredAccuracy = Double.greatestFiniteMagnitude
         locationManager.distanceFilter = CLLocationDistanceMax
 
+        // no fallback updates while sleeping
+        stopTheUpdateTimer()
+
         // reset the wakeup timer
-        wakeupTimer?.invalidate()
-        wakeupTimer = Timer.scheduledTimer(timeInterval: sleepCycleDuration, target: self,
-                                           selector: #selector(LocomotionManager.startWakeup), userInfo: nil,
-                                           repeats: false)
+        restartTheWakeupTimer()
 
         let previousState = recordingState
         recordingState = .sleeping
@@ -571,18 +573,62 @@ private extension LocomotionManager {
             let note = Notification(name: .startedSleepMode, object: self, userInfo: nil)
             NotificationCenter.default.post(note)
         }
+
+        // should be deep sleeping?
+        if useDeepSleepModeWhileStationary { startDeepSleeping() }
     }
 
-    @objc private func startWakeup() {
+    private func startDeepSleeping() {
+        if recordingState == .deepSleeping { return }
 
-        // only allowed to start a wakeup from sleeping state
-        if recordingState != .sleeping {
-            return
-        }
+        // make sure the SDK settings ask for deep sleep
+        guard useDeepSleepModeWhileStationary else { return }
+
+        // make sure the device settings allow deep sleep
+        guard canDeepSleep else { return }
+
+        // notify that we're going to deep sleep
+        let note = Notification(name: .willStartDeepSleepMode, object: self, userInfo: nil)
+        NotificationCenter.default.post(note)
+
+        // turn on background fetches
+        UIApplication.shared.setMinimumBackgroundFetchInterval(sleepCycleDuration)
+
+        // start the safety nets
+        locationManager.startMonitoringVisits()
+        locationManager.startMonitoringSignificantLocationChanges()
+
+        // stop the location manager
+        locationManager.stopUpdatingLocation()
+
+        // stop the motion gimps
+        stopCoreMotion()
+
+        // stop the wakeup timer
+        stopTheWakeupTimer()
+
+        recordingState = .deepSleeping
+    }
+
+    var canDeepSleep: Bool {
+        guard haveBackgroundLocationPermission else { return false }
+        guard UIApplication.shared.backgroundRefreshStatus == .available else { return false }
+        return true
+    }
+
+    @objc public func startWakeup() {
+        if recordingState == .wakeup { return }
+        if recordingState == .recording { return }
 
         // make the location manager receptive again
         locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
         locationManager.distanceFilter = kCLDistanceFilterNone
+
+        // location recording needs to be turned on?
+        if recordingState == .off || recordingState == .deepSleeping {
+            locationManager.allowsBackgroundLocationUpdates = true
+            locationManager.startUpdatingLocation()
+        }
 
         recordingState = .wakeup
     }
@@ -618,7 +664,7 @@ private extension LocomotionManager {
                 }
             }
 
-        case .recording, .sleeping:
+        case .recording, .sleeping, .deepSleeping:
             if needToBeRecording {
                 startRecording()
             } else {
@@ -757,15 +803,35 @@ private extension LocomotionManager {
 private extension LocomotionManager {
     
     private func restartTheUpdateTimer() {
-        fallbackUpdateTimer?.invalidate()
-        fallbackUpdateTimer = Timer.scheduledTimer(timeInterval: LocomotionManager.fallbackUpdateCycle, target: self,
-                                                   selector: #selector(LocomotionManager.updateAndNotify),
-                                                   userInfo: nil, repeats: false)
+        onMain {
+            self.fallbackUpdateTimer?.invalidate()
+            self.fallbackUpdateTimer = Timer.scheduledTimer(timeInterval: LocomotionManager.fallbackUpdateCycle,
+                                                            target: self, selector: #selector(self.updateAndNotify),
+                                                            userInfo: nil, repeats: false)
+        }
     }
     
     private func stopTheUpdateTimer() {
-        fallbackUpdateTimer?.invalidate()
-        fallbackUpdateTimer = nil
+        onMain {
+            self.fallbackUpdateTimer?.invalidate()
+            self.fallbackUpdateTimer = nil
+        }
+    }
+
+    private func restartTheWakeupTimer() {
+        onMain {
+            self.wakeupTimer?.invalidate()
+            self.wakeupTimer = Timer.scheduledTimer(timeInterval: self.sleepCycleDuration, target: self,
+                                                    selector: #selector(self.startWakeup), userInfo: nil,
+                                                    repeats: false)
+        }
+    }
+
+    private func stopTheWakeupTimer() {
+        onMain {
+            self.wakeupTimer?.invalidate()
+            self.wakeupTimer = nil
+        }
     }
     
 }
@@ -894,6 +960,9 @@ extension LocomotionManager: CLLocationManagerDelegate {
 
         // forward the delegate event
         locationManagerDelegate?.locationManager?(manager, didVisit: visit)
+
+        // see if the visit should trigger a recording start
+        startWakeup()
     }
 
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {

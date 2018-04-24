@@ -20,7 +20,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     internal(set) public var inTheStore = false
     open var currentInstance: TimelineItem? { return inTheStore ? self : store?.item(for: itemId) }
 
-    public var classifier: TimelineClassifier? { return store?.manager?.classifier }
+    public var classifier: MLCompositeClassifier? { return store?.manager?.classifier }
 
     public var mutex = PThreadMutex(type: .recursive)
 

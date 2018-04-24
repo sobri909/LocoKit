@@ -23,6 +23,12 @@ public enum RecordingState: String, Codable {
     case sleeping
 
     /**
+     This state indicates that the LocomotionManager is not recording, but is ready to be woken up by iOS and restart
+     recording at an appropriate time.
+     */
+    case deepSleeping
+
+    /**
      This state indicates that the LocomotionManager is performing a periodic wakeup from sleep mode, to determine
      whether it should resume recording or should continue sleeping.
      */

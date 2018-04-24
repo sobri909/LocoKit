@@ -35,6 +35,11 @@ open class TimelineManager {
         let notes = NotificationCenter.default
         notes.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { _ in self.sampleUpdated() }
         notes.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { _ in self.sampleUpdated() }
+        notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { _ in
+            self.updateSleepModeAcceptability()
+        }
+    }
+
     open func updateTheClassifier() {
         classifier = activityTypeClassifySamples ? TimelineClassifier.highlander : nil
     }
