@@ -255,6 +255,8 @@ open class PersistentTimelineStore: TimelineStore {
     public var migrator = DatabaseMigrator()
 
     open func migrateDatabase() {
+
+        // initial tables creation
         migrator.registerMigration("CreateTables") { db in
             try db.create(table: "TimelineItem") { table in
                 table.column("itemId", .text).primaryKey()
@@ -338,6 +340,16 @@ open class PersistentTimelineStore: TimelineStore {
                     END
                 """)
         }
+
+        // add some missing indexes
+        migrator.registerMigration("5.1.2") { db in
+            try db.create(index: "LocomotionSample_on_confirmedType",
+                          on: "LocomotionSample", columns: ["confirmedType"])
+            try db.create(index: "LocomotionSample_on_lastSaved",
+                          on: "LocomotionSample", columns: ["lastSaved"])
+        }
+
+        // apply the migrations
         try! migrator.migrate(pool)
     }
 
