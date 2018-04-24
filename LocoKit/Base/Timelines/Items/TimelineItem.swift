@@ -165,8 +165,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public var isDataGap: Bool {
-        if let first = samples.first, first.recordingState == .off { return true }
-        return false
+        if samples.isEmpty { return false }
+        for sample in samples {
+            if sample.recordingState != .off { return false }
+        }
+        return true
     }
 
     private var _isNolo: Bool?
