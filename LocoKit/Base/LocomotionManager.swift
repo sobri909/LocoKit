@@ -57,6 +57,8 @@ public extension NSNotification.Name {
 
     // broadcasted CLLocationManagerDelegate events
     public static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")
+    public static let didUpdateLocations = Notification.Name("didUpdateLocations")
+    public static let didRangeBeacons = Notification.Name("didRangeBeacons")
     public static let didVisit = Notification.Name("didVisit")
 }
 
@@ -649,9 +651,10 @@ private extension LocomotionManager {
 
         return false
     }
-}
 
-private extension LocomotionManager {
+    // MARK: - Core Motion management
+
+    // MARK: Activity Type
 
     private func startTheM() {
         if watchingTheM {
@@ -682,10 +685,8 @@ private extension LocomotionManager {
         watchingTheM = false
     }
 
-}
+    // MARK: Pedometer
 
-private extension LocomotionManager {
-   
     private func startThePedometer() {
         if watchingThePedometer {
             return
@@ -716,11 +717,9 @@ private extension LocomotionManager {
         
         watchingThePedometer = false
     }
-    
-}
 
-private extension LocomotionManager {
-   
+    // MARK: Accelerometer
+
     private func startTheWiggles() {
         if watchingTheWiggles {
             return
@@ -869,6 +868,10 @@ extension LocomotionManager: CLLocationManagerDelegate {
 
     public func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
 
+        // broadcast a notification
+        let note = Notification(name: .didRangeBeacons, object: self, userInfo: ["beacons": beacons])
+        NotificationCenter.default.post(note)
+
         // forward the delegate event
         locationManagerDelegate?.locationManager?(manager, didRangeBeacons: beacons, in: region)
     }
@@ -895,7 +898,14 @@ extension LocomotionManager: CLLocationManagerDelegate {
 
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 
-        // ignore incoming locations that arrive when we're not supposed to be listen
+        // broadcast a notification
+        let note = Notification(name: .didUpdateLocations, object: self, userInfo: ["locations": locations])
+        NotificationCenter.default.post(note)
+
+        // forward the delegate event
+        locationManagerDelegate?.locationManager?(manager, didUpdateLocations: locations)
+
+        // ignore incoming locations that arrive when we're not supposed to be listening
         if recordingState != .recording && recordingState != .wakeup {
             return
         }
@@ -907,9 +917,6 @@ extension LocomotionManager: CLLocationManagerDelegate {
 
         // the payoff
         updateAndNotify()
-
-        // forward the delegate event
-        locationManagerDelegate?.locationManager?(manager, didUpdateLocations: locations)
     }
 
 }
