@@ -184,7 +184,7 @@ open class PersistentTimelineStore: TimelineStore {
 
     // MARK: Saving
 
-    public func save(_ object: PersistentObject, immediate: Bool = false) {
+    public func save(_ object: PersistentObject, immediate: Bool) {
         if !object.inTheStore {
             if object is TimelineItem {
                 os_log("UNSAFE SAVE: Item not in the store")
