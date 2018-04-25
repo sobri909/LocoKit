@@ -592,7 +592,7 @@ public extension NSNotification.Name {
         NotificationCenter.default.post(note)
 
         // turn on background fetches
-        UIApplication.shared.setMinimumBackgroundFetchInterval(sleepCycleDuration)
+        UIApplication.shared.setMinimumBackgroundFetchInterval(sleepCycleDuration * 10)
 
         // start the safety nets
         locationManager.startMonitoringVisits()
