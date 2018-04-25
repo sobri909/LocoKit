@@ -388,6 +388,9 @@ public extension NSNotification.Name {
         // make sure we update even if not getting locations
         restartTheUpdateTimer()
 
+        // don't need background fetches for deep sleep while recording
+        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplicationBackgroundFetchIntervalNever) }
+
         let previousState = recordingState
         recordingState = .recording
 
@@ -592,7 +595,7 @@ public extension NSNotification.Name {
         NotificationCenter.default.post(note)
 
         // turn on background fetches
-        UIApplication.shared.setMinimumBackgroundFetchInterval(sleepCycleDuration * 10)
+        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(self.sleepCycleDuration * 10) }
 
         // start the safety nets
         locationManager.startMonitoringVisits()
