@@ -16,6 +16,11 @@ open class PersistentTimelineManager: TimelineManager {
     private lazy var _store = PersistentTimelineStore()
     open override var store: PersistentTimelineStore { return _store }
 
+    override func processTimelineItems() {
+        super.processTimelineItems()
+        store.save(immediate: true)
+    }
+
     // MARK: Startup
 
     public func bootstrapActiveItems() {

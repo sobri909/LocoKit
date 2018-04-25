@@ -232,7 +232,7 @@ open class TimelineManager {
         }
     }
 
-    private func processTimelineItems() {
+    internal func processTimelineItems() {
         if activeItems.isEmpty { return }
 
         // only process from a keeper current item
