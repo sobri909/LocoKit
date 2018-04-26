@@ -229,8 +229,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         self.courseVariance = dict["courseVariance"] as? Double
         self.xyAcceleration = dict["xyAcceleration"] as? Double
         self.zAcceleration = dict["zAcceleration"] as? Double
-        if let typeName = dict["coreMotionActivityType"] as? String {
-            self.coreMotionActivityType = CoreMotionActivityTypeName(rawValue: typeName)
+        if let rawValue = dict["coreMotionActivityType"] as? String {
+            self.coreMotionActivityType = CoreMotionActivityTypeName(rawValue: rawValue)
         } else {
             self.coreMotionActivityType = nil
         }
@@ -243,6 +243,11 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
             var locationDict = dict
             locationDict["timestamp"] = dict["date"]
             self.location = CLLocation(from: locationDict)
+        }
+        if let rawValue = dict["confirmedType"] as? String {
+            self.confirmedType = ActivityTypeName(rawValue: rawValue)
+        } else {
+            self.confirmedType = nil
         }
 
         self.rawLocations = nil
