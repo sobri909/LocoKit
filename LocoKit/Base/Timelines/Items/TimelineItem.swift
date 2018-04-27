@@ -355,12 +355,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     open func withinMergeableDistance(from otherItem: TimelineItem) -> Bool {
-        if self.isNolo || otherItem.isNolo {
-            return true
-        }
-        if let gap = distance(from: otherItem), gap <= maximumMergeableDistance(from: otherItem) {
-            return true
-        }
+        if self.isNolo || otherItem.isNolo { return true }
+        if let gap = distance(from: otherItem), gap <= maximumMergeableDistance(from: otherItem) { return true }
+
+        // if the items overlap in time, any physical distance is acceptable
+        guard let timeGap = self.timeInterval(from: otherItem), timeGap < 0 else { return true }
+
         return false
     }
 
