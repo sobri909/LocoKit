@@ -49,7 +49,16 @@ public class ItemSegment: Equatable {
             samplesChanged()
         }
     }
-    public var recordingState: RecordingState? { return manualRecordingState ?? samples.first?.recordingState }
+    
+    public var recordingState: RecordingState? {
+        if let manual = manualRecordingState { return manual }
+
+        // segments in paths should always be treated as recording state
+        if timelineItem is Path && timelineItem?.isDataGap == false { return .recording }
+
+        return samples.first?.recordingState
+    }
+
     public var activityType: ActivityTypeName? { return manualActivityType ?? samples.first?.activityType }
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
 
