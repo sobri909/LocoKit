@@ -38,4 +38,6 @@ public enum RecordingState: String, Codable {
      This state indicates that the LocomotionManager is turned off and is not recording location or motion data.
      */
     case off
+
+    public static let sleepStates = [wakeup, sleeping, deepSleeping]
 }
