@@ -4,17 +4,15 @@ PODS:
     - Fabric (~> 1.7.5)
   - Fabric (1.7.6)
   - GRDB.swift (2.10.0)
-  - LocoKit (5.1.1):
-    - LocoKit/Base (= 5.1.1)
-  - LocoKit/Base (5.1.1):
-    - LocoKitCore (= 5.1.1)
-    - ReachabilitySwift (~> 4.1)
+  - LocoKit (5.2.0):
+    - LocoKit/Base (= 5.2.0)
+  - LocoKit/Base (5.2.0):
+    - LocoKitCore (= 5.2.0)
     - Upsurge (~> 0.10)
-  - LocoKit/LocalStore (5.1.1):
+  - LocoKit/LocalStore (5.2.0):
     - GRDB.swift (~> 2.10)
     - LocoKit/Base
-  - LocoKitCore (5.1.1)
-  - ReachabilitySwift (4.1.0)
+  - LocoKitCore (5.2.0)
   - SwiftNotes (1.1.0)
   - Upsurge (0.10.2)
 
@@ -34,7 +32,6 @@ SPEC REPOS:
     - GRDB.swift
     - LocoKit
     - LocoKitCore
-    - ReachabilitySwift
     - SwiftNotes
     - Upsurge
 
@@ -43,12 +40,11 @@ SPEC CHECKSUMS:
   Crashlytics: aee1a064cbbf99b32efa3f056a5f458d846bc8ff
   Fabric: f8d42c893bb187326a7968b62abe55c36a987a46
   GRDB.swift: 9859cab1b990eac62ee550d3d2208ec1b44f76af
-  LocoKit: 79a51041411e90d554cfcb320431f4151d092b12
-  LocoKitCore: 083f145ee9bcaaf045373e6d0b0f78ef48e6c897
-  ReachabilitySwift: 6849231cd4e06559f3b9ef4a97a0a0f96d41e09f
+  LocoKit: 196b61a7095abd3df43b3543b3e45c87e6b08e63
+  LocoKitCore: 98d8eab0dd9694015e0ba32777f6f50e1f4bb337
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: e167a79684f4e0c51ede9ed0993bf440841e0da2
+PODFILE CHECKSUM: dc8799c37620fa788ee1ec5c20ff04d087c4aa4c
 
 COCOAPODS: 1.5.0
