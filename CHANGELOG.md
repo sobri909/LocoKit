@@ -1,5 +1,35 @@
 # Changelog
 
+## [5.2.0] - 2018-04-29
+
+### Added
+
+- Added an experimental "deep sleep" mode to LocomotionManager (not turned on by default)
+- Added some missing database indexes to persistent stores
+- Forwarded more LocationManager delegate events
+
+### Changed
+
+- Explicit edit() blocks do an immediate save to the store instead of delayed save
+- Made the Reachability dependency optional 
+- Reduced the updates frequency for desiredAccuracy, to potentially reduce energy use
+- Now treating all item segments inside path items as "recording" state
+
+### Fixed
+
+- Avoid edge sample stealing over a sensible time threshold
+- Misc cleanups to timeline item classifier results storage
+- Improved handling of "data gap" timeline items
+- Misc timeline item processing (merging heuristics) improvements
+
+## [5.1.1] - 2018-04-03
+
+- Got rid of the remaining Swift 4.1 warnings
+
+## [5.1.0] - 2018-03-30
+
+- Swift 4.1 support
+
 ## [5.0.0] - 2018-03-18
 
 ### Added
