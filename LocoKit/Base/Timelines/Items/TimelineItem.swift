@@ -1,5 +1,5 @@
 //
-//  BaseTimelineItem.swift
+//  TimelineItem.swift
 //  LocoKit
 //
 //  Created by Matt Greenfield on 2/12/17.

@@ -12,7 +12,14 @@ public class ItemSegment: Equatable {
 
     public weak var timelineItem: TimelineItem?
 
-    private(set) public var samples: [LocomotionSample] = []
+    private var unsortedSamples: Set<LocomotionSample> = []
+
+    private var _samples: [LocomotionSample]?
+    public var samples: [LocomotionSample] {
+        if let cached = _samples { return cached }
+        _samples = unsortedSamples.sorted { $0.date < $1.date }
+        return _samples!
+    }
 
     // MARK: Initialisers
 
@@ -140,7 +147,7 @@ public class ItemSegment: Equatable {
     }
 
     public func add(_ samples: [LocomotionSample]) {
-        self.samples = Set(self.samples + samples).sorted { $0.date < $1.date }
+        unsortedSamples.formUnion(samples)
         samplesChanged()
     }
 
@@ -149,11 +156,12 @@ public class ItemSegment: Equatable {
     }
 
     public func remove(_ samples: [LocomotionSample]) {
-        self.samples.removeObjects(samples)
+        unsortedSamples.subtract(samples)
         samplesChanged()
     }
 
     public func samplesChanged() {
+        _samples = nil
         _dateRange = nil
         _center = nil
         _radius = nil
