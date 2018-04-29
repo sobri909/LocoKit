@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import UIKit
 import LocoKit
 
 import Fabric
@@ -19,6 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+
+        // only bother with Crashlytics for my own internal development builds
         if Bundle.main.bundleIdentifier == "com.bigpaua.LocoKit-Demo-App" {
             Fabric.with([Crashlytics.self])
         }
