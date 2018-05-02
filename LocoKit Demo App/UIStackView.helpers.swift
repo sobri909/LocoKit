@@ -6,7 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import Cartography
+import Anchorage
 
 extension UIStackView {
     
@@ -14,20 +14,14 @@ extension UIStackView {
         let underline = UIView()
         underline.backgroundColor = UIColor(white: 0.85, alpha: 1)
         addArrangedSubview(underline)
-        
-        constrain(underline) { underline in
-            underline.height == 0.5
-        }
+        underline.heightAnchor == 0.5
     }
     
     func addGap(height: CGFloat) {
         let gap = UIView()
         gap.backgroundColor = .white
         addArrangedSubview(gap)
-        
-        constrain(gap) { gap in
-            gap.height == height
-        }
+        gap.heightAnchor == height
     }
 
     func addHeading(title: String, alignment: NSTextAlignment = .left) {
@@ -53,11 +47,7 @@ extension UIStackView {
         let row = UIStackView()
         row.distribution = .fillEqually
         row.spacing = 0.5
-        
-        for view in views {
-            row.addArrangedSubview(view)
-        }
-        
+        views.forEach { row.addArrangedSubview($0) }
         addArrangedSubview(row)
     }
     
@@ -87,12 +77,10 @@ extension UIStackView {
         row.addArrangedSubview(rightLabel)
         row.addArrangedSubview(rightPad)
         addArrangedSubview(row)
-        
-        constrain(row, leftPad, rightPad) { row, leftPad, rightPad in
-            leftPad.width == 8
-            rightPad.width == 8
-            row.height == 20
-        }
+
+        leftPad.widthAnchor == 8
+        rightPad.widthAnchor == 8
+        row.heightAnchor == 20
         
         return row
     }

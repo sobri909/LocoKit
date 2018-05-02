@@ -7,7 +7,7 @@
 //
 
 import SwiftNotes
-import Cartography
+import Anchorage
 
 extension NSNotification.Name {
     public static let settingsChanged = Notification.Name("settingsChanged")
@@ -39,13 +39,11 @@ class SettingsView: UIScrollView {
     
     override func didMoveToSuperview() {
         addSubview(rows)
-        constrain(rows, superview!) { rows, superview in
-            rows.top == rows.superview!.top
-            rows.bottom == rows.superview!.bottom
-            rows.left == rows.superview!.left + 8
-            rows.right == rows.superview!.right - 8
-            rows.right == superview.right - 8
-        }
+        rows.topAnchor == rows.superview!.topAnchor
+        rows.bottomAnchor == rows.superview!.bottomAnchor
+        rows.leftAnchor == rows.superview!.leftAnchor + 8
+        rows.rightAnchor == rows.superview!.rightAnchor - 8
+        rows.rightAnchor == superview!.rightAnchor - 8
     }
     
     func buildViewTree() {

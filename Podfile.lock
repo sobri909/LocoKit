@@ -1,5 +1,5 @@
 PODS:
-  - Cartography (3.0.1)
+  - Anchorage (4.2.2)
   - Crashlytics (3.10.1):
     - Fabric (~> 1.7.5)
   - Fabric (1.7.6)
@@ -17,7 +17,7 @@ PODS:
   - Upsurge (0.10.2)
 
 DEPENDENCIES:
-  - Cartography
+  - Anchorage
   - Crashlytics
   - Fabric
   - LocoKit
@@ -26,7 +26,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
-    - Cartography
+    - Anchorage
     - Crashlytics
     - Fabric
     - GRDB.swift
@@ -36,7 +36,7 @@ SPEC REPOS:
     - Upsurge
 
 SPEC CHECKSUMS:
-  Cartography: f8c899bb0f5cf20758644a8eea59a75e98a03a5d
+  Anchorage: cba8707ea6475f604e04047882ba47c07e4b2ac1
   Crashlytics: aee1a064cbbf99b32efa3f056a5f458d846bc8ff
   Fabric: f8d42c893bb187326a7968b62abe55c36a987a46
   GRDB.swift: 9859cab1b990eac62ee550d3d2208ec1b44f76af
@@ -45,6 +45,6 @@ SPEC CHECKSUMS:
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: dc8799c37620fa788ee1ec5c20ff04d087c4aa4c
+PODFILE CHECKSUM: 29ab42a9e3ef069965f0a70a740392b77019d825
 
 COCOAPODS: 1.5.0

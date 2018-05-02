@@ -7,8 +7,8 @@
 //
 
 import LocoKit
+import Anchorage
 import SwiftNotes
-import Cartography
 
 class LogView: UIScrollView {
 
@@ -38,13 +38,11 @@ class LogView: UIScrollView {
 
     override func didMoveToSuperview() {
         addSubview(label)
-        constrain(label, superview!) { rows, superview in
-            rows.top == rows.superview!.top + 10
-            rows.bottom == rows.superview!.bottom - 10
-            rows.left == rows.superview!.left + 8
-            rows.right == rows.superview!.right - 8
-            rows.right == superview.right - 8
-        }
+        label.topAnchor == label.superview!.topAnchor + 10
+        label.bottomAnchor == label.superview!.bottomAnchor - 10
+        label.leftAnchor == label.superview!.leftAnchor + 8
+        label.rightAnchor == label.superview!.rightAnchor - 8
+        label.rightAnchor == superview!.rightAnchor - 8
     }
 
     func update() {

@@ -7,7 +7,7 @@
 //
 
 import LocoKit
-import Cartography
+import Anchorage
 
 class TimelineView: UIScrollView {
 
@@ -32,13 +32,11 @@ class TimelineView: UIScrollView {
 
     override func didMoveToSuperview() {
         addSubview(rows)
-        constrain(rows, superview!) { rows, superview in
-            rows.top == rows.superview!.top
-            rows.bottom == rows.superview!.bottom - 16
-            rows.left == rows.superview!.left + 16
-            rows.right == rows.superview!.right - 16
-            rows.right == superview.right - 16
-        }
+        rows.topAnchor == rows.superview!.topAnchor
+        rows.bottomAnchor == rows.superview!.bottomAnchor - 16
+        rows.leftAnchor == rows.superview!.leftAnchor + 16
+        rows.rightAnchor == rows.superview!.rightAnchor - 16
+        rows.rightAnchor == superview!.rightAnchor - 16
     }
 
     func update(with items: [TimelineItem]) {

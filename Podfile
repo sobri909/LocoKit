@@ -6,7 +6,7 @@ pod 'LocoKit'
 pod 'LocoKit/LocalStore'
 
 pod 'SwiftNotes'
-pod 'Cartography'
+pod 'Anchorage'
 
 pod 'Fabric'
 pod 'Crashlytics'

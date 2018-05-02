@@ -6,7 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import Cartography
+import Anchorage
 
 class ToggleBox: UIView {
     
@@ -36,20 +36,14 @@ class ToggleBox: UIView {
             let dotWidth = dot.frame.size.width
             addSubview(dot)
             
-            constrain(dot) { dot in
-                dot.centerY == dot.superview!.centerY
-                dot.height == dotWidth
-                dot.width == dotWidth
-            }
-            
+            dot.centerYAnchor == dot.superview!.centerYAnchor
+            dot.heightAnchor == dotWidth
+            dot.widthAnchor == dotWidth
+
             if let lastDot = lastDot {
-                constrain(dot, lastDot) { dot, lastDot in
-                    dot.left == lastDot.right - 4
-                }
+                dot.leftAnchor == lastDot.rightAnchor - 4
             } else {
-                constrain(dot) { dot in
-                    dot.left == dot.superview!.left + 8
-                }
+                dot.leftAnchor == dot.superview!.leftAnchor + 8
             }
             
             lastDot = dot
@@ -67,25 +61,19 @@ class ToggleBox: UIView {
         addSubview(toggle)
         
         if let lastDot = lastDot {
-            constrain(lastDot, label) { dot, label in
-                label.left == dot.right + 5
-            }
-            
+            label.leftAnchor == lastDot.rightAnchor + 5
+
         } else {
-            constrain(label, toggle) { label, toggle in
-                label.left == label.superview!.left + 9
-            }
+            label.leftAnchor == label.superview!.leftAnchor + 9
         }
         
-        constrain(label, toggle) { label, toggle in
-            label.top == label.superview!.top
-            label.bottom == label.superview!.bottom
-            label.height == 44
-            
-            toggle.centerY == toggle.superview!.centerY
-            toggle.right == toggle.superview!.right - 10
-            toggle.left == label.right
-        }
+        label.topAnchor == label.superview!.topAnchor
+        label.bottomAnchor == label.superview!.bottomAnchor
+        label.heightAnchor == 44
+        
+        toggle.centerYAnchor == toggle.superview!.centerYAnchor
+        toggle.rightAnchor == toggle.superview!.rightAnchor - 10
+        toggle.leftAnchor == label.rightAnchor
     }
 
     @objc func triggerOnChange() {
