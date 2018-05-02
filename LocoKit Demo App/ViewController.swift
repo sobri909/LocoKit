@@ -13,57 +13,58 @@ import CoreLocation
 
 class ViewController: UIViewController {
 
-    /**
-     The recording manager for Timeline Items (Visits and Paths)
+    // using an Activity Types Classifier requires an API key (see below)
+    let useActivityTypesClassifier = false
 
-     - Note: Use a plain TimelineManager() instead if you don't require persistent SQL storage
-    **/
-    let timeline: TimelineManager = PersistentTimelineManager()
+    // use a plain TimelineStore instead of PersistentTimelineStore if you don't require persistent SQL storage
+    let store: TimelineStore = PersistentTimelineStore()
 
-    lazy var mapView = { return MapView(timeline: self.timeline) }()
-    lazy var timelineView = { return TimelineView(timeline: self.timeline) }()
+    var recorder: TimelineRecorder
+
+    var dataSet: TimelineSegment?
+
+    lazy var mapView = { return MapView() }()
+    lazy var timelineView = { return TimelineView() }()
     let classifierView = ClassifierView()
     let settingsView = SettingsView()
     let locoView = LocoView()
     let logView = LogView()
 
     // MARK: controller lifecycle
-    
+
+    init() {
+        if useActivityTypesClassifier {
+
+            // using an Activity Types Classifier requires an API key
+            // API keys can be created at: https://www.bigpaua.com/arckit/account
+            LocoKitService.apiKey = "<insert your API key here>"
+
+            recorder = TimelineRecorder(store: store, classifier: TimelineClassifier.highlander)
+
+        } else {
+            recorder = TimelineRecorder(store: store)
+        }
+
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // the CoreLocation / CoreMotion recording singleton
-        let loco = LocomotionManager.highlander
-
-        /** EXAMPLE SETTINGS **/
-
-        // enable this if you have an API key and want to determine activity types
-        timeline.activityTypeClassifySamples = false
-
-        if timeline.activityTypeClassifySamples {
-            // API keys can be created at: https://www.bigpaua.com/arckit/account
-            LocoKitService.apiKey = "<insert your API key here>"
+        if let store = store as? PersistentTimelineStore {
+            let query = "deleted = 0 AND endDate > datetime('now','-24 hours') AND startDate < datetime('now') ORDER BY startDate DESC"
+            dataSet = TimelineSegment(for: query, in: store) {
+                onMain { self.update() }
+            }
         }
-
-        // this accuracy level is excessive, and is for demo purposes only.
-        // the default value (30 metres) best balances accuracy with energy use.
-        loco.maximumDesiredLocationAccuracy = kCLLocationAccuracyNearestTenMeters
-
-        // this is independent of the user's setting, and will show a blue bar if user has denied "always"
-        loco.locationManager.allowsBackgroundLocationUpdates = true
-
-        /** TIMELINE STARTUP **/
-
-        // restore the active timeline items from local db
-        if let timeline = timeline as? PersistentTimelineManager {
-            timeline.bootstrapActiveItems()
-        }
-
-        /** EXAMPLE OBSERVERS **/
 
         // observe new timeline items
-        when(timeline, does: .newTimelineItem) { _ in
-            if let currentItem = self.timeline.currentItem {
+        when(.newTimelineItem) { _ in
+            if let currentItem = self.recorder.currentItem {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
             onMain {
@@ -74,7 +75,7 @@ class ViewController: UIViewController {
         }
 
         // observe timeline item updates
-        when(timeline, does: .updatedTimelineItem) { _ in
+        when(.updatedTimelineItem) { _ in
             onMain {
                 let items = self.itemsToShow
                 self.mapView.update(with: items)
@@ -82,20 +83,14 @@ class ViewController: UIViewController {
             }
         }
 
-        // observe timeline items finalised after post processing
-        when(timeline, does: .finalisedTimelineItem) { note in
-            if let item = note.userInfo?["timelineItem"] as? TimelineItem {
-                log(".finalisedTimelineItem (\(String(describing: type(of: item))))")
-            }
-            onMain { self.timelineView.update(with: self.itemsToShow) }
-        }
-
-        when(timeline, does: .mergedTimelineItems) { note in
+        when(.mergedTimelineItems) { note in
             if let description = note.userInfo?["merge"] as? String {
                 log(".mergedItems (\(description))")
             }
             onMain { self.timelineView.update(with: self.itemsToShow) }
         }
+
+        let loco = LocomotionManager.highlander
 
         // observe incoming location / locomotion updates
         when(loco, does: .locomotionSampleUpdated) { _ in
@@ -123,14 +118,6 @@ class ViewController: UIViewController {
 
         when(loco, does: .stoppedSleepMode) { _ in
             log(".stoppedSleepMode")
-        }
-
-        when(.debugInfo) { note in
-            if let info = note.userInfo?["info"] as? String {
-                log(".debug (\(info))")
-            } else {
-                log(".debug (nil)")
-            }
         }
 
         when(settingsView, does: .settingsChanged) { _ in
@@ -175,7 +162,7 @@ class ViewController: UIViewController {
     @objc func tappedStart() {
         log("tappedStart()")
 
-        timeline.startRecording()
+        recorder.startRecording()
 
         startButton.isHidden = true
         stopButton.isHidden = false
@@ -184,7 +171,7 @@ class ViewController: UIViewController {
     @objc func tappedStop() {
         log("tappedStop()")
 
-        timeline.stopRecording()
+        recorder.stopRecording()
 
         stopButton.isHidden = true
         startButton.isHidden = false
@@ -287,9 +274,9 @@ class ViewController: UIViewController {
     }
 
     var itemsToShow: [TimelineItem] {
-        if timeline is PersistentTimelineManager { return persistentItemsToShow }
+        if store is PersistentTimelineStore { return persistentItemsToShow }
 
-        guard let currentItem = timeline.currentItem else { return [] }
+        guard let currentItem = recorder.currentItem else { return [] }
 
         // collect the linked list of timeline items
         var items: [TimelineItem] = [currentItem]
@@ -303,14 +290,7 @@ class ViewController: UIViewController {
     }
 
     var persistentItemsToShow: [TimelineItem] {
-        guard let timeline = timeline as? PersistentTimelineManager else { return [] }
-
-        // make sure the db is fresh
-        timeline.store.save()
-
-        // feth all items in the past 24 hours
-        let boundary = Date(timeIntervalSinceNow: -60 * 60 * 24)
-        return timeline.store.items(where: "deleted = 0 AND endDate > ? ORDER BY endDate DESC", arguments: [boundary])
+        return dataSet?.timelineItems ?? []
     }
 
     // MARK: view property getters

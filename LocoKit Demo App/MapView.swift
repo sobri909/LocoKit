@@ -11,13 +11,8 @@ import MapKit
 
 class MapView: MKMapView {
 
-    let timeline: TimelineManager
-
-    init(timeline: TimelineManager) {
-        self.timeline = timeline
-
+    init() {
         super.init(frame: CGRect.zero)
-
         self.delegate = self
         self.isRotateEnabled = false
         self.isPitchEnabled = false
@@ -162,7 +157,7 @@ class MapView: MKMapView {
 
         var coords = path.samples.compactMap { $0.location?.coordinate }
         let line = PathPolyline(coordinates: &coords, count: coords.count)
-        line.color = timeline.activeItems.contains(path) ? .brown : .darkGray
+        line.color = .brown
 
         add(line)
     }
@@ -173,7 +168,7 @@ class MapView: MKMapView {
         addAnnotation(VisitAnnotation(coordinate: center.coordinate, visit: visit))
 
         let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
-        circle.color = timeline.activeItems.contains(visit) ? .orange : .darkGray
+        circle.color = .orange
         add(circle, level: .aboveLabels)
     }
 
@@ -199,26 +194,13 @@ class MapView: MKMapView {
 extension MapView: MKMapViewDelegate {
 
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        if let path = overlay as? PathPolyline {
-            return path.renderer
-
-        } else if let circle = overlay as? VisitCircle {
-            return circle.renderer
-
-        } else {
-            fatalError("you wot?")
-        }
+        if let path = overlay as? PathPolyline { return path.renderer }
+        if let circle = overlay as? VisitCircle { return circle.renderer }
+        fatalError("you wot?")
     }
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-        if let annotation = annotation as? VisitAnnotation {
-            let view = annotation.view
-            if !timeline.activeItems.contains(annotation.visit) {
-                view.image = UIImage(named: "inactiveDot")
-            }
-            return view
-        }
-        return nil
+        return (annotation as? VisitAnnotation)?.view
     }
 
 }
