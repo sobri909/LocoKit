@@ -16,8 +16,8 @@ open class PersistentPath: Path, PersistentObject {
 
     // MARK: Relationships
 
-    open override var previousItemId: UUID? { didSet { save() } }
-    open override var nextItemId: UUID? { didSet { save() } }
+    open override var previousItemId: UUID? { didSet { if oldValue != previousItemId { save() } } }
+    open override var nextItemId: UUID? { didSet { if oldValue != previousItemId { save() } } }
 
     private var _samples: [LocomotionSample]?
     open override var samples: [LocomotionSample] {

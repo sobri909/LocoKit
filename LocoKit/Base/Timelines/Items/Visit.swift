@@ -141,8 +141,6 @@ open class Visit: TimelineItem {
         // path edge is inside and path edge next is inside: move path edge to the visit
         if pathEdgeIsInside && pathEdgeNextIsInside {
             self.add(pathEdge)
-            NotificationCenter.default.post(Notification(name: .debugInfo, object: store?.manager,
-                                                         userInfo: ["info": "moved path edge to visit"]))
             return pathEdge
         }
 
@@ -151,8 +149,6 @@ open class Visit: TimelineItem {
         // path edge is outside and visit edge is outside: move visit edge to the path
         if !pathEdgeIsInside && !visitEdgeIsInside {
             path.add(visitEdge)
-            NotificationCenter.default.post(Notification(name: .debugInfo, object: store?.manager,
-                                                         userInfo: ["info": "moved visit edge to path"]))
             return visitEdge
         }
 
@@ -162,8 +158,6 @@ open class Visit: TimelineItem {
             visitEdgeType == pathEdge.activityType
         {
             path.add(visitEdge)
-            NotificationCenter.default.post(Notification(name: .debugInfo, object: store?.manager,
-                                                         userInfo: ["info": "moved visit edge to path"]))
             return visitEdge
         }
 

@@ -20,7 +20,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     internal(set) public var inTheStore = false
     open var currentInstance: TimelineItem? { return inTheStore ? self : store?.item(for: itemId) }
 
-    public var classifier: MLCompositeClassifier? { return store?.manager?.classifier }
+    public var classifier: MLCompositeClassifier? { return store?.recorder?.classifier }
 
     public var mutex = PThreadMutex(type: .recursive)
 
@@ -29,6 +29,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private(set) public var lastModified: Date
 
     open var isMergeLocked: Bool { return false }
+
+    public var hasBrokenEdges: Bool {
+        if deleted { return false }
+        if previousItem == nil { return true }
+        if nextItem == nil && !isCurrentItem { return true }
+        return false
+    }
 
     public var deleted = false {
         willSet(willDelete) {
@@ -148,7 +155,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
     }
 
-    public var isCurrentItem: Bool { return store?.manager?.currentItem == self }
+    public var isCurrentItem: Bool { return store?.recorder?.currentItem == self }
 
     // MARK: Timeline item validity
 

@@ -7,15 +7,15 @@ import os.log
 
 typealias MergeScore = ConsumptionScore
 
-public class Merge: CustomStringConvertible {
+internal class Merge: CustomStringConvertible {
 
     var keeper: TimelineItem
     var betweener: TimelineItem?
     var deadman: TimelineItem
 
     lazy var score: MergeScore = {
-        if betweener?.isMergeLocked == true { return .impossible }
-        if keeper.deleted || deadman.deleted { fatalError("TRYING TO MERGE DELETED ITEMS") }
+        if keeper.isMergeLocked || deadman.isMergeLocked || betweener?.isMergeLocked == true { return .impossible }
+        if keeper.deleted || deadman.deleted || betweener?.deleted == true { return .impossible }
         return self.keeper.scoreForConsuming(item: self.deadman)
     }()
 
@@ -42,7 +42,7 @@ public class Merge: CustomStringConvertible {
         if let betweener = betweener { store.release(betweener) }
     }
 
-    func doIt() -> (kept: TimelineItem, killed: [TimelineItem]) {
+    @discardableResult func doIt() -> (kept: TimelineItem, killed: [TimelineItem]) {
         merge(deadman, into: keeper)
         
         if let betweener = betweener {
@@ -79,7 +79,7 @@ public class Merge: CustomStringConvertible {
 
     // MARK: CustomStringConvertible
 
-    public var description: String {
+    var description: String {
         if let betweener = betweener {
             return String(format: "score: %d (%@) <- (%@) <- (%@)", score.rawValue, String(describing: keeper),
                           String(describing: betweener), String(describing: deadman))
@@ -88,4 +88,5 @@ public class Merge: CustomStringConvertible {
                           String(describing: deadman))
         }
     }
+    
 }

@@ -214,41 +214,27 @@ open class Path: TimelineItem {
         guard let timeGap = timeInterval(from: otherPath), timeGap < 60 * 10 else { return nil }
 
         // get the activity types
-        guard let myActivityType = movingActivityType, let theirActivityType = otherPath.movingActivityType else {
-            return nil
-        }
+        guard let myActivityType = self.movingActivityType else { return nil }
+        guard let theirActivityType = otherPath.movingActivityType else { return nil }
 
         // can't path-path cleanse two paths of same type
         if myActivityType == theirActivityType { return nil }
 
         // get the edges
-        guard let myEdge = self.edgeSample(with: otherPath), let theirEdge = otherPath.edgeSample(with: self) else {
-            return nil
-        }
-        guard myEdge.hasUsableCoordinate, theirEdge.hasUsableCoordinate else {
-            return nil
-        }
-        guard let myEdgeLocation = myEdge.location, let theirEdgeLocation = theirEdge.location else {
-            return nil
-        }
+        guard let myEdge = self.edgeSample(with: otherPath) else { return nil }
+        guard let theirEdge = otherPath.edgeSample(with: self) else { return nil }
+        guard myEdge.hasUsableCoordinate, theirEdge.hasUsableCoordinate else { return nil }
+        guard let myEdgeLocation = myEdge.location, let theirEdgeLocation = theirEdge.location else { return nil }
 
         let mySpeedIsSlow = myEdgeLocation.speed < Path.maximumModeShiftSpeed
         let theirSpeedIsSlow = theirEdgeLocation.speed < Path.maximumModeShiftSpeed
 
         // are the edges on opposite sides of the mode change speed boundary?
-        if mySpeedIsSlow != theirSpeedIsSlow {
-            let note = Notification(name: .debugInfo, object: self,
-                                    userInfo: ["info": "edges are opposite sides of the mode shift boundary"])
-            NotificationCenter.default.post(note)
-            return nil
-        }
+        if mySpeedIsSlow != theirSpeedIsSlow { return nil }
         
         // is their edge my activity type?
         if theirEdge.activityType == myActivityType {
             self.add(theirEdge)
-            let note = Notification(name: .debugInfo, object: self,
-                                    userInfo: ["info": "moved path edge (\(theirActivityType)) to adjacent path"])
-            NotificationCenter.default.post(note)
             return theirEdge
         }
 

@@ -12,13 +12,15 @@ import LocoKitCore
 /// An in-memory timeline data store. For persistent timeline data storage, see `PersistentTimelineStore`.
 open class TimelineStore {
 
-    public weak var manager: TimelineManager?
+    public var recorder: TimelineRecorder?
     public let cacheDelegate = TimelineStoreCacheDelegate()
 
     public let mutex = UnfairLock()
+
     private let itemCache = NSCache<NSUUID, TimelineItem>()
     private let sampleCache = NSCache<NSUUID, LocomotionSample>()
     private var retainedObjects = Dictionary<UUID, TimelineObject>()
+    private let processingQueue = DispatchQueue(label: "TimelineProcessing")
 
     init() {
         self.itemCache.delegate = cacheDelegate
@@ -37,6 +39,8 @@ open class TimelineStore {
         if let sample = sampleCache.object(forKey: objectId as NSUUID) { return sample }
         return nil
     }
+
+    open var mostRecentItem: TimelineItem? { return nil }
 
     open func item(for itemId: UUID) -> TimelineItem? { return cachedObject(for: itemId) as? TimelineItem }
 
@@ -105,7 +109,7 @@ open class TimelineStore {
         mutex.sync {
             for object in objects {
                 guard object.inTheStore else { continue }
-                if let item = object as? TimelineItem, manager!.activeItems.contains(item) { continue }
+//                if let item = object as? TimelineItem, manager!.activeItems.contains(item) { continue }
 
                 // release it
                 retainedObjects[object.objectId] = nil
@@ -120,5 +124,12 @@ open class TimelineStore {
         }
     }
 
-    open func save(immediate: Bool = true) {}
+    public func process(changes: @escaping () -> Void) {
+        processingQueue.async {
+            changes()
+            self.save(immediate: true)
+        }
+    }
+
+    open func save(immediate: Bool) {}
 }

@@ -50,7 +50,7 @@ open class PersistentTimelineStore: TimelineStore {
         pool.setupMemoryManagement(in: UIApplication.shared)
     }
 
-    // MARK: Adding Items / Samples to the store
+    // MARK: - Adding Items / Samples to the store
 
     open override func add(_ timelineItem: TimelineItem) {
         guard let persistentItem = timelineItem as? PersistentItem else { fatalError("NOT A PERSISTENT ITEM") }
@@ -71,7 +71,7 @@ open class PersistentTimelineStore: TimelineStore {
         super.release(filtered)
     }
 
-    // MARK: Item / Sample creation
+    // MARK: - Item / Sample creation
 
     open override func createVisit(from sample: LocomotionSample) -> PersistentVisit {
         let visit = PersistentVisit(in: self)
@@ -110,7 +110,11 @@ open class PersistentTimelineStore: TimelineStore {
         return PersistentSample(from: row.asDict(in: self), in: self)
     }
 
-    // MARK: Item fetching
+    // MARK: - Item fetching
+
+    open override var mostRecentItem: TimelineItem? {
+        return item(where: "deleted = 0 ORDER BY endDate DESC")
+    }
 
     open override func item(for itemId: UUID) -> TimelineItem? {
         if let cached = cachedObject(for: itemId) as? TimelineItem { return cached }
