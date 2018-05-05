@@ -43,7 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let controller = window?.rootViewController as? ViewController else { return }
         
         // update the UI on appear
-        controller.update()
+        controller.updateAllViews()
     }
 
 }

@@ -46,9 +46,7 @@ class LogView: UIScrollView {
     }
 
     func update() {
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
+        guard UIApplication.shared.applicationState == .active else { return }
 
         guard let logString = try? String(contentsOf: DebugLog.logFile) else {
             label.text = ""

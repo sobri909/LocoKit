@@ -39,12 +39,10 @@ class LocoView: UIScrollView {
     }
 
     func update(sample: LocomotionSample? = nil) {
-        let loco = LocomotionManager.highlander
-
         // don't bother updating the UI when we're not in the foreground
-        guard UIApplication.shared.applicationState == .active else {
-            return
-        }
+        guard UIApplication.shared.applicationState == .active else { return }
+
+        let loco = LocomotionManager.highlander
 
         if sample != nil && Settings.visibleTab != self {
             return

@@ -58,7 +58,11 @@ class ViewController: UIViewController {
         if let store = store as? PersistentTimelineStore {
             let query = "deleted = 0 AND endDate > datetime('now','-24 hours') AND startDate < datetime('now') ORDER BY startDate DESC"
             dataSet = TimelineSegment(for: query, in: store) {
-                onMain { self.update() }
+                onMain {
+                    let items = self.itemsToShow
+                    self.mapView.update(with: items)
+                    self.timelineView.update(with: items)
+                }
             }
         }
 
@@ -261,7 +265,7 @@ class ViewController: UIViewController {
         logView.edgeAnchors == locoView.edgeAnchors
     }
 
-    func update() {
+    func updateAllViews() {
         // don't bother updating the UI when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else { return }
 

@@ -24,10 +24,10 @@ class MapView: MKMapView {
     }
 
     func update(with items: [TimelineItem]) {
-        let loco = LocomotionManager.highlander
-
         // don't bother updating the map when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else { return }
+
+        let loco = LocomotionManager.highlander
 
         removeOverlays(overlays)
         removeAnnotations(annotations)
