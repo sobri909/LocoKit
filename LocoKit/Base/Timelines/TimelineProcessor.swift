@@ -102,7 +102,7 @@ public class TimelineProcessor {
                 let description = String(describing: winningMerge)
                 os_log("Doing:\n%@", type: .debug, description)
 
-                winningMerge.doIt()
+                let results = winningMerge.doIt()
 
                 onMain {
                     let note = Notification(name: .mergedTimelineItems, object: self, userInfo: ["merge": description])
@@ -110,7 +110,7 @@ public class TimelineProcessor {
                 }
 
                 // recurse until no valid merges left to do
-                self.process(from: fromItem)
+                self.process(from: results.kept)
             }
         }
     }
