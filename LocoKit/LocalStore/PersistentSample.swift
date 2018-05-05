@@ -11,7 +11,14 @@ import LocoKitCore
 
 open class PersistentSample: LocomotionSample, PersistentObject {
 
-    public override var confirmedType: ActivityTypeName? { didSet { if oldValue != confirmedType { save() } } }
+    public override var confirmedType: ActivityTypeName? {
+        didSet {
+            if oldValue != confirmedType {
+                hasChanges = true
+                save()
+            }
+        }
+    }
 
     // MARK: Required initialisers
 
@@ -44,7 +51,14 @@ open class PersistentSample: LocomotionSample, PersistentObject {
 
     // MARK: Relationships
 
-    public override var timelineItemId: UUID? { didSet { if oldValue != timelineItemId { save() } } }
+    public override var timelineItemId: UUID? {
+        didSet {
+            if oldValue != timelineItemId {
+                hasChanges = true
+                save()
+            }
+        }
+    }
 
     // MARK: Persistable
     
@@ -79,6 +93,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
     public var persistentStore: PersistentTimelineStore { return store as! PersistentTimelineStore }
     public var transactionDate: Date?
     public var lastSaved: Date?
+    public private(set) var hasChanges: Bool = false
 
 }
 

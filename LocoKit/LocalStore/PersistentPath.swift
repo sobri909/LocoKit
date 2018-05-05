@@ -12,12 +12,34 @@ open class PersistentPath: Path, PersistentObject {
 
     open override var currentInstance: PersistentPath? { return super.currentInstance as? PersistentPath }
 
-    public override var deleted: Bool { didSet { if oldValue != deleted { save(immediate: true) } } }
+    public override var deleted: Bool {
+        didSet {
+            if oldValue != deleted {
+                hasChanges = true
+                save(immediate: true)
+            }
+        }
+    }
 
     // MARK: Relationships
 
-    open override var previousItemId: UUID? { didSet { if oldValue != previousItemId { save() } } }
-    open override var nextItemId: UUID? { didSet { if oldValue != previousItemId { save() } } }
+    open override var previousItemId: UUID? {
+        didSet {
+            if oldValue != previousItemId {
+                hasChanges = true
+                save()
+            }
+        }
+    }
+    
+    open override var nextItemId: UUID? {
+        didSet {
+            if oldValue != nextItemId {
+                hasChanges = true
+                save()
+            }
+        }
+    }
 
     private var _samples: [LocomotionSample]?
     open override var samples: [LocomotionSample] {
@@ -60,6 +82,7 @@ open class PersistentPath: Path, PersistentObject {
 
     open override func samplesChanged() {
         super.samplesChanged()
+        hasChanges = true
         save()
     }
 
@@ -91,6 +114,7 @@ open class PersistentPath: Path, PersistentObject {
 
     public var transactionDate: Date?
     public var lastSaved: Date?
+    public private(set) var hasChanges: Bool = false
 
     // MARK: Initialisers
 

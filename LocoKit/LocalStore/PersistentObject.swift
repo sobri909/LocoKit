@@ -17,6 +17,7 @@ public protocol PersistentObject: TimelineObject, Persistable {
     var transactionDate: Date? { get set }
     var lastSaved: Date? { get set }
     var unsaved: Bool { get }
+    var hasChanges: Bool { get }
 
     func save(immediate: Bool)
     func save(in db: Database) throws
@@ -26,7 +27,7 @@ public protocol PersistentObject: TimelineObject, Persistable {
 public extension PersistentObject {
     public var unsaved: Bool { return lastSaved == nil }
     public func save(immediate: Bool = false) { persistentStore.save(self, immediate: immediate) }
-    public func save(in db: Database) throws { if unsaved { try insert(db) } else { try update(db) } }
+    public func save(in db: Database) throws { if unsaved { try insert(db) } else if hasChanges { try update(db) } }
 }
 
 public extension PersistentObject where Self: TimelineItem {
