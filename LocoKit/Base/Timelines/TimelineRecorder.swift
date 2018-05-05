@@ -43,6 +43,9 @@ public class TimelineRecorder {
             self?.recordSample()
         }
         notes.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { [weak self] _ in
+            if let currentItem = self?.currentItem {
+                TimelineProcessor.process(from: currentItem)
+            }
             self?.recordSample()
         }
         notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { [weak self] _ in
