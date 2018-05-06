@@ -82,6 +82,15 @@ class TimelineView: UIScrollView {
         rows.addSubheading(title: title)
         rows.addGap(height: 6)
 
+        if timelineItem.hasBrokenEdges {
+            if timelineItem.nextItem == nil && !timelineItem.isCurrentItem {
+                rows.addRow(leftText: "nextItem is nil", color: .red)
+            }
+            if timelineItem.previousItem == nil {
+                rows.addRow(leftText: "previousItem is nil", color: .red)
+            }
+        }
+
         rows.addRow(leftText: "Duration", rightText: String(duration: timelineItem.duration))
 
         if let path = timelineItem as? Path {

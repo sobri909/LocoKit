@@ -56,7 +56,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
 
         if let store = store as? PersistentTimelineStore {
-            let query = "deleted = 0 AND endDate > datetime('now','-24 hours') AND startDate < datetime('now') ORDER BY startDate DESC"
+            let query = "deleted = 0 AND endDate > datetime('now','-24 hours') ORDER BY startDate DESC"
             dataSet = TimelineSegment(for: query, in: store) {
                 onMain {
                     let items = self.itemsToShow
