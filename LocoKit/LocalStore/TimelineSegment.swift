@@ -5,13 +5,20 @@
 //  Created by Matt Greenfield on 29/04/18.
 //
 
+import os.log
 import GRDB
 
 public class TimelineSegment {
 
     public let store: PersistentTimelineStore
-    public private(set) var timelineItems: [TimelineItem]?
     public var onUpdate: (() -> Void)?
+
+    private var _timelineItems: [TimelineItem]?
+    public var timelineItems: [TimelineItem] {
+        if let existing = _timelineItems { return existing }
+        _timelineItems = updatedItems
+        return _timelineItems!
+    }
 
     private let query: String
     private let arguments: StatementArguments?
@@ -37,14 +44,16 @@ public class TimelineSegment {
             self.observer = try FetchedRecordsController<RowCopy>(store.pool, sql: fullQuery, arguments: arguments,
                                                                   queue: queue)
 
-            observer.trackChanges { [weak self] observer in
+            self.observer.trackChanges { [weak self] observer in
                 self?.needsUpdate()
+            }
+            self.observer.trackErrors { observer, error in
+                os_log("FetchedRecordsController error: %@", type: .error, error.localizedDescription)
             }
 
             queue.async {
                 do {
                     try self.observer.performFetch()
-                    self.update()
                 } catch {
                     fatalError("OOPS: \(error)")
                 }
@@ -58,21 +67,17 @@ public class TimelineSegment {
     // MARK: - Result updating
 
     private func needsUpdate() {
+        _timelineItems = nil
         onMain {
             self.updateTimer?.invalidate()
             self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { [weak self] _ in
-                self?.update()
+                self?.onUpdate?()
             }
         }
     }
 
-    private func update() {
-        var items: [TimelineItem] = []
-        for row in observer.fetchedRecords {
-            items.append(store.item(for: row.row))
-        }
-        self.timelineItems = items
-        onUpdate?()
+    private var updatedItems: [TimelineItem] {
+        return observer.fetchedRecords.map { store.item(for: $0.row) }
     }
 
 }

@@ -7,15 +7,10 @@
 
 import os.log
 
-public extension NSNotification.Name {
-    public static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
-}
-
 public class TimelineProcessor {
 
     public static func process(from fromItem: TimelineItem) {
-        guard let store = fromItem.store else { return }
-        store.process {
+        fromItem.store?.process {
             var items: [TimelineItem] = [fromItem]
 
             // collect items before fromItem, up to two keepers
@@ -35,6 +30,21 @@ public class TimelineProcessor {
                 if next.isWorthKeeping { keeperCount += 1 }
                 workingItem = next
             }
+
+            // recurse until no remaining possible merges
+            process(items) { results in
+                if let kept = results?.kept {
+                    process(from: kept)
+                }
+            }
+        }
+    }
+
+    public static func process(_ items: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
+        guard let store = items.first?.store else { return }
+        store.process {
+
+            /** collate all the potential merges **/
 
             var merges: [Merge] = []
             for workingItem in items {
@@ -88,7 +98,8 @@ public class TimelineProcessor {
                 }
             }
 
-            // sort the merges by highest to lowest score
+            /** sort the merges by highest to lowest score **/
+
             merges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
 
             if !merges.isEmpty {
@@ -97,21 +108,18 @@ public class TimelineProcessor {
                 os_log("Considering:\n%@", type: .debug, descriptions)
             }
 
-            // do the highest scoring valid merge
-            if let winningMerge = merges.first, winningMerge.score != .impossible {
-                let description = String(describing: winningMerge)
-                os_log("Doing:\n%@", type: .debug, description)
+            /** find the highest scoring valid merge **/
 
-                let results = winningMerge.doIt()
-
-                onMain {
-                    let note = Notification(name: .mergedTimelineItems, object: self, userInfo: ["merge": description])
-                    NotificationCenter.default.post(note)
-                }
-
-                // recurse until no valid merges left to do
-                self.process(from: results.kept)
+            guard let winningMerge = merges.first, winningMerge.score != .impossible else {
+                completion?(nil)
+                return
             }
+
+            /** do it **/
+
+            let results = winningMerge.doIt()
+
+            completion?(results)
         }
     }
 

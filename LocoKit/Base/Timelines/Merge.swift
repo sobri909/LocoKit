@@ -5,7 +5,12 @@
 
 import os.log
 
+public extension NSNotification.Name {
+    public static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
+}
+
 typealias MergeScore = ConsumptionScore
+public typealias MergeResult = (kept: TimelineItem, killed: [TimelineItem])
 
 internal class Merge: CustomStringConvertible {
 
@@ -42,14 +47,25 @@ internal class Merge: CustomStringConvertible {
         if let betweener = betweener { store.release(betweener) }
     }
 
-    @discardableResult func doIt() -> (kept: TimelineItem, killed: [TimelineItem]) {
+    @discardableResult func doIt() -> MergeResult {
+        let description = String(describing: self)
+        os_log("Doing:\n%@", type: .debug, description)
+
         merge(deadman, into: keeper)
-        
+
+        let results: MergeResult
         if let betweener = betweener {
-            return (kept: keeper, killed: [deadman, betweener])
+            results = (kept: keeper, killed: [deadman, betweener])
         } else {
-            return (kept: keeper, killed: [deadman])
+            results = (kept: keeper, killed: [deadman])
         }
+
+        // notify listeners
+        let note = Notification(name: .mergedTimelineItems, object: self,
+                                userInfo: ["description": description, "results": results])
+        NotificationCenter.default.post(note)
+
+        return results
     }
 
     private func merge(_ deadman: TimelineItem, into keeper: TimelineItem) {

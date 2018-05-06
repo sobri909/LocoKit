@@ -16,7 +16,7 @@ open class PersistentPath: Path, PersistentObject {
         didSet {
             if oldValue != deleted {
                 hasChanges = true
-                save(immediate: true)
+                save()
             }
         }
     }
@@ -114,7 +114,7 @@ open class PersistentPath: Path, PersistentObject {
 
     public var transactionDate: Date?
     public var lastSaved: Date?
-    public private(set) var hasChanges: Bool = false
+    public var hasChanges: Bool = false
 
     // MARK: Initialisers
 

@@ -212,10 +212,10 @@ open class PersistentTimelineStore: TimelineStore {
         mutex.sync {
             guard immediate || (itemsToSave.count + samplesToSave.count >= saveBatchSize) else { return }
 
-            savingItems = itemsToSave
+            savingItems = itemsToSave.filter { ($0 as? PersistentItem)?.needsSave == true }
             itemsToSave.removeAll(keepingCapacity: true)
 
-            savingSamples = samplesToSave
+            savingSamples = samplesToSave.filter { $0.needsSave }
             samplesToSave.removeAll(keepingCapacity: true)
         }
 

@@ -33,10 +33,8 @@ public class TimelineRecorder {
 
     public init(store: TimelineStore, classifier: MLCompositeClassifier? = nil) {
         self.store = store
+        store.recorder = self
         self.classifier = classifier
-
-        // bootstrap the current item
-        self.currentItem = store.mostRecentItem
 
         let notes = NotificationCenter.default
         notes.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { [weak self] _ in
@@ -50,6 +48,15 @@ public class TimelineRecorder {
         }
         notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { [weak self] _ in
             self?.updateSleepModeAcceptability()
+        }
+
+        // keep currentItem sane after merges
+        notes.addObserver(forName: .mergedTimelineItems, object: nil, queue: nil) { [weak self] note in
+            guard let results = note.userInfo?["results"] as? MergeResult else { return }
+            guard let current = self?.currentItem else { return }
+            if results.killed.contains(current) {
+                self?.currentItem = results.kept
+            }
         }
     }
 
@@ -97,7 +104,17 @@ public class TimelineRecorder {
 
     // MARK: - The recording cycle
 
-    private(set) public var currentItem: TimelineItem?
+    private var _currentItem: TimelineItem?
+    public private(set) var currentItem: TimelineItem? {
+        get {
+            if let item = _currentItem { return item }
+            _currentItem = store.mostRecentItem
+            return _currentItem
+        }
+        set(newValue) {
+            _currentItem = newValue
+        }
+    }
 
     public var currentVisit: Visit? { return currentItem as? Visit }
 

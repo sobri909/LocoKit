@@ -242,8 +242,8 @@ open class Path: TimelineItem {
     }
 
     override open func samplesChanged() {
-        _distance = nil
         super.samplesChanged()
+        _distance = nil
     }
 }
 
