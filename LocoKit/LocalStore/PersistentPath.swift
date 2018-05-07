@@ -58,6 +58,7 @@ open class PersistentPath: Path, PersistentObject {
         guard let instance = self.currentInstance else { return }
         store?.retain(instance)
         mutex.sync { changes(instance) }
+        instance.hasChanges = true
         instance.save(immediate: true)
     }
 
