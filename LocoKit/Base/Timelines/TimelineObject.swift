@@ -11,7 +11,6 @@ public protocol TimelineObject: class {
     var objectId: UUID { get }
 
     var store: TimelineStore? { get }
-    var inTheStore: Bool { get }
 
 }
 

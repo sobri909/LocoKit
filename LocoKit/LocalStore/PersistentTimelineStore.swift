@@ -58,19 +58,6 @@ open class PersistentTimelineStore: TimelineStore {
         if persistentItem.unsaved { persistentItem.save() }
     }
 
-    open override func release(_ objects: [TimelineObject]) {
-        var filtered: [TimelineObject] = []
-        mutex.sync {
-            // don't release objects that're in the save queues
-            for object in objects {
-                if let item = object as? TimelineItem, itemsToSave.contains(item) { continue }
-                if let sample = object as? PersistentSample, samplesToSave.contains(sample) { continue }
-                filtered.append(object)
-            }
-        }
-        super.release(filtered)
-    }
-
     // MARK: - Item / Sample creation
 
     open override func createVisit(from sample: LocomotionSample) -> PersistentVisit {
@@ -97,7 +84,7 @@ open class PersistentTimelineStore: TimelineStore {
 
     open func item(for row: Row) -> TimelineItem {
         guard let itemId = row["itemId"] as String? else { fatalError("MISSING ITEMID") }
-        if let cached = cachedObject(for: UUID(uuidString: itemId)!) as? TimelineItem { return cached }
+        if let item = object(for: UUID(uuidString: itemId)!) as? TimelineItem { return item }
         guard let isVisit = row["isVisit"] as Bool? else { fatalError("MISSING ISVISIT BOOL") }
         return isVisit
             ? PersistentVisit(from: row.asDict(in: self), in: self)
@@ -106,7 +93,7 @@ open class PersistentTimelineStore: TimelineStore {
 
     open func sample(for row: Row) -> PersistentSample {
         guard let sampleId = row["sampleId"] as String? else { fatalError("MISSING SAMPLEID") }
-        if let cached = cachedObject(for: UUID(uuidString: sampleId)!) as? PersistentSample { return cached }
+        if let sample = object(for: UUID(uuidString: sampleId)!) as? PersistentSample { return sample }
         return PersistentSample(from: row.asDict(in: self), in: self)
     }
 
@@ -117,7 +104,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     open override func item(for itemId: UUID) -> TimelineItem? {
-        if let cached = cachedObject(for: itemId) as? TimelineItem { return cached }
+        if let item = object(for: itemId) as? TimelineItem { return item }
         return item(for: "SELECT * FROM TimelineItem WHERE itemId = ? LIMIT 1", arguments: [itemId.uuidString])
     }
 
@@ -148,7 +135,7 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Sample fetching
 
     open override func sample(for sampleId: UUID) -> PersistentSample? {
-        if let cached = cachedObject(for: sampleId) as? PersistentSample { return cached }
+        if let sample = object(for: sampleId) as? PersistentSample { return sample }
         return sample(for: "SELECT * FROM LocomotionSample WHERE sampleId = ?", arguments: [sampleId.uuidString])
     }
 
@@ -189,12 +176,6 @@ open class PersistentTimelineStore: TimelineStore {
     // MARK: Saving
 
     public func save(_ object: PersistentObject, immediate: Bool) {
-        if !object.inTheStore {
-            if object is TimelineItem {
-                os_log("UNSAFE SAVE: Item not in the store")
-            }
-        }
-        retain(object)
         mutex.sync {
             if let item = object as? TimelineItem {
                 itemsToSave.insert(item)
@@ -226,7 +207,6 @@ open class PersistentTimelineStore: TimelineStore {
                 for case let item as PersistentObject in savingItems { try item.save(in: db) }
                 db.afterNextTransactionCommit { db in
                     for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
-                    self.release(Array(savingItems))
                 }
                 return .commit
             }
@@ -238,7 +218,6 @@ open class PersistentTimelineStore: TimelineStore {
                 for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
                 db.afterNextTransactionCommit { db in
                     for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
-                    self.release(Array(savingSamples))
                 }
                 return .commit
             }
@@ -404,7 +383,7 @@ class ItemsObserver: TransactionObserver {
                 let nextItemIdString = row["nextItemId"] as String?
                 
                 guard let uuidString = row["itemId"] as String?, let itemId = UUID(uuidString: uuidString) else { continue }
-                guard let item = store.cachedObject(for: itemId) as? TimelineItem else { continue }
+                guard let item = store.object(for: itemId) as? TimelineItem else { continue }
 
                 if let uuidString = previousItemIdString, item.previousItemId?.uuidString != uuidString {
                     item.previousItemId = UUID(uuidString: uuidString)

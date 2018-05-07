@@ -10,8 +10,6 @@ import GRDB
 
 open class PersistentVisit: Visit, PersistentObject {
 
-    open override var currentInstance: PersistentVisit? { return super.currentInstance as? PersistentVisit }
-
     public override var deleted: Bool {
         didSet {
             if oldValue != deleted {
@@ -45,8 +43,12 @@ open class PersistentVisit: Visit, PersistentObject {
     open override var samples: [LocomotionSample] {
         return mutex.sync {
             if let existing = _samples { return existing }
-            if lastSaved == nil { _samples = [] } else {
-                _samples = persistentStore.samples(where: "timelineItemId = ? ORDER BY date", arguments: [itemId.uuidString])
+            if lastSaved == nil {
+                _samples = []
+            } else if let store = persistentStore {
+                _samples = store.samples(where: "timelineItemId = ? ORDER BY date", arguments: [itemId.uuidString])
+            } else {
+                _samples = []
             }
             return _samples!
         }
@@ -55,11 +57,9 @@ open class PersistentVisit: Visit, PersistentObject {
     // MARK: Data modification
 
     open override func edit(changes: (PersistentVisit) -> Void) {
-        guard let instance = self.currentInstance else { return }
-        store?.retain(instance)
-        mutex.sync { changes(instance) }
-        instance.hasChanges = true
-        instance.save(immediate: true)
+        mutex.sync { changes(self) }
+        hasChanges = true
+        save(immediate: true)
     }
 
     open override func add(_ samples: [LocomotionSample]) {

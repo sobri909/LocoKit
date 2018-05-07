@@ -16,9 +16,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     // MARK: TimelineObject
 
     public var objectId: UUID { return itemId }
-    public weak var store: TimelineStore?
-    internal(set) public var inTheStore = false
-    open var currentInstance: TimelineItem? { return inTheStore ? self : store?.item(for: itemId) }
+    public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
 
     public var classifier: MLCompositeClassifier? { return store?.recorder?.classifier }
 
@@ -424,10 +422,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     // MARK: Modifying the timeline item
 
     open func edit(changes: (TimelineItem) -> Void) {
-        guard let instance = self.currentInstance else { return }
-        store?.retain(instance)
-        mutex.sync { changes(instance) }
-        store?.release(instance)
+        mutex.sync { changes(self) }
     }
 
     public func add(_ sample: LocomotionSample) { add([sample]) }
@@ -526,7 +521,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
     }
 
-    // MARK: Hashable, Comparable
+    // MARK: - Hashable, Comparable
 
     public var hashValue: Int { return itemId.hashValue }
 
@@ -537,11 +532,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return false
     }
 
-    // MARK: Required initialisers
+    // MARK: - Required initialisers
 
     public required init(in store: TimelineStore) {
         self.itemId = UUID()
         self.lastModified = Date()
+        self.store = store
         store.add(self)
     }
 
@@ -570,10 +566,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         } else if let latitude = dict["latitude"] as? Double, let longitude = dict["longitude"] as? Double {
             self._center = CLLocation(latitude: latitude, longitude: longitude)
         }
+        self.store = store
         store.add(self)
     }
 
-    // MARK: Codable
+    // MARK: - Codable
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

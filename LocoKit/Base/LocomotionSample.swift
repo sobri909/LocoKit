@@ -29,9 +29,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
     // MARK: TimelineObject
 
     public var objectId: UUID { return sampleId }
-    public weak var store: TimelineStore?
-    internal(set) public var inTheStore = false
-    open var currentInstance: LocomotionSample? { return store?.sample(for: sampleId) }
+    
+    public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
 
     public let sampleId: UUID
 
@@ -126,7 +125,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
     /// The sample's parent `TimelineItem`, if recording is being done via a `TimelineManager`.
     public var timelineItem: TimelineItem? {
         get {
-            if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached.currentInstance }
+            if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached }
             if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item }
             return self._timelineItem
         }
@@ -160,7 +159,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     public var classifiedType: ActivityTypeName? { return unfilteredClassifierResults?.first?.name }
 
-    // MARK: Convenience Getters
+    // MARK: - Convenience Getters
     
     public lazy var timeOfDay: TimeInterval = { return self.date.sinceStartOfDay }()
 
@@ -173,24 +172,27 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         return myLocation.distance(from: theirLocation)
     }
 
-    // MARK: Convenience initialisers
+    // MARK: - Convenience initialisers
 
     public convenience init(from dict: [String: Any?], in store: TimelineStore) {
         self.init(from: dict)
+        self.store = store
         store.add(self)
     }
 
     public convenience init(from sample: ActivityBrainSample, in store: TimelineStore) {
         self.init(from: sample)
+        self.store = store
         store.add(self)
     }
 
     public convenience init(date: Date, recordingState: RecordingState, in store: TimelineStore) {
         self.init(date: date, recordingState: recordingState)
+        self.store = store
         store.add(self)
     }
 
-    // MARK: Required initialisers
+    // MARK: - Required initialisers
 
     public required init(from sample: ActivityBrainSample) {
         self.sampleId = UUID()
@@ -273,7 +275,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         self.coreMotionActivityType = nil
     }
 
-    // MARK: Codable
+    // MARK: - Codable
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

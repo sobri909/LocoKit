@@ -25,26 +25,12 @@ internal class Merge: CustomStringConvertible {
     }()
 
     init(keeper: TimelineItem, betweener: TimelineItem? = nil, deadman: TimelineItem) {
-        guard let store = keeper.store else { fatalError("NO STORE") }
-
-        guard let keeper = keeper.currentInstance else { fatalError("NO KEEPER") }
-        guard let deadman = deadman.currentInstance else { fatalError("NO DEADMAN") }
-
-        store.retain([keeper, deadman])
         self.keeper = keeper
         self.deadman = deadman
 
-        if let betweener = betweener?.currentInstance {
-            store.retain(betweener)
+        if let betweener = betweener {
             self.betweener = betweener
         }
-    }
-    
-    deinit {
-        guard let store = keeper.store else { fatalError("NO STORE") }
-        store.release(keeper)
-        store.release(deadman)
-        if let betweener = betweener { store.release(betweener) }
     }
 
     @discardableResult func doIt() -> MergeResult {
