@@ -71,27 +71,12 @@ class ViewController: UIViewController {
             if let currentItem = self.recorder.currentItem {
                 log(".newTimelineItem (\(String(describing: type(of: currentItem))))")
             }
-            onMain {
-                let items = self.itemsToShow
-                self.mapView.update(with: items)
-                self.timelineView.update(with: items)
-            }
-        }
-
-        // observe timeline item updates
-        when(.updatedTimelineItem) { _ in
-            onMain {
-                let items = self.itemsToShow
-                self.mapView.update(with: items)
-                self.timelineView.update(with: items)
-            }
         }
 
         when(.mergedTimelineItems) { note in
-            if let description = note.userInfo?["merge"] as? String {
+            if let description = note.userInfo?["description"] as? String {
                 log(".mergedItems (\(description))")
             }
-            onMain { self.timelineView.update(with: self.itemsToShow) }
         }
 
         let loco = LocomotionManager.highlander
