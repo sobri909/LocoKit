@@ -98,8 +98,13 @@ open class PersistentPath: Path, PersistentObject {
         container["isVisit"] = false
         container["startDate"] = _dateRange?.start
         container["endDate"] = _dateRange?.end
-        container["previousItemId"] = previousItemId?.uuidString
-        container["nextItemId"] = nextItemId?.uuidString
+        if deleted {
+            container["previousItemId"] = nil
+            container["nextItemId"] = nil
+        } else {
+            container["previousItemId"] = previousItemId?.uuidString
+            container["nextItemId"] = nextItemId?.uuidString
+        }
         container["radiusMean"] = _radius?.mean
         container["radiusSD"] = _radius?.sd
         container["altitude"] = _altitude
