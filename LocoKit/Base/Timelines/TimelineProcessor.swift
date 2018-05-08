@@ -46,7 +46,7 @@ public class TimelineProcessor {
 
             /** collate all the potential merges **/
 
-            var merges: [Merge] = []
+            var merges: Set<Merge> = []
             for workingItem in items {
                 workingItem.sanitiseEdges()
 
@@ -54,16 +54,16 @@ public class TimelineProcessor {
                 if let next = workingItem.nextItem, !next.isCurrentItem || next.isWorthKeeping {
                     next.sanitiseEdges()
 
-                    merges.append(Merge(keeper: workingItem, deadman: next))
-                    merges.append(Merge(keeper: next, deadman: workingItem))
+                    merges.insert(Merge(keeper: workingItem, deadman: next))
+                    merges.insert(Merge(keeper: next, deadman: workingItem))
 
                     // if next has a lesser keepness, look at doing a merge against next-next
                     if next.keepnessScore < workingItem.keepnessScore {
                         if let nextNext = next.nextItem, nextNext.keepnessScore > next.keepnessScore {
                             nextNext.sanitiseEdges()
 
-                            merges.append(Merge(keeper: workingItem, betweener: next, deadman: nextNext))
-                            merges.append(Merge(keeper: nextNext, betweener: next, deadman: workingItem))
+                            merges.insert(Merge(keeper: workingItem, betweener: next, deadman: nextNext))
+                            merges.insert(Merge(keeper: nextNext, betweener: next, deadman: workingItem))
                         }
                     }
                 }
@@ -72,8 +72,8 @@ public class TimelineProcessor {
                 if let previous = workingItem.previousItem {
                     previous.sanitiseEdges()
 
-                    merges.append(Merge(keeper: workingItem, deadman: previous))
-                    merges.append(Merge(keeper: previous, deadman: workingItem))
+                    merges.insert(Merge(keeper: workingItem, deadman: previous))
+                    merges.insert(Merge(keeper: previous, deadman: workingItem))
 
                     // clean up edges
                     previous.sanitiseEdges()
@@ -83,8 +83,8 @@ public class TimelineProcessor {
                         if let prevPrev = previous.previousItem, prevPrev.keepnessScore > previous.keepnessScore {
                             prevPrev.sanitiseEdges()
 
-                            merges.append(Merge(keeper: workingItem, betweener: previous, deadman: prevPrev))
-                            merges.append(Merge(keeper: prevPrev, betweener: previous, deadman: workingItem))
+                            merges.insert(Merge(keeper: workingItem, betweener: previous, deadman: prevPrev))
+                            merges.insert(Merge(keeper: prevPrev, betweener: previous, deadman: workingItem))
                         }
                     }
                 }
@@ -93,24 +93,24 @@ public class TimelineProcessor {
                 if let previous = workingItem.previousItem, let next = workingItem.nextItem,
                     previous.keepnessScore > workingItem.keepnessScore && next.keepnessScore > workingItem.keepnessScore
                 {
-                    merges.append(Merge(keeper: previous, betweener: workingItem, deadman: next))
-                    merges.append(Merge(keeper: next, betweener: workingItem, deadman: previous))
+                    merges.insert(Merge(keeper: previous, betweener: workingItem, deadman: next))
+                    merges.insert(Merge(keeper: next, betweener: workingItem, deadman: previous))
                 }
             }
 
             /** sort the merges by highest to lowest score **/
 
-            merges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
+            let sortedMerges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
 
-            if !merges.isEmpty {
+            if !sortedMerges.isEmpty {
                 var descriptions = ""
-                for merge in merges { descriptions += String(describing: merge) + "\n" }
+                for merge in sortedMerges { descriptions += String(describing: merge) + "\n" }
                 os_log("Considering:\n%@", type: .debug, descriptions)
             }
 
             /** find the highest scoring valid merge **/
 
-            guard let winningMerge = merges.first, winningMerge.score != .impossible else {
+            guard let winningMerge = sortedMerges.first, winningMerge.score != .impossible else {
                 completion?(nil)
                 return
             }
@@ -132,25 +132,25 @@ public class TimelineProcessor {
     public static func safeDelete(_ deadman: TimelineItem, completion: ((TimelineItem?) -> Void)? = nil) {
         guard let store = deadman.store else { return }
         store.process {
-            var merges: [Merge] = []
+            var merges: Set<Merge> = []
 
             // merge next and previous
             if let next = deadman.nextItem, let previous = deadman.previousItem {
-                merges.append(Merge(keeper: next, betweener: deadman, deadman: previous))
-                merges.append(Merge(keeper: previous, betweener: deadman, deadman: next))
+                merges.insert(Merge(keeper: next, betweener: deadman, deadman: previous))
+                merges.insert(Merge(keeper: previous, betweener: deadman, deadman: next))
             }
 
             // merge into previous
             if let previous = deadman.previousItem {
-                merges.append(Merge(keeper: previous, deadman: deadman))
+                merges.insert(Merge(keeper: previous, deadman: deadman))
             }
 
             // merge into next
             if let next = deadman.nextItem {
-                merges.append(Merge(keeper: next, deadman: deadman))
+                merges.insert(Merge(keeper: next, deadman: deadman))
             }
 
-            merges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
+            let sortedMerges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
 
             var results: (kept: TimelineItem, killed: [TimelineItem])?
 
@@ -166,13 +166,13 @@ public class TimelineProcessor {
             }
 
             // do the highest scoring valid merge
-            if let winningMerge = merges.first, winningMerge.score != .impossible {
+            if let winningMerge = sortedMerges.first, winningMerge.score != .impossible {
                 results = winningMerge.doIt()
                 return
             }
 
             // fall back to doing an "impossible" (ie completely undesirable) merge
-            if let shittyMerge = merges.first {
+            if let shittyMerge = sortedMerges.first {
                 results = shittyMerge.doIt()
                 return
             }

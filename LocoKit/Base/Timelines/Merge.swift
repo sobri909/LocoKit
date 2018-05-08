@@ -12,22 +12,37 @@ public extension NSNotification.Name {
 typealias MergeScore = ConsumptionScore
 public typealias MergeResult = (kept: TimelineItem, killed: [TimelineItem])
 
-internal class Merge: CustomStringConvertible {
+internal class Merge: Hashable, CustomStringConvertible {
 
     var keeper: TimelineItem
     var betweener: TimelineItem?
     var deadman: TimelineItem
 
+    var isValid: Bool {
+        if keeper.isMergeLocked || deadman.isMergeLocked || betweener?.isMergeLocked == true { return false }
+        if keeper.deleted || deadman.deleted || betweener?.deleted == true { return false }
+        if let betweener = betweener {
+            // keeper -> betweener -> deadman
+            if keeper.nextItem == betweener, betweener.nextItem == deadman { return true }
+            // deadman -> betweener -> keeper
+            if deadman.nextItem == betweener, betweener.nextItem == keeper { return true }
+        } else {
+            // keeper -> deadman
+            if keeper.nextItem == deadman { return true }
+            // deadman -> keeper
+            if deadman.nextItem == keeper { return true }
+        }
+        return false
+    }
+
     lazy var score: MergeScore = {
-        if keeper.isMergeLocked || deadman.isMergeLocked || betweener?.isMergeLocked == true { return .impossible }
-        if keeper.deleted || deadman.deleted || betweener?.deleted == true { return .impossible }
+        guard isValid else { return .impossible }
         return self.keeper.scoreForConsuming(item: self.deadman)
     }()
 
     init(keeper: TimelineItem, betweener: TimelineItem? = nil, deadman: TimelineItem) {
         self.keeper = keeper
         self.deadman = deadman
-
         if let betweener = betweener {
             self.betweener = betweener
         }
@@ -55,6 +70,7 @@ internal class Merge: CustomStringConvertible {
     }
 
     private func merge(_ deadman: TimelineItem, into keeper: TimelineItem) {
+        guard isValid else { os_log("Invalid merge", type: .error); return }
         
         // deadman is previous
         if keeper.previousItem == deadman || (betweener != nil && keeper.previousItem == betweener) {
@@ -65,7 +81,7 @@ internal class Merge: CustomStringConvertible {
             keeper.nextItem = deadman.nextItem
 
         } else {
-            fatalError("BROKEN MERGE")
+            return
         }
 
         // deal with a betweener
@@ -79,7 +95,20 @@ internal class Merge: CustomStringConvertible {
         deadman.deleted = true
     }
 
-    // MARK: CustomStringConvertible
+    // MARK: - Hashable
+
+    var hashValue: Int {
+        if let betweener = betweener {
+            return keeper.hashValue ^ (betweener.hashValue + 1) ^ (deadman.hashValue + 2)
+        }
+        return keeper.hashValue ^ (deadman.hashValue + 1)
+    }
+
+    static func == (lhs: Merge, rhs: Merge) -> Bool {
+        return lhs.hashValue == rhs.hashValue
+    }
+
+    // MARK: - CustomStringConvertible
 
     var description: String {
         if let betweener = betweener {
