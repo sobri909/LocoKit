@@ -84,19 +84,27 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var endDate: Date? { return dateRange?.end }
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
 
-    public var previousItemId: UUID?
-    public var nextItemId: UUID?
+    public var previousItemId: UUID? {
+        didSet {
+            if previousItemId == itemId { fatalError("Can't link to self") }
+        }
+    }
+    public var nextItemId: UUID? {
+        didSet {
+            if nextItemId == itemId { fatalError("Can't link to self") }
+        }
+    }
 
     private weak var _previousItem: TimelineItem?
     public var previousItem: TimelineItem? {
         get {
-            if let cached = self._previousItem, cached.itemId == self.previousItemId, !cached.deleted { return cached }
-            if let itemId = self.previousItemId, let item = store?.item(for: itemId), !item.deleted { self._previousItem = item }
+            if let cached = self._previousItem, cached.itemId == self.previousItemId, !cached.deleted, cached != self { return cached }
+            if let itemId = self.previousItemId, let item = store?.item(for: itemId), !item.deleted, item != self { self._previousItem = item }
             return self._previousItem
         }
         set(newValue) {
-            if newValue == self { fatalError("CAN'T LINK TO SELF") }
-            if newValue?.deleted == true { os_log("Can't link to a deleted item"); return }
+            if newValue == self { fatalError("Can't link to self") }
+            if newValue?.deleted == true { fatalError("Can't link to a deleted item") }
             mutex.sync {
                 let oldValue = self.previousItem
 
@@ -123,13 +131,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _nextItem: TimelineItem?
     public var nextItem: TimelineItem? {
         get {
-            if let cached = self._nextItem, cached.itemId == self.nextItemId, !cached.deleted { return cached }
-            if let itemId = self.nextItemId, let item = store?.item(for: itemId), !item.deleted { self._nextItem = item }
+            if let cached = self._nextItem, cached.itemId == self.nextItemId, !cached.deleted, cached != self { return cached }
+            if let itemId = self.nextItemId, let item = store?.item(for: itemId), !item.deleted, item != self { self._nextItem = item }
             return self._nextItem
         }
         set(newValue) {
-            if newValue == self { fatalError("CAN'T LINK TO SELF") }
-            if newValue?.deleted == true { os_log("Can't link to a deleted item"); return }
+            if newValue == self { fatalError("Can't link to self") }
+            if newValue?.deleted == true { fatalError("Can't link to a deleted item") }
             mutex.sync {
                 let oldValue = self.nextItem
 
