@@ -13,7 +13,6 @@ import LocoKitCore
 open class TimelineStore {
 
     public var recorder: TimelineRecorder?
-    public let cacheDelegate = TimelineStoreCacheDelegate()
 
     public let mutex = UnfairLock()
 
