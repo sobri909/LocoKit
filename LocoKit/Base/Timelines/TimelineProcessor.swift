@@ -48,6 +48,7 @@ public class TimelineProcessor {
 
             var merges: Set<Merge> = []
             for workingItem in items {
+                healEdges(of: workingItem)
                 workingItem.sanitiseEdges()
 
                 // add in the merges for one step forward
@@ -132,6 +133,9 @@ public class TimelineProcessor {
     public static func safeDelete(_ deadman: TimelineItem, completion: ((TimelineItem?) -> Void)? = nil) {
         guard let store = deadman.store else { return }
         store.process {
+            healEdges(of: deadman)
+            deadman.sanitiseEdges()
+
             var merges: Set<Merge> = []
 
             // merge next and previous
@@ -179,17 +183,16 @@ public class TimelineProcessor {
         }
     }
 
-    public static func healEdges(of brokenItem: TimelineItem) {
-        guard let store = brokenItem.store else { return }
-        store.process {
-            if brokenItem.isMergeLocked { return }
-            if !brokenItem.hasBrokenEdges { return }
+    // MARK: - Item edge healing
 
-            print("\(brokenItem.itemId)")
+    private static func healEdges(of brokenItem: TimelineItem) {
+        if brokenItem.isMergeLocked { return }
+        if !brokenItem.hasBrokenEdges { return }
 
-            self.healNextEdge(of: brokenItem)
-            self.healPreviousEdge(of: brokenItem)
-        }
+        print("\(brokenItem.itemId)")
+
+        self.healNextEdge(of: brokenItem)
+        self.healPreviousEdge(of: brokenItem)
     }
 
     private static func healNextEdge(of brokenItem: TimelineItem) {
@@ -262,6 +265,8 @@ public class TimelineProcessor {
 
         print("COULDN'T HEAL PREVIOUSITEM EDGE")
     }
+
+    // MARK: - Data gap insertion
 
     public static func insertDataGapBetween(newer newerItem: TimelineItem, older olderItem: TimelineItem) {
         guard let store = newerItem.store else { return }
