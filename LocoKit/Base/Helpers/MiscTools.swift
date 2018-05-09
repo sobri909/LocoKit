@@ -30,3 +30,11 @@ public extension Comparable {
 
 }
 
+public extension UUID {
+
+    public var shortString: String {
+        return String(uuidString.split(separator: "-")[0])
+    }
+
+}
+

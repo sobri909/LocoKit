@@ -48,6 +48,8 @@ open class PersistentTimelineStore: TimelineStore {
         migrateDatabase()
         pool.add(transactionObserver: itemsObserver)
         pool.setupMemoryManagement(in: UIApplication.shared)
+
+        adoptOrphanedSamples()
     }
 
     // MARK: - Adding Items / Samples to the store
@@ -159,7 +161,7 @@ open class PersistentTimelineStore: TimelineStore {
         }
     }
 
-    // MARK: Counting
+    // MARK: - Counting
 
     public func countItems(where query: String, arguments: StatementArguments? = nil) -> Int {
         return try! pool.read { db in
@@ -173,7 +175,7 @@ open class PersistentTimelineStore: TimelineStore {
         }
     }
 
-    // MARK: Saving
+    // MARK: - Saving
 
     public func save(_ object: PersistentObject, immediate: Bool) {
         mutex.sync {
@@ -224,16 +226,39 @@ open class PersistentTimelineStore: TimelineStore {
         }
     }
 
-    // MARK: Database housekeeping
+    // MARK: - Database housekeeping
 
     open func hardDeleteSoftDeletedItems() {
         let deadline = Date(timeIntervalSinceNow: -keepDeletedItemsFor)
-        try! pool.write { db in
-            try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND endDate < ?", arguments: [deadline])
+        do {
+            try pool.write { db in
+                try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND endDate < ?", arguments: [deadline])
+            }
+        } catch {
+            os_log("%@", error.localizedDescription)
         }
     }
 
-    // MARK: Database creation and migrations
+    private func adoptOrphanedSamples() {
+        process {
+            let orphans = self.samples(where: "timelineItemId IS NULL ORDER BY date DESC")
+
+            if orphans.count > 0 {
+                os_log("Found orphaned samples: %d", type: .error, orphans.count)
+            }
+
+            for orphan in orphans where orphan.timelineItem == nil {
+                if let item = self.item(where: "deleted = 0 AND startDate <= ? AND endDate >= ?",
+                                         arguments: [orphan.date, orphan.date]) {
+                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@)", type: .error, item.itemId.shortString,
+                           orphan.sampleId.shortString)
+                    item.add(orphan)
+                }
+            }
+        }
+    }
+
+    // MARK: - Database creation and migrations
 
     public var migrator = DatabaseMigrator()
 
