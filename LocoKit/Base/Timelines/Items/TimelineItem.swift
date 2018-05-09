@@ -24,8 +24,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public let itemId: UUID
 
-    private(set) public var lastModified: Date
-
     open var isMergeLocked: Bool { return false }
 
     public var hasBrokenEdges: Bool {
@@ -473,7 +471,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
         if oldDateRange != dateRange { pedometerDataIsStale = true }
 
-        lastModified = Date()
         onMain {
             NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
         }
@@ -544,7 +541,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public required init(in store: TimelineStore) {
         self.itemId = UUID()
-        self.lastModified = Date()
         self.store = store
         store.add(self)
     }
@@ -558,7 +554,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         self.deleted = dict["deleted"] as? Bool ?? false
         if let uuidString = dict["previousItemId"] as? String { self.previousItemId = UUID(uuidString: uuidString)! }
         if let uuidString = dict["nextItemId"] as? String { self.nextItemId = UUID(uuidString: uuidString)! }
-        self.lastModified = dict["lastModified"] as? Date ?? Date()
         if let mean = dict["radiusMean"] as? Double, let sd = dict["radiusSD"] as? Double {
             self._radius = Radius(mean: mean, sd: sd)
         }
@@ -592,7 +587,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         let end = try? container.decode(Date.self, forKey: .endDate)
         if let start = start, let end = end, start <= end { self._dateRange = DateInterval(start: start, end: end) }
 
-        self.lastModified = (try? container.decode(Date.self, forKey: .lastModified)) ?? Date()
         self._radius = try? container.decode(Radius.self, forKey: .radius)
         self._altitude = try? container.decode(CLLocationDistance.self, forKey: .altitude)
         self._stepCount = try? container.decode(Int.self, forKey: .stepCount)
@@ -612,7 +606,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         try container.encode(nextItemId, forKey: .nextItemId)
         try container.encode(startDate, forKey: .startDate)
         try container.encode(endDate, forKey: .endDate)
-        try container.encode(lastModified, forKey: .lastModified)
         try container.encode(center?.codable, forKey: .center)
         try container.encode(radius, forKey: .radius)
         try container.encode(altitude, forKey: .altitude)
