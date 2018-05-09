@@ -9,6 +9,11 @@
 import os.log
 import LocoKitCore
 
+public extension NSNotification.Name {
+    public static let processingStarted = Notification.Name("processingStarted")
+    public static let processingStopped = Notification.Name("processingStopped")
+}
+
 /// An in-memory timeline data store. For persistent timeline data storage, see `PersistentTimelineStore`.
 open class TimelineStore {
 
@@ -19,6 +24,13 @@ open class TimelineStore {
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
     private let sampleMap = NSMapTable<NSUUID, LocomotionSample>.strongToWeakObjects()
     private let processingQueue = DispatchQueue(label: "TimelineProcessing")
+    public private(set) var processing = false {
+        didSet {
+            guard processing != oldValue else { return }
+            let noteName: NSNotification.Name = processing ? .processingStarted : .processingStopped
+            onMain { NotificationCenter.default.post(Notification(name: noteName, object: self, userInfo: nil)) }
+        }
+    }
 
     public var itemsInStore: Int { return mutex.sync { itemMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var samplesInStore: Int { return mutex.sync { sampleMap.objectEnumerator()?.allObjects.count ?? 0 } }
@@ -63,8 +75,10 @@ open class TimelineStore {
 
     public func process(changes: @escaping () -> Void) {
         processingQueue.async {
+            self.processing = true
             changes()
             self.save(immediate: true)
+            self.processing = false
         }
     }
 
