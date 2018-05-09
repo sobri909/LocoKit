@@ -54,6 +54,8 @@ public class TimelineSegment {
             queue.async {
                 do {
                     try self.observer.performFetch()
+                    self.onUpdate?()
+
                 } catch {
                     fatalError("OOPS: \(error)")
                 }
