@@ -20,8 +20,8 @@ open class TimelineStore {
     private let sampleMap = NSMapTable<NSUUID, LocomotionSample>.strongToWeakObjects()
     private let processingQueue = DispatchQueue(label: "TimelineProcessing")
 
-    public var itemsInStore: Int { return mutex.sync { itemMap.count } }
-    public var samplesInStore: Int { return mutex.sync { sampleMap.count } }
+    public var itemsInStore: Int { return mutex.sync { itemMap.objectEnumerator()?.allObjects.count ?? 0 } }
+    public var samplesInStore: Int { return mutex.sync { sampleMap.objectEnumerator()?.allObjects.count ?? 0 } }
 
     public func object(for objectId: UUID) -> TimelineObject? {
         return mutex.sync {

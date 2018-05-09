@@ -250,8 +250,8 @@ open class PersistentTimelineStore: TimelineStore {
             for orphan in orphans where orphan.timelineItem == nil {
                 if let item = self.item(where: "deleted = 0 AND startDate <= ? AND endDate >= ?",
                                          arguments: [orphan.date, orphan.date]) {
-                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@)", type: .error, item.itemId.shortString,
-                           orphan.sampleId.shortString)
+                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .error, item.itemId.shortString,
+                           orphan.sampleId.shortString, String(describing: orphan.date))
                     item.add(orphan)
                 }
             }
