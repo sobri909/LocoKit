@@ -40,10 +40,12 @@ public class TimelineRecorder {
         notes.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { [weak self] _ in
             self?.recordSample()
         }
-        notes.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { [weak self] _ in
+        notes.addObserver(forName: .startedSleepMode, object: nil, queue: nil) { [weak self] _ in
             if let currentItem = self?.currentItem {
                 TimelineProcessor.process(from: currentItem)
             }
+        }
+        notes.addObserver(forName: .willStartSleepMode, object: nil, queue: nil) { [weak self] _ in
             self?.recordSample()
         }
         notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { [weak self] _ in
