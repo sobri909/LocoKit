@@ -29,7 +29,10 @@ public protocol MLClassifierManager: MLCompositeClassifier {
 
 extension MLClassifierManager {
 
-    public var canClassify: Bool { return baseClassifier != nil }
+    public var canClassify: Bool {
+        guard let baseClassifier = baseClassifier else { return false }
+        return baseClassifier.models.count == baseClassifier.requiredTypes.count
+    }
 
     public func classify(_ classifiable: ActivityTypeClassifiable, filtered: Bool) -> ClassifierResults? {
 

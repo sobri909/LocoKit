@@ -13,11 +13,14 @@ public class TimelineSegment {
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
 
-    private var _timelineItems: [TimelineItem]?
+    private var itemsAreStale = true
+    private var _timelineItems: [TimelineItem] = []
     public var timelineItems: [TimelineItem] {
-        if let existing = _timelineItems { return existing }
-        _timelineItems = updatedItems
-        return _timelineItems!
+        if itemsAreStale {
+            _timelineItems = updatedItems
+            itemsAreStale = false
+        }
+        return _timelineItems
     }
 
     private let query: String
@@ -69,10 +72,12 @@ public class TimelineSegment {
     // MARK: - Result updating
 
     private func needsUpdate() {
-        _timelineItems = nil
+        itemsAreStale = true
         onMain {
             self.updateTimer?.invalidate()
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { [weak self] _ in
+            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { [weak self] _ in
+                self?.reclassifySamples()
+                self?.process()
                 self?.onUpdate?()
             }
         }
@@ -80,6 +85,27 @@ public class TimelineSegment {
 
     private var updatedItems: [TimelineItem] {
         return observer.fetchedRecords.map { store.item(for: $0.row) }
+    }
+
+    private func reclassifySamples() {
+        store.process {
+            guard let classifier = self.store.recorder?.classifier, classifier.canClassify else { return }
+
+            for item in self.timelineItems {
+                var count = 0
+                for sample in item.samples where sample.confirmedType == nil && sample.classifierResults == nil {
+                    sample.classifierResults = classifier.classify(sample, filtered: true)
+                    sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+                    count += 1
+                }
+                if count > 0 {
+                    os_log("Reclassified samples: %d", type: .debug, count)
+                }
+            }
+        }
+    }
+
+    private func process() {
     }
 
 }
