@@ -133,8 +133,10 @@ public class TimelineRecorder {
         let sample = store.createSample(from: ActivityBrain.highlander.presentSample)
 
         // classify the sample, if a classifier has been provided
-        sample.classifierResults = classifier?.classify(sample, filtered: true)
-        sample.unfilteredClassifierResults = classifier?.classify(sample, filtered: false)
+        if let classifier = classifier, classifier.canClassify {
+            sample.classifierResults = classifier.classify(sample, filtered: true)
+            sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+        }
 
         // make sure sleep mode doesn't happen prematurely
         updateSleepModeAcceptability()
