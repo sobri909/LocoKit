@@ -75,7 +75,7 @@ public class TimelineSegment {
         itemsAreStale = true
         onMain {
             self.updateTimer?.invalidate()
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { [weak self] _ in
+            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
                 self?.reclassifySamples()
                 self?.process()
                 self?.onUpdate?()
@@ -88,7 +88,7 @@ public class TimelineSegment {
     }
 
     private func reclassifySamples() {
-        store.process {
+        queue.async {
             guard let classifier = self.store.recorder?.classifier, classifier.canClassify else { return }
 
             for item in self.timelineItems {
