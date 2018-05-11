@@ -107,7 +107,7 @@ open class PersistentTimelineStore: TimelineStore {
 
     open override func item(for itemId: UUID) -> TimelineItem? {
         if let item = object(for: itemId) as? TimelineItem { return item }
-        return item(for: "SELECT * FROM TimelineItem WHERE itemId = ? LIMIT 1", arguments: [itemId.uuidString])
+        return item(where: "itemId = ?", arguments: [itemId.uuidString])
     }
 
     public func item(where query: String, arguments: StatementArguments? = nil) -> TimelineItem? {
