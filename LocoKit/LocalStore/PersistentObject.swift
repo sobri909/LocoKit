@@ -11,7 +11,7 @@ import GRDB
 
 public typealias PersistentItem = PersistentObject & TimelineItem
 
-public protocol PersistentObject: TimelineObject, PersistableRecord {
+public protocol PersistentObject: TimelineObject, Persistable {
 
     var persistentStore: PersistentTimelineStore? { get }
     var transactionDate: Date? { get set }

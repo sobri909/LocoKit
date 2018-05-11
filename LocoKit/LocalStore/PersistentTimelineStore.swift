@@ -203,23 +203,25 @@ open class PersistentTimelineStore: TimelineStore {
         }
 
         if !savingItems.isEmpty {
-            try! pool.write { db in
+            try! pool.writeInTransaction { db in
                 let now = Date()
                 for case let item as PersistentObject in savingItems { item.transactionDate = now }
                 for case let item as PersistentObject in savingItems { try item.save(in: db) }
                 db.afterNextTransactionCommit { db in
                     for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
                 }
+                return .commit
             }
         }
         if !savingSamples.isEmpty {
-            try! pool.write { db in
+            try! pool.writeInTransaction { db in
                 let now = Date()
                 for case let sample as PersistentObject in savingSamples { sample.transactionDate = now  }
                 for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
                 db.afterNextTransactionCommit { db in
                     for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
                 }
+                return .commit
             }
         }
     }
