@@ -8,26 +8,18 @@
 import os.log
 import GRDB
 
-public class TimelineSegment {
+public class TimelineSegment: TransactionObserver {
 
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
 
-    private var itemsAreStale = true
-    private var _timelineItems: [TimelineItem] = []
-    public var timelineItems: [TimelineItem] {
-        if itemsAreStale {
-            _timelineItems = updatedItems
-            itemsAreStale = false
-        }
-        return _timelineItems
-    }
+    public private(set) var timelineItems: [TimelineItem] = []
 
     private let query: String
     private let arguments: StatementArguments?
     private let queue = DispatchQueue(label: "TimelineSegment")
-    private let observer: FetchedRecordsController<RowCopy>
     private var updateTimer: Timer?
+    private var pendingChanges = false
 
     public convenience init(for dateRange: DateInterval, in store: PersistentTimelineStore,
                             onUpdate: (() -> Void)? = nil) {
@@ -38,57 +30,38 @@ public class TimelineSegment {
     public init(for query: String, arguments: StatementArguments? = nil, in store: PersistentTimelineStore,
                 onUpdate: (() -> Void)? = nil) {
         self.store = store
-        self.query = query
+        self.query = "SELECT * FROM TimelineItem WHERE " + query
         self.arguments = arguments
         self.onUpdate = onUpdate
-
-        do {
-            let fullQuery = "SELECT * FROM TimelineItem WHERE " + query
-            self.observer = try FetchedRecordsController<RowCopy>(store.pool, sql: fullQuery, arguments: arguments,
-                                                                  queue: queue)
-
-            self.observer.trackChanges { [weak self] observer in
-                self?.needsUpdate()
-            }
-            self.observer.trackErrors { observer, error in
-                os_log("FetchedRecordsController error: %@", type: .error, error.localizedDescription)
-            }
-
-            queue.async {
-                do {
-                    try self.observer.performFetch()
-                    self.onUpdate?()
-
-                } catch {
-                    fatalError("OOPS: \(error)")
-                }
-            }
-
-        } catch {
-            fatalError("OOPS: \(error)")
-        }
+        store.pool.add(transactionObserver: self)
     }
 
     // MARK: - Result updating
 
     private func needsUpdate() {
-        itemsAreStale = true
         onMain {
             self.updateTimer?.invalidate()
             self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-                self?.reclassifySamples()
-                self?.process()
-                self?.onUpdate?()
+                self?.update()
             }
         }
     }
 
-    private var updatedItems: [TimelineItem] {
-        return observer.fetchedRecords.map { store.item(for: $0.row) }
+    private func update() {
+        queue.async { [weak self] in
+            self?.updateItems()
+            self?.reclassifySamples()
+            self?.process()
+            self?.onUpdate?()
+        }
+    }
+
+    private func updateItems() {
+        self.timelineItems = store.items(for: query, arguments: arguments)
     }
 
     private func reclassifySamples() {
-        store.process {
+        queue.async {
             guard let classifier = self.store.recorder?.classifier, classifier.canClassify else { return }
 
             for item in self.timelineItems {
@@ -106,6 +79,30 @@ public class TimelineSegment {
     }
 
     private func process() {
+    }
+
+    // MARK: - TransactionObserver
+
+    public func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return eventKind.tableName == "TimelineItem"
+    }
+
+    public func databaseDidChange(with event: DatabaseEvent) {
+        pendingChanges = true
+
+        // it is pointless to keep on tracking further changes
+        stopObservingDatabaseChangesUntilNextTransaction()
+    }
+
+    public func databaseDidCommit(_ db: Database) {
+        guard pendingChanges else { return }
+        onMain { [weak self] in
+            self?.needsUpdate()
+        }
+    }
+
+    public func databaseDidRollback(_ db: Database) {
+        pendingChanges = false
     }
 
 }
