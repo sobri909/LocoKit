@@ -66,7 +66,8 @@ public class TimelineSegment: TransactionObserver {
 
             for item in self.timelineItems {
                 var count = 0
-                for sample in item.samples where sample.confirmedType == nil && sample.classifierResults == nil {
+                for sample in item.samples where sample.confirmedType == nil {
+                    if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
                     sample.classifierResults = classifier.classify(sample, filtered: true)
                     sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
                     count += 1
