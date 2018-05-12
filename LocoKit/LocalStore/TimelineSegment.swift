@@ -88,7 +88,7 @@ public class TimelineSegment {
     }
 
     private func reclassifySamples() {
-        queue.async {
+        store.process {
             guard let classifier = self.store.recorder?.classifier, classifier.canClassify else { return }
 
             for item in self.timelineItems {
