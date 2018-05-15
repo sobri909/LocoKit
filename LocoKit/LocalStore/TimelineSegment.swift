@@ -78,8 +78,8 @@ public class TimelineSegment: TransactionObserver {
         }
 
         if freshItemCount != lastItemCount { return true }
-        if freshLastSaveDate == lastSaveDate { return false }
-        return true
+        if freshLastSaveDate != lastSaveDate { return true }
+        return false
     }
 
     private func reclassifySamples() {
