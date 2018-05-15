@@ -56,8 +56,8 @@ open class PersistentPath: Path, PersistentObject {
 
     // MARK: Data modification
 
-    open override func edit(changes: (PersistentPath) -> Void) {
-        mutex.sync { changes(self) }
+    open override func edit(changes: () -> Void) {
+        mutex.sync { changes() }
         hasChanges = true
         save(immediate: true)
     }

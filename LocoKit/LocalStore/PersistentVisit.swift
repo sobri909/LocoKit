@@ -56,8 +56,8 @@ open class PersistentVisit: Visit, PersistentObject {
 
     // MARK: Data modification
 
-    open override func edit(changes: (PersistentVisit) -> Void) {
-        mutex.sync { changes(self) }
+    open override func edit(changes: () -> Void) {
+        mutex.sync { changes() }
         hasChanges = true
         save(immediate: true)
     }

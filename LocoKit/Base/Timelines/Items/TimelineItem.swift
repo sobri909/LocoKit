@@ -388,7 +388,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public func sanitiseEdges() {
-        edit { item in
+        edit {
             var lastPreviousChanged: LocomotionSample?
             var lastNextChanged: LocomotionSample?
 
@@ -396,8 +396,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
                 var previousChanged: LocomotionSample?
                 var nextChanged: LocomotionSample?
 
-                if let previousPath = item.previousItem as? Path { previousChanged = item.cleanseEdge(with: previousPath) }
-                if let nextPath = item.nextItem as? Path { nextChanged = item.cleanseEdge(with: nextPath) }
+                if let previousPath = self.previousItem as? Path { previousChanged = self.cleanseEdge(with: previousPath) }
+                if let nextPath = self.nextItem as? Path { nextChanged = self.cleanseEdge(with: nextPath) }
 
                 // no changes, so we're done
                 if previousChanged == nil && nextChanged == nil { break }
@@ -427,8 +427,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: Modifying the timeline item
 
-    open func edit(changes: (TimelineItem) -> Void) {
-        mutex.sync { changes(self) }
+    open func edit(changes: () -> Void) {
+        mutex.sync { changes() }
     }
 
     public func add(_ sample: LocomotionSample) { add([sample]) }
