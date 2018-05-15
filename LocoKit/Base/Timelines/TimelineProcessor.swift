@@ -207,7 +207,7 @@ public class TimelineProcessor {
 
         if let nearest = store.item(
             where: "deleted = 0 AND itemId != ? AND startDate >= ? ORDER BY ABS(strftime('%s', startDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970])
+            arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970]), !nearest.deleted
         {
             print("NEAREST NEXTITEM (separation: \(String(format: "%.0fs", nearest.timeInterval(from: brokenItem)!)), hasPrevious: \(nearest.previousItem != nil))")
 
@@ -220,7 +220,7 @@ public class TimelineProcessor {
 
         if let overlapper = store.item(
             where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
-            arguments: [brokenItem.itemId.uuidString, endDate, endDate])
+            arguments: [brokenItem.itemId.uuidString, endDate, endDate]), !overlapper.deleted
         {
             print("MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
@@ -242,7 +242,7 @@ public class TimelineProcessor {
 
         if let nearest = store.item(
             where: "deleted = 0 AND itemId != ? AND endDate <= ? ORDER BY ABS(strftime('%s', endDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970])
+            arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970]), !nearest.deleted
         {
             print("NEAREST PREVIOUSITEM (separation: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), hasNext: \(nearest.nextItem != nil))")
 
@@ -255,7 +255,7 @@ public class TimelineProcessor {
 
         if let overlapper = store.item(
             where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
-            arguments: [brokenItem.itemId.uuidString, startDate, startDate])
+            arguments: [brokenItem.itemId.uuidString, startDate, startDate]), !overlapper.deleted
         {
             print("MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
