@@ -13,7 +13,7 @@ public class TimelineSegment: TransactionObserver {
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
 
-    public private(set) var timelineItems: [TimelineItem] = []
+    public private(set) var timelineItems: [TimelineItem]?
 
     private let query: String
     private let arguments: StatementArguments?
@@ -61,9 +61,10 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func reclassifySamples() {
+        guard let items = timelineItems else { return }
         guard let classifier = store.recorder?.classifier, classifier.canClassify else { return }
 
-        for item in timelineItems {
+        for item in items {
             var count = 0
             for sample in item.samples where sample.confirmedType == nil {
                 if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
