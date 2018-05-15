@@ -78,12 +78,13 @@ public extension CLLocation {
 
     /// The weighted centre for an array of locations
     public convenience init?(weightedCenterFor locations: [CLLocation]) {
-        if locations.isEmpty {
-            return nil
-        }
+        if locations.isEmpty { return nil }
 
-        guard let accuracyRange = locations.horizontalAccuracyRange else {
-            return nil
+        guard let accuracyRange = locations.horizontalAccuracyRange else { return nil }
+
+        if locations.count == 1, let location = locations.first {
+            self.init(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+            return
         }
 
         var sumx: Double = 0, sumy: Double = 0, sumz: Double = 0, totalWeight: Double = 0
@@ -133,7 +134,7 @@ public extension CLLocation {
         var y: [Double] = []
         var z: [Double] = []
 
-        for location in locations {
+        for location in locations where location.hasUsableCoordinate {
             let lat = location.coordinate.latitude.radiansValue
             let lng = location.coordinate.longitude.radiansValue
 
@@ -188,7 +189,7 @@ public extension CLLocation {
         return !hasUsableCoordinate
     }
     public var hasUsableCoordinate: Bool {
-        return horizontalAccuracy > 0 && coordinate.isUsable
+        return horizontalAccuracy >= 0 && coordinate.isUsable
     }
 }
 
@@ -284,19 +285,22 @@ extension Array where Element: CLLocation {
 
     func radius(from center: CLLocation) -> Radius {
         guard count > 1 else {
-            return Radius.zero 
+            if let accuracy = first?.horizontalAccuracy, accuracy >= 0 {
+                return Radius(mean: accuracy, sd: 0)
+            }
+            return Radius.zero
         }
         let distances = self.compactMap { $0.hasUsableCoordinate ? $0.distance(from: center) : nil }
         return Radius(mean: distances.mean, sd: distances.standardDeviation)
     }
 
     public var horizontalAccuracy: CLLocationDistance {
-        let accuracies = self.compactMap { $0.horizontalAccuracy > 0 ? $0.horizontalAccuracy : nil }
+        let accuracies = self.compactMap { $0.horizontalAccuracy >= 0 ? $0.horizontalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
     public var verticalAccuracy: CLLocationDistance {
-        let accuracies = self.compactMap { $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
+        let accuracies = self.compactMap { $0.verticalAccuracy >= 0 ? $0.verticalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
