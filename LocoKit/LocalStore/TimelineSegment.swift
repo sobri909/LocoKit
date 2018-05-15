@@ -61,20 +61,18 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func reclassifySamples() {
-        queue.async {
-            guard let classifier = self.store.recorder?.classifier, classifier.canClassify else { return }
+        guard let classifier = store.recorder?.classifier, classifier.canClassify else { return }
 
-            for item in self.timelineItems {
-                var count = 0
-                for sample in item.samples where sample.confirmedType == nil {
-                    if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
-                    sample.classifierResults = classifier.classify(sample, filtered: true)
-                    sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
-                    count += 1
-                }
-                if count > 0 {
-                    os_log("Reclassified samples: %d", type: .debug, count)
-                }
+        for item in timelineItems {
+            var count = 0
+            for sample in item.samples where sample.confirmedType == nil {
+                if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
+                sample.classifierResults = classifier.classify(sample, filtered: true)
+                sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+                count += 1
+            }
+            if count > 0 {
+                os_log("Reclassified samples: %d", type: .debug, count)
             }
         }
     }
