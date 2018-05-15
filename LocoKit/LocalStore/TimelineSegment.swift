@@ -48,6 +48,8 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func update() {
+        // TODO: this should change test the updated items versus the previous, to avoid wasteful calls to onUpdate()
+        // (test against oldLastSaved == newLastSaved && oldCount == newCount)
         queue.async { [weak self] in
             self?.updateItems()
             self?.reclassifySamples()
@@ -79,6 +81,9 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func process() {
+        if let items = timelineItems {
+            TimelineProcessor.process(items)
+        }
     }
 
     // MARK: - TransactionObserver
