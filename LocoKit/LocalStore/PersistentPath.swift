@@ -63,22 +63,27 @@ open class PersistentPath: Path, PersistentObject {
     }
 
     open override func add(_ samples: [LocomotionSample]) {
+        var madeChanges = false
         mutex.sync {
             _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
             for sample in samples where sample.timelineItem != self {
-                sample.timelineItem = nil
-                sample.timelineItemId = self.itemId
+                sample.timelineItem = self
+                madeChanges = true
             }
         }
-        samplesChanged()
+        if madeChanges { samplesChanged() }
     }
 
     open override func remove(_ samples: [LocomotionSample]) {
+        var madeChanges = false
         mutex.sync {
             _samples?.removeObjects(samples)
-            for sample in samples where sample.timelineItemId == self.itemId { sample.timelineItemId = nil }
+            for sample in samples where sample.timelineItemId == self.itemId {
+                sample.timelineItemId = nil
+                madeChanges = true
+            }
         }
-        samplesChanged()
+        if madeChanges { samplesChanged() }
     }
 
     open override func samplesChanged() {
