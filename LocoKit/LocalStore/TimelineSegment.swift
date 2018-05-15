@@ -19,6 +19,8 @@ public class TimelineSegment: TransactionObserver {
     private let arguments: StatementArguments?
     private let queue = DispatchQueue(label: "TimelineSegment")
     private var updateTimer: Timer?
+    private var lastSaveDate: Date?
+    private var lastItemCount: Int?
     private var pendingChanges = false
 
     public convenience init(for dateRange: DateInterval, in store: PersistentTimelineStore,
@@ -52,14 +54,32 @@ public class TimelineSegment: TransactionObserver {
         // (test against oldLastSaved == newLastSaved && oldCount == newCount)
         queue.async { [weak self] in
             self?.updateItems()
-            self?.reclassifySamples()
-            self?.process()
-            self?.onUpdate?()
+            if self?.hasChanged == true {
+                self?.reclassifySamples()
+                self?.process()
+                self?.onUpdate?()
+            }
         }
     }
 
     private func updateItems() {
-        self.timelineItems = store.items(for: query, arguments: arguments)
+        timelineItems = store.items(for: query, arguments: arguments)
+    }
+
+    private var hasChanged: Bool {
+        guard let items = timelineItems as? [PersistentItem] else { return false }
+
+        let freshLastSaveDate = items.compactMap { $0.lastSaved }.max()
+        let freshItemCount = timelineItems?.count
+
+        defer {
+            lastSaveDate = freshLastSaveDate
+            lastItemCount = freshItemCount
+        }
+
+        if freshItemCount != lastItemCount { return true }
+        if freshLastSaveDate == lastSaveDate { return false }
+        return true
     }
 
     private func reclassifySamples() {
