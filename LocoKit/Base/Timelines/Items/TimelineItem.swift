@@ -387,31 +387,29 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         fatalError("Shouldn't be here.")
     }
 
-    public func sanitiseEdges() {
-        edit {
-            var lastPreviousChanged: LocomotionSample?
-            var lastNextChanged: LocomotionSample?
+    internal func sanitiseEdges() {
+        var lastPreviousChanged: LocomotionSample?
+        var lastNextChanged: LocomotionSample?
 
-            while true {
-                var previousChanged: LocomotionSample?
-                var nextChanged: LocomotionSample?
+        while true {
+            var previousChanged: LocomotionSample?
+            var nextChanged: LocomotionSample?
 
-                if let previousPath = self.previousItem as? Path { previousChanged = self.cleanseEdge(with: previousPath) }
-                if let nextPath = self.nextItem as? Path { nextChanged = self.cleanseEdge(with: nextPath) }
+            if let previousPath = self.previousItem as? Path { previousChanged = self.cleanseEdge(with: previousPath) }
+            if let nextPath = self.nextItem as? Path { nextChanged = self.cleanseEdge(with: nextPath) }
 
-                // no changes, so we're done
-                if previousChanged == nil && nextChanged == nil { break }
+            // no changes, so we're done
+            if previousChanged == nil && nextChanged == nil { break }
 
-                // break from an infinite loop
-                if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged { break }
+            // break from an infinite loop
+            if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged { break }
 
-                lastPreviousChanged = previousChanged
-                lastNextChanged = nextChanged
-            }
+            lastPreviousChanged = previousChanged
+            lastNextChanged = nextChanged
         }
     }
 
-    public func cleanseEdge(with path: Path) -> LocomotionSample? {
+    internal func cleanseEdge(with path: Path) -> LocomotionSample? {
         fatalError("Shouldn't be here.")
     }
 

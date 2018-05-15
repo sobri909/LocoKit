@@ -111,7 +111,7 @@ open class Visit: TimelineItem {
         return CLLocationDistanceMax
     }
 
-    public override func cleanseEdge(with path: Path) -> LocomotionSample? {
+    internal override func cleanseEdge(with path: Path) -> LocomotionSample? {
         if self.isMergeLocked || path.isMergeLocked { return nil }
 
         if path.samples.isEmpty { return nil }

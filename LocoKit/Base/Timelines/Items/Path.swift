@@ -202,7 +202,7 @@ open class Path: TimelineItem {
         return CLLocationDistance(mean(speeds) * timeSeparation * 4)
     }
 
-    public override func cleanseEdge(with otherPath: Path) -> LocomotionSample? {
+    internal override func cleanseEdge(with otherPath: Path) -> LocomotionSample? {
         if self.isMergeLocked || otherPath.isMergeLocked { return nil }
 
         if otherPath.samples.isEmpty { return nil }
