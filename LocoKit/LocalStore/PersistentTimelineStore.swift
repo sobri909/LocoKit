@@ -275,11 +275,9 @@ open class PersistentTimelineStore: TimelineStore {
                 table.column("startDate", .datetime).indexed()
                 table.column("endDate", .datetime).indexed()
 
-                table.column("previousItemId", .text).indexed()
-                    .references("TimelineItem", onDelete: .setNull, deferred: true)
+                table.column("previousItemId", .text).indexed().references("TimelineItem", deferred: true)
                     .check(sql: "previousItemId != itemId AND (previousItemId IS NULL OR deleted = 0)")
-                table.column("nextItemId", .text).indexed()
-                    .references("TimelineItem", onDelete: .setNull, deferred: true)
+                table.column("nextItemId", .text).indexed().references("TimelineItem", deferred: true)
                     .check(sql: "nextItemId != itemId AND (nextItemId IS NULL OR deleted = 0)")
 
                 table.column("radiusMean", .double)
