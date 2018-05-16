@@ -13,7 +13,7 @@ import LocoKitCore
 open class PersistentTimelineStore: TimelineStore {
 
     open var saveBatchSize = 50
-    open let keepDeletedItemsFor: TimeInterval = 60 * 60
+    open var keepDeletedItemsFor: TimeInterval = 60 * 60
     public var sqlDebugLogging = false
 
     public var itemsToSave: Set<TimelineItem> = []
