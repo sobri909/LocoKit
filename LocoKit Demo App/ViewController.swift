@@ -36,7 +36,7 @@ class ViewController: UIViewController {
         if useActivityTypesClassifier {
 
             // using an Activity Types Classifier requires an API key
-            // API keys can be created at: https://www.bigpaua.com/arckit/account
+            // API keys can be created at: https://www.bigpaua.com/locokit/account
             LocoKitService.apiKey = "<insert your API key here>"
 
             recorder = TimelineRecorder(store: store, classifier: TimelineClassifier.highlander)
@@ -116,6 +116,14 @@ class ViewController: UIViewController {
 
         when(.UIApplicationDidReceiveMemoryWarning) { _ in
             log("UIApplicationDidReceiveMemoryWarning")
+        }
+
+        // housekeeping
+        when(.UIApplicationDidEnterBackground) { _ in
+            if let store = self.store as? PersistentTimelineStore {
+                log("store.hardDeleteSoftDeletedItems()")
+                store.hardDeleteSoftDeletedItems()
+            }
         }
 
         // view tree stuff
