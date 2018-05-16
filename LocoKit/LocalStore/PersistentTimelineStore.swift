@@ -302,7 +302,7 @@ open class PersistentTimelineStore: TimelineStore {
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
 
-                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).indexed()
+                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).notNull().indexed()
 
                 table.column("stepHz", .double)
                 table.column("courseVariance", .double)
