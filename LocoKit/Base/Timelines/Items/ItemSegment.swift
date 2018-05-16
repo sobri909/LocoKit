@@ -21,7 +21,7 @@ public class ItemSegment: Equatable {
         return _samples!
     }
 
-    // MARK: Initialisers
+    // MARK: - Initialisers
 
     public init(samples: [LocomotionSample], timelineItem: TimelineItem? = nil) {
         self.timelineItem = timelineItem
@@ -99,7 +99,34 @@ public class ItemSegment: Equatable {
         return distance
     }
 
-    // MARK: Activity Types
+    // MARK: - Keepness scores
+
+    public var isInvalid: Bool { return !isValid }
+
+    public var isValid: Bool {
+        if activityType == .stationary {
+            if samples.isEmpty { return false }
+            if duration < Visit.minimumValidDuration { return false }
+        } else {
+            if samples.count < Path.minimumValidSamples { return false }
+            if duration < Path.minimumValidDuration { return false }
+            if distance < Path.minimumValidDistance { return false }
+        }
+        return true
+    }
+
+    public var isWorthKeeping: Bool {
+        if !isValid { return false }
+        if activityType == .stationary {
+            if duration < Visit.minimumKeeperDuration { return false }
+        } else {
+            if duration < Path.minimumKeeperDuration { return false }
+            if distance < Path.minimumKeeperDistance { return false }
+        }
+        return true
+    }
+
+    // MARK: - Activity Types
 
     private var _classifierResults: ClassifierResults? = nil
     public var classifierResults: ClassifierResults? {
@@ -119,7 +146,7 @@ public class ItemSegment: Equatable {
         return results
     }
 
-    // MARK: Modifying the item segment
+    // MARK: - Modifying the item segment
 
     func canAdd(_ sample: LocomotionSample) -> Bool {
 
@@ -170,7 +197,7 @@ public class ItemSegment: Equatable {
         _unfilteredClassifierResults = nil
     }
 
-    // MARK: Equatable
+    // MARK: - Equatable
 
     public static func ==(lhs: ItemSegment, rhs: ItemSegment) -> Bool {
         return lhs.dateRange == rhs.dateRange && lhs.samples.count == rhs.samples.count
