@@ -235,7 +235,7 @@ class ViewController: UIViewController {
         view.addSubview(viewToggleBar)
         Settings.visibleTab = timelineView
         
-        viewToggleBar.bottomAnchor == viewToggleBar.superview!.bottomAnchor
+        viewToggleBar.bottomAnchor == bottomLayoutGuide.topAnchor
         viewToggleBar.leftAnchor == viewToggleBar.superview!.leftAnchor
         viewToggleBar.rightAnchor == viewToggleBar.superview!.rightAnchor
 
