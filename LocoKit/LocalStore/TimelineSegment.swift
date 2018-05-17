@@ -22,6 +22,7 @@ public class TimelineSegment: TransactionObserver {
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
     private var pendingChanges = false
+    private var updatingEnabled = true
 
     public convenience init(for dateRange: DateInterval, in store: PersistentTimelineStore,
                             onUpdate: (() -> Void)? = nil) {
@@ -38,10 +39,22 @@ public class TimelineSegment: TransactionObserver {
         store.pool.add(transactionObserver: self)
     }
 
+    public func startUpdating() {
+        if updatingEnabled { return }
+        updatingEnabled = true
+        needsUpdate()
+    }
+
+    public func stopUpdating() {
+        if !updatingEnabled { return }
+        updatingEnabled = false
+    }
+
     // MARK: - Result updating
 
     private func needsUpdate() {
         onMain {
+            guard self.updatingEnabled else { return }
             self.updateTimer?.invalidate()
             self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
                 self?.update()
@@ -50,9 +63,8 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func update() {
-        // TODO: this should change test the updated items versus the previous, to avoid wasteful calls to onUpdate()
-        // (test against oldLastSaved == newLastSaved && oldCount == newCount)
         queue.async { [weak self] in
+            guard self?.updatingEnabled == true else { return }
             self?.updateItems()
             if self?.hasChanged == true {
                 self?.reclassifySamples()
@@ -109,6 +121,7 @@ public class TimelineSegment: TransactionObserver {
     // MARK: - TransactionObserver
 
     public func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        guard updatingEnabled else { return false }
         return eventKind.tableName == "TimelineItem"
     }
 
