@@ -98,10 +98,16 @@ internal class Merge: Hashable, CustomStringConvertible {
     // MARK: - Hashable
 
     var hashValue: Int {
+        let hash: Int
         if let betweener = betweener {
-            return keeper.hashValue ^ (betweener.hashValue + 1) ^ (deadman.hashValue + 2)
+            hash = keeper.hashValue ^ betweener.hashValue ^ deadman.hashValue
+        } else {
+            hash = keeper.hashValue ^ deadman.hashValue
         }
-        return keeper.hashValue ^ (deadman.hashValue + 1)
+        if let startDate = keeper.startDate {
+            return hash ^ startDate.hashValue
+        }
+        return hash
     }
 
     static func == (lhs: Merge, rhs: Merge) -> Bool {
