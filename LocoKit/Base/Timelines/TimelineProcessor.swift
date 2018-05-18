@@ -52,7 +52,7 @@ public class TimelineProcessor {
                 workingItem.sanitiseEdges()
 
                 // add in the merges for one step forward
-                if let next = workingItem.nextItem, !next.isCurrentItem || next.isWorthKeeping {
+                if let next = workingItem.nextItem {
                     next.sanitiseEdges()
 
                     merges.insert(Merge(keeper: workingItem, deadman: next))

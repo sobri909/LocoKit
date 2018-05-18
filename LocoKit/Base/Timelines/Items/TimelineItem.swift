@@ -24,7 +24,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public let itemId: UUID
 
-    open var isMergeLocked: Bool { return false }
+    open var isMergeLocked: Bool {
+        if isCurrentItem && !isWorthKeeping { return true }
+        return false
+    }
 
     public var hasBrokenEdges: Bool {
         if deleted { return false }
