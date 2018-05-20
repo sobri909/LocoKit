@@ -172,7 +172,7 @@ open class Visit: TimelineItem {
 extension Visit: CustomStringConvertible {
 
     public var description: String {
-        return String(format: "%@ visit", isWorthKeeping ? "keeper" : isValid ? "valid" : "invalid")
+        return keepnessString + " visit"
     }
     
 }

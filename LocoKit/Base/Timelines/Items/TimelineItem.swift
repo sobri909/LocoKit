@@ -178,6 +178,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return 0
     }
 
+    public var keepnessString: String {
+        if isWorthKeeping { return "keeper" }
+        if isValid { return "valid" }
+        return "invalid"
+    }
+
     public var isDataGap: Bool {
         if samples.isEmpty { return false }
         for sample in samples {

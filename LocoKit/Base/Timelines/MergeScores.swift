@@ -20,6 +20,7 @@ public enum ConsumptionScore: Int {
 
 class MergeScores {
 
+    // MARK: - SOMETHING <- SOMETHING
     static func consumptionScoreFor(_ consumer: TimelineItem, toConsume consumee: TimelineItem) -> ConsumptionScore {
 
         // can't do anything with merge locked items
@@ -49,53 +50,48 @@ class MergeScores {
         // test for impossible separation distance
         guard consumer.withinMergeableDistance(from: consumee) else { return .impossible }
 
+        // visit <- something
         if let visit = consumer as? Visit { return consumptionScoreFor(visit: visit, toConsume: consumee) }
 
+        // path <- something
         if let path = consumer as? Path { return consumptionScoreFor(path: path, toConsume: consumee) }
 
         return .impossible
     }
-}
 
-extension MergeScores {
+    // MARK: - PATH <- SOMETHING
+    private static func consumptionScoreFor(path consumer: Path, toConsume consumee: TimelineItem) -> ConsumptionScore {
 
-    // MARK: PATH <- SOMETHING
-    fileprivate static func consumptionScoreFor(path consumer: Path, toConsume consumee: TimelineItem) -> ConsumptionScore {
-        
         // consumer is invalid
         if consumer.isInvalid {
             
             // invalid <- invalid
-            if consumee.isInvalid {
-                return .veryLow
-            }
+            if consumee.isInvalid { return .veryLow }
             
             // invalid <- valid
             return .impossible
         }
 
+        // path <- visit
         if let visit = consumee as? Visit { return consumptionScoreFor(path: consumer, toConsumeVisit: visit) }
 
+        // path <- vpath
         if let path = consumee as? Path { return consumptionScoreFor(path: consumer, toConsumePath: path) }
 
         return .impossible
     }
     
-    // MARK: PATH <- VISIT
-    fileprivate static func consumptionScoreFor(path consumer: Path, toConsumeVisit consumee: Visit) -> ConsumptionScore {
+    // MARK: - PATH <- VISIT
+    private static func consumptionScoreFor(path consumer: Path, toConsumeVisit consumee: Visit) -> ConsumptionScore {
 
         // can't consume a keeper visit
-        if consumee.isWorthKeeping {
-            return .impossible
-        }
+        if consumee.isWorthKeeping { return .impossible }
 
         // consumer is keeper
         if consumer.isWorthKeeping {
             
             // keeper <- invalid
-            if consumee.isInvalid {
-                return .medium
-            }
+            if consumee.isInvalid { return .medium }
             
             // keeper  <- valid
             return .low
@@ -105,9 +101,7 @@ extension MergeScores {
         if consumer.isValid {
             
             // valid <- invalid
-            if consumee.isInvalid {
-                return .low
-            }
+            if consumee.isInvalid { return .low }
             
             // valid <- valid
             return .veryLow
@@ -117,30 +111,22 @@ extension MergeScores {
         return .impossible
     }
 
-    // MARK: PATH <- PATH
-    fileprivate static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
+    // MARK: - PATH <- PATH
+    private static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
         let consumerType = consumer.modeMovingActivityType ?? consumer.modeActivityType
         let consumeeType = consumee.modeMovingActivityType ?? consumee.modeActivityType
 
         // no types means it's a random guess
-        if consumerType == nil && consumeeType == nil {
-            return .medium
-        }
+        if consumerType == nil && consumeeType == nil { return .medium }
 
         // perfect type match
-        if consumeeType == consumerType {
-            return .perfect
-        }
+        if consumeeType == consumerType { return .perfect }
 
         // can't consume a keeper path
-        if consumee.isWorthKeeping {
-            return .impossible
-        }
+        if consumee.isWorthKeeping { return .impossible }
 
         // a path with nil type can't consume anyone
-        guard let scoringType = consumerType else {
-            return .impossible
-        }
+        guard let scoringType = consumerType else { return .impossible }
 
         guard let typeResult = consumee.unfilteredClassifierResults?.first(where: { $0.name == scoringType }) else {
             return .impossible
@@ -162,25 +148,21 @@ extension MergeScores {
             return .veryLow
         }
     }
-}
 
-extension MergeScores {
-    
-    // MARK: VISIT <- SOMETHING
-    fileprivate static func consumptionScoreFor(visit consumer: Visit, toConsume consumee: TimelineItem) -> ConsumptionScore {
-        if let visit = consumee as? Visit {
-            return consumptionScoreFor(visit: consumer, toConsumeVisit: visit)
-        }
+    // MARK: - VISIT <- SOMETHING
+    private static func consumptionScoreFor(visit consumer: Visit, toConsume consumee: TimelineItem) -> ConsumptionScore {
 
-        if let path = consumee as? Path {
-            return consumptionScoreFor(visit: consumer, toConsumePath: path)
-        }
+        // visit <- visit
+        if let visit = consumee as? Visit { return consumptionScoreFor(visit: consumer, toConsumeVisit: visit) }
+
+        // visit <- path
+        if let path = consumee as? Path { return consumptionScoreFor(visit: consumer, toConsumePath: path) }
         
         return .impossible
     }
     
-    // MARK: VISIT <- VISIT
-    fileprivate static func consumptionScoreFor(visit consumer: Visit, toConsumeVisit consumee: Visit) -> ConsumptionScore {
+    // MARK: - VISIT <- VISIT
+    private static func consumptionScoreFor(visit consumer: Visit, toConsumeVisit consumee: Visit) -> ConsumptionScore {
         
         // overlapping visits
         if consumer.overlaps(consumee) {
@@ -190,9 +172,10 @@ extension MergeScores {
         return .impossible
     }
     
-    // MARK: VISIT <- PATH
-    fileprivate static func consumptionScoreFor(visit consumer: Visit, toConsumePath consumee: Path) -> ConsumptionScore {
+    // MARK: - VISIT <- PATH
+    private static func consumptionScoreFor(visit consumer: Visit, toConsumePath consumee: Path) -> ConsumptionScore {
 
+        // percentage of path inside the visit
         let pctInsideScore = Int(floor(consumee.percentInside(consumer) * 10))
         
         // valid / keeper visit <- invalid path
@@ -207,4 +190,5 @@ extension MergeScores {
         
         return .impossible
     }
+
 }

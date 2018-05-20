@@ -253,7 +253,7 @@ extension Path: CustomStringConvertible {
 
     public var description: String {
         let itemType = isDataGap ? "datagap" : isNolo ? "nolo" : "path"
-        return String(format: "%@ %@", isWorthKeeping ? "keeper" : isValid ? "valid" : "invalid", itemType)
+        return String(format: "%@ %@", keepnessString, itemType)
     }
 
 }
