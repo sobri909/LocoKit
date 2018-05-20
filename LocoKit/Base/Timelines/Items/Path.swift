@@ -21,7 +21,7 @@ open class Path: TimelineItem {
     public static var minimumKeeperDistance: Double = 20
 
     // data gap settings
-    public static var minimumValidDataGapDuration: TimeInterval = 30
+    public static var minimumValidDataGapDuration: TimeInterval = 60
     public static var minimumKeeperDataGapDuration: TimeInterval = 60 * 60 * 24
 
     public static var maximumModeShiftSpeed = CLLocationSpeed(kmh: 8)
