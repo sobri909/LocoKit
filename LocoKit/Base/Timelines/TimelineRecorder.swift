@@ -6,6 +6,7 @@
 //
 
 import LocoKitCore
+import CoreLocation
 
 public extension NSNotification.Name {
     public static let newTimelineItem = Notification.Name("newTimelineItem")
@@ -29,7 +30,9 @@ public class TimelineRecorder {
     private(set) public var classifier: MLCompositeClassifier?
 
     // convenience access to an often used optional bool
-    public var canClassify: Bool { return classifier?.canClassify == true }
+    public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
+        return classifier?.canClassify(coordinate) == true
+    }
 
     public init(store: TimelineStore, classifier: MLCompositeClassifier? = nil) {
         self.store = store
@@ -133,7 +136,7 @@ public class TimelineRecorder {
         let sample = store.createSample(from: ActivityBrain.highlander.presentSample)
 
         // classify the sample, if a classifier has been provided
-        if let classifier = classifier, classifier.canClassify {
+        if let classifier = classifier, classifier.canClassify(sample.location?.coordinate) == true {
             sample.classifierResults = classifier.classify(sample, filtered: true)
             sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
         }

@@ -29,18 +29,19 @@ public protocol MLClassifierManager: MLCompositeClassifier {
 
 extension MLClassifierManager {
 
-    public var canClassify: Bool {
+    public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
+        if let coordinate = coordinate {
+            updateTheBaseClassifier(for: coordinate)
+            updateTheTransportClassifier(for: coordinate)
+        }
         guard let baseClassifier = baseClassifier else { return false }
         return baseClassifier.models.count == baseClassifier.requiredTypes.count
     }
 
     public func classify(_ classifiable: ActivityTypeClassifiable, filtered: Bool) -> ClassifierResults? {
 
-        // attempt to keep the classifiers relevant / fresh
-        if let coordinate = classifiable.location?.coordinate {
-            updateTheBaseClassifier(for: coordinate)
-            updateTheTransportClassifier(for: coordinate)
-        }
+        // make sure we're capable of returning sensible results
+        guard canClassify(classifiable.location?.coordinate) else { return nil }
 
         // get the base type results
         guard let classifier = baseClassifier else { return nil }
@@ -176,15 +177,15 @@ extension MLClassifierManager {
 
     private func updateTheBaseClassifier(for coordinate: CLLocationCoordinate2D) {
 
-        #if canImport(Reachability)
-        // don't try to fetch classifiers without a network connection
-        guard reachability.connection != .none else { return }
-        #endif
-
         // have a classifier already, and it's still valid?
         if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
             return
         }
+
+        #if canImport(Reachability)
+        // don't try to fetch classifiers without a network connection
+        guard reachability.connection != .none else { return }
+        #endif
 
         // attempt to get an updated classifier
         if let replacement = Classifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate) {
@@ -194,15 +195,15 @@ extension MLClassifierManager {
 
     private func updateTheTransportClassifier(for coordinate: CLLocationCoordinate2D) {
 
-        #if canImport(Reachability)
-        // don't try to fetch classifiers without a network connection
-        guard reachability.connection != .none else { return }
-        #endif
-
         // have a classifier already, and it's still valid?
         if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
             return
         }
+
+        #if canImport(Reachability)
+        // don't try to fetch classifiers without a network connection
+        guard reachability.connection != .none else { return }
+        #endif
 
         // attempt to get an updated classifier
         if let replacement = Classifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate) {
