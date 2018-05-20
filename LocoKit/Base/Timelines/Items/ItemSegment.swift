@@ -66,7 +66,6 @@ public class ItemSegment: Equatable {
         return samples.first?.recordingState
     }
 
-    public var activityType: ActivityTypeName? { return manualActivityType ?? samples.first?.activityType }
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
 
     private var _dateRange: DateInterval?
@@ -127,6 +126,18 @@ public class ItemSegment: Equatable {
     }
 
     // MARK: - Activity Types
+
+    public var activityType: ActivityTypeName? {
+        return manualActivityType ?? samples.first?.activityType
+    }
+
+    public var confirmedType: ActivityTypeName? {
+        guard let activityType = activityType else { return nil }
+        for sample in samples {
+            if sample.confirmedType != activityType { return nil }
+        }
+        return activityType
+    }
 
     private var _classifierResults: ClassifierResults? = nil
     public var classifierResults: ClassifierResults? {
