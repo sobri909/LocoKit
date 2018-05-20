@@ -96,7 +96,8 @@ public class TimelineSegment: TransactionObserver {
 
     private func reclassifySamples() {
         guard let items = timelineItems else { return }
-        guard let classifier = store.recorder?.classifier, classifier.canClassify else { return }
+
+        guard let classifier = store.recorder?.classifier else { return }
 
         for item in items {
             var count = 0
@@ -104,7 +105,7 @@ public class TimelineSegment: TransactionObserver {
                 if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
                 sample.classifierResults = classifier.classify(sample, filtered: true)
                 sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
-                count += 1
+                if sample.classifierResults != nil { count += 1 }
             }
             if count > 0 {
                 os_log("Reclassified samples: %d", type: .debug, count)
