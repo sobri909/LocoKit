@@ -161,23 +161,14 @@ public class ItemSegment: Equatable {
 
     func canAdd(_ sample: LocomotionSample) -> Bool {
 
-        // ignore recording state mismatches for segments in paths
-        if timelineItem is Path && sample.activityType == activityType { return true }
-
-        // exact state and type match
-        if sample.recordingState == recordingState && sample.activityType == activityType { return true }
-
-        // need at least a state match after here
-        guard let recordingState = self.recordingState else { return false }
-
-        // off samples go together, regardless of activity type
+        // off samples group together, regardless of activity type
         if recordingState == .off && sample.recordingState == .off { return true }
 
-        // sleep samples go together, regardless of activity type
-        let sleepStates = RecordingState.sleepStates
-        if sleepStates.contains(recordingState) && sleepStates.contains(sample.recordingState) { return true }
+        // off state can't combine with any other recording state
+        if recordingState == .off && sample.recordingState != .off { return false }
+        if recordingState != .off && sample.recordingState == .off { return false }
 
-        return false
+        return sample.activityType == activityType
     }
 
     public func add(_ sample: LocomotionSample) {
