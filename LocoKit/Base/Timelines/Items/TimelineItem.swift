@@ -185,6 +185,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public var isDataGap: Bool {
+        if self is Visit { return false }
         if samples.isEmpty { return false }
         for sample in samples {
             if sample.recordingState != .off { return false }
