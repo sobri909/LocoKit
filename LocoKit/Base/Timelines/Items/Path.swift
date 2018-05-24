@@ -148,7 +148,7 @@ open class Path: TimelineItem {
         return false
     }
     
-    public func samplesInside(_ visit: Visit) -> Set<LocomotionSample> {
+    open func samplesInside(_ visit: Visit) -> Set<LocomotionSample> {
         guard let visitCenter = visit.center else {
             return []
         }
