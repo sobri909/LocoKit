@@ -25,10 +25,18 @@ public class TimelineClassifier: MLClassifierManager {
     public let reachability = Reachability()!
     #endif
 
-    public var transportMeetsThreshold: Bool {
+    public func classifyTransportTypes(for classifiable: ActivityTypeClassifiable) -> Bool {
+
+        // faster than 300km/h is almost certainly airplane
+        if let kmh = classifiable.location?.speed.kmh, kmh > 300 {
+            return true
+        }
+
+        // meeting minimum coverage score is good enough
         if let coverage = transportClassifier?.coverageScore, coverage > minimumTransportCoverage {
             return true
         }
+
         return false
     }
 

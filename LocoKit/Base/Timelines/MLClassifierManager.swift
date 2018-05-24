@@ -19,7 +19,7 @@ public protocol MLClassifierManager: MLCompositeClassifier {
 
     var baseClassifier: Classifier? { get set }
     var transportClassifier: Classifier? { get set }
-    var transportMeetsThreshold: Bool { get }
+    func classifyTransportTypes(for classifiable: ActivityTypeClassifiable) -> Bool
 
     #if canImport(Reachability)
     var reachability: Reachability { get }
@@ -53,8 +53,8 @@ extension MLClassifierManager {
             // don't need to go further if transport didn't win the base round
             if results.first?.name != .transport { return results }
 
-            // don't go further if transport classifier has less than required coverage
-            guard transportMeetsThreshold else { return results }
+            // don't go further if transport classifier isn't approved
+            guard classifyTransportTypes(for: classifiable) else { return results }
         }
 
         // get the transport type results
