@@ -48,6 +48,7 @@ public class TimelineSegment: TransactionObserver {
     public func stopUpdating() {
         if !updatingEnabled { return }
         updatingEnabled = false
+        timelineItems = nil
     }
 
     // MARK: - Result updating
