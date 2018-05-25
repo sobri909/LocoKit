@@ -151,7 +151,6 @@ public class TimelineRecorder {
     }
 
     private func process(_ sample: LocomotionSample) {
-        let loco = LocomotionManager.highlander
 
         /** first timeline item **/
         guard let currentItem = currentItem else {
@@ -236,14 +235,19 @@ public class TimelineRecorder {
 
     private func updateSleepModeAcceptability() {
         let loco = LocomotionManager.highlander
-        if let currentVisit = currentItem as? Visit, currentVisit.isWorthKeeping {
-            loco.useLowPowerSleepModeWhileStationary = true
 
-        } else {
+        // sleep mode requires currentItem to be a keeper visit
+        guard let currentVisit = currentVisit, currentVisit.isWorthKeeping else {
             loco.useLowPowerSleepModeWhileStationary = false
+
             // not recording, but should be?
             if loco.recordingState != .recording { loco.startRecording() }
+
+            return
         }
+
+        // permit sleep mode
+        loco.useLowPowerSleepModeWhileStationary = true
     }
 
     // MARK: - Timeline item creation
