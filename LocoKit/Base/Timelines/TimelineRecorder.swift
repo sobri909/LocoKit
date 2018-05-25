@@ -199,11 +199,36 @@ public class TimelineRecorder {
         /** stationary -> stationary **/
 
         // if in sleep mode, only retain the last 10 sleep mode samples
-        if loco.recordingState != .recording {
-            let sleepSamples = currentItem.samples.suffix(10).filter { $0.recordingState != .recording }
-            if sleepSamples.count == 10, let oldestSleep = sleepSamples.first {
-                currentItem.remove(oldestSleep)
+        if RecordingState.sleepStates.contains(sample.recordingState) {
+
+            // collect the contiguous sleep samples from the end
+            let edgeSleepSamples = currentItem.samples.reversed().prefix {
+                RecordingState.sleepStates.contains($0.recordingState)
             }
+
+            var keptCount = 0
+            var samplesToKill: [LocomotionSample] = []
+            for sample in edgeSleepSamples {
+
+                // always keep the oldest sleep sample
+                if sample == edgeSleepSamples.last {
+                    break
+                }
+
+                // keep 15 most recent samples, plus one sample per 15 mins
+                let allowedCount: Double = 15 + (sample.date.age / (60 * 15))
+
+
+                // sample would go over the limit?
+                if keptCount + 1 > Int(allowedCount) {
+                    samplesToKill.append(sample)
+                    continue
+                }
+
+                keptCount += 1
+            }
+
+            currentItem.remove(samplesToKill)
         }
 
         currentItem.add(sample)
