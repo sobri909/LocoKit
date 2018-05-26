@@ -36,16 +36,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return false
     }
 
-    public var deleted = false {
-        willSet(willDelete) {
-            if willDelete {
-                guard self.samples.isEmpty else {
-                    fatalError("Can't delete item that has samples")
-                }
-                self.previousItem = nil
-                self.nextItem = nil
-            }
-        }
+    public private(set) var deleted = false
+    open func delete() {
+        deleted = true
+        previousItem = nil
+        nextItem = nil
     }
 
     private var updatingPedometerData = false

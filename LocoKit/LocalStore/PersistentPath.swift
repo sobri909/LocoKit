@@ -10,13 +10,10 @@ import GRDB
 
 open class PersistentPath: Path, PersistentObject {
 
-    public override var deleted: Bool {
-        didSet {
-            if oldValue != deleted {
-                hasChanges = true
-                save()
-            }
-        }
+    open override func delete() {
+        super.delete()
+        hasChanges = true
+        save()
     }
 
     // MARK: Relationships
@@ -46,7 +43,8 @@ open class PersistentPath: Path, PersistentObject {
             if lastSaved == nil {
                 _samples = []
             } else if let store = persistentStore {
-                _samples = store.samples(where: "timelineItemId = ? ORDER BY date", arguments: [itemId.uuidString])
+                _samples = store.samples(where: "deleted = 0 AND timelineItemId = ? ORDER BY date",
+                                         arguments: [itemId.uuidString])
             } else {
                 _samples = []
             }

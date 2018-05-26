@@ -189,7 +189,7 @@ public class TimelineProcessor {
         if brokenItem.isMergeLocked { return }
         if !brokenItem.hasBrokenEdges { return }
 
-        print("\(brokenItem.itemId)")
+        print("healEdges(of: \(brokenItem.itemId.shortString))")
 
         self.healNextEdge(of: brokenItem)
         self.healPreviousEdge(of: brokenItem)
@@ -197,19 +197,15 @@ public class TimelineProcessor {
 
     private static func healNextEdge(of brokenItem: TimelineItem) {
         guard let store = brokenItem.store as? PersistentTimelineStore else { return }
-
         guard brokenItem.nextItem == nil && !brokenItem.isCurrentItem else { return }
-
-        guard let endDate = brokenItem.endDate else {
-            print("UNFIXABLE NEXTITEM EDGE (endDate: nil)")
-            return
-        }
+        guard let endDate = brokenItem.endDate else { return }
 
         if let nearest = store.item(
             where: "deleted = 0 AND itemId != ? AND startDate >= ? ORDER BY ABS(strftime('%s', startDate) - ?)",
             arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970]), !nearest.deleted
         {
-            print("NEAREST NEXTITEM (separation: \(String(format: "%.0fs", nearest.timeInterval(from: brokenItem)!)), hasPrevious: \(nearest.previousItem != nil))")
+            print("NEAREST NEXT (gap: \(String(format: "%.0fs", nearest.timeInterval(from: brokenItem)!)), "
+                + "hasPrevious: \(nearest.previousItemId?.shortString ?? "false"))")
 
             if nearest.previousItem == nil, let gap = nearest.timeInterval(from: brokenItem), gap < 60 * 2 {
                 print("HEALED NEXTITEM")
@@ -224,7 +220,7 @@ public class TimelineProcessor {
         {
             print("MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
-            brokenItem.deleted = true
+            brokenItem.delete()
             return
         }
 
@@ -234,17 +230,14 @@ public class TimelineProcessor {
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
         guard let store = brokenItem.store as? PersistentTimelineStore else { return }
         guard brokenItem.previousItem == nil else { return }
-
-        guard let startDate = brokenItem.startDate else {
-            print("UNFIXABLE PREVIOUSITEM EDGE (endDate: nil)")
-            return
-        }
+        guard let startDate = brokenItem.startDate else { return }
 
         if let nearest = store.item(
             where: "deleted = 0 AND itemId != ? AND endDate <= ? ORDER BY ABS(strftime('%s', endDate) - ?)",
             arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970]), !nearest.deleted
         {
-            print("NEAREST PREVIOUSITEM (separation: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), hasNext: \(nearest.nextItem != nil))")
+            print("NEAREST PREVIOUS (gap: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), "
+                + "hasNext: \(nearest.nextItemId?.shortString ?? "false"))")
 
             if nearest.nextItem == nil, let gap = nearest.timeInterval(from: brokenItem), gap < 60 * 2 {
                 print("HEALED PREVIOUSITEM")
@@ -259,7 +252,7 @@ public class TimelineProcessor {
         {
             print("MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
-            brokenItem.deleted = true
+            brokenItem.delete()
             return
         }
 

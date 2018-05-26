@@ -13,7 +13,7 @@ import LocoKitCore
 open class PersistentTimelineStore: TimelineStore {
 
     open var saveBatchSize = 50
-    open var keepDeletedItemsFor: TimeInterval = 60 * 60
+    open var keepDeletedObjectsFor: TimeInterval = 60 * 60
     public var sqlDebugLogging = false
 
     public var itemsToSave: Set<TimelineItem> = []
@@ -228,10 +228,11 @@ open class PersistentTimelineStore: TimelineStore {
 
     // MARK: - Database housekeeping
 
-    open func hardDeleteSoftDeletedItems() {
-        let deadline = Date(timeIntervalSinceNow: -keepDeletedItemsFor)
+    open func hardDeleteSoftDeletedObjects() {
+        let deadline = Date(timeIntervalSinceNow: -keepDeletedObjectsFor)
         do {
             try pool.write { db in
+                try db.execute("DELETE FROM LocomotionSample WHERE deleted = 1 AND date < ?", arguments: [deadline])
                 try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND endDate < ?", arguments: [deadline])
             }
         } catch {
@@ -241,7 +242,7 @@ open class PersistentTimelineStore: TimelineStore {
 
     private func adoptOrphanedSamples() {
         process {
-            let orphans = self.samples(where: "timelineItemId IS NULL ORDER BY date DESC")
+            let orphans = self.samples(where: "deleted = 0 AND timelineItemId IS NULL ORDER BY date DESC")
 
             if orphans.count > 0 {
                 os_log("Found orphaned samples: %d", type: .error, orphans.count)
@@ -300,7 +301,7 @@ open class PersistentTimelineStore: TimelineStore {
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
 
-                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).notNull().indexed()
+                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).indexed()
 
                 table.column("stepHz", .double)
                 table.column("courseVariance", .double)
@@ -353,6 +354,13 @@ open class PersistentTimelineStore: TimelineStore {
                           on: "LocomotionSample", columns: ["confirmedType"])
             try db.create(index: "LocomotionSample_on_lastSaved",
                           on: "LocomotionSample", columns: ["lastSaved"])
+        }
+
+        // ability to soft delete samples, same as items
+        migrator.registerMigration("6.0.0") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "deleted", .boolean).defaults(to: false).notNull().indexed()
+            }
         }
 
         // apply the migrations

@@ -60,6 +60,14 @@ open class PersistentSample: LocomotionSample, PersistentObject {
         }
     }
 
+    public private(set) var deleted = false 
+    open override func delete() {
+        deleted = true
+        hasChanges = true
+        timelineItem?.remove(self)
+        save()
+    }
+
     // MARK: Persistable
     
     public static let databaseTableName = "LocomotionSample"
@@ -67,6 +75,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
     open func encode(to container: inout PersistenceContainer) {
         container["sampleId"] = sampleId.uuidString
         container["date"] = date
+        container["deleted"] = deleted
         container["lastSaved"] = transactionDate ?? lastSaved
         container["movingState"] = movingState.rawValue
         container["recordingState"] = recordingState.rawValue

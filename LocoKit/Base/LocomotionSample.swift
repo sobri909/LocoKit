@@ -147,6 +147,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         }
     }
 
+    open func delete() {}
+
     public var classifierResults: ClassifierResults?
     public var unfilteredClassifierResults: ClassifierResults?
 

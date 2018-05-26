@@ -87,12 +87,12 @@ internal class Merge: Hashable, CustomStringConvertible {
         // deal with a betweener
         if let betweener = betweener {
             keeper.add(betweener.samples)
-            betweener.deleted = true
+            betweener.delete()
         }
 
         // deal with the deadman
         keeper.add(deadman.samples)
-        deadman.deleted = true
+        deadman.delete()
     }
 
     // MARK: - Hashable

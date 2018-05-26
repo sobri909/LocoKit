@@ -217,7 +217,6 @@ public class TimelineRecorder {
                 // keep 15 most recent samples, plus one sample per 15 mins
                 let allowedCount: Double = 15 + (sample.date.age / (60 * 15))
 
-
                 // sample would go over the limit?
                 if keptCount + 1 > Int(allowedCount) {
                     samplesToKill.append(sample)
@@ -227,7 +226,7 @@ public class TimelineRecorder {
                 keptCount += 1
             }
 
-            currentItem.remove(samplesToKill)
+            samplesToKill.forEach { $0.delete() }
         }
 
         currentItem.add(sample)
