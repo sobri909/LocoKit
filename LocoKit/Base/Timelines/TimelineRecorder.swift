@@ -197,6 +197,8 @@ public class TimelineRecorder {
 
         /** stationary -> stationary **/
 
+        currentItem.add(sample)
+
         // if in sleep mode, only retain the last 10 sleep mode samples
         if RecordingState.sleepStates.contains(sample.recordingState) {
 
@@ -228,8 +230,6 @@ public class TimelineRecorder {
 
             samplesToKill.forEach { $0.delete() }
         }
-
-        currentItem.add(sample)
     }
 
     private func updateSleepModeAcceptability() {

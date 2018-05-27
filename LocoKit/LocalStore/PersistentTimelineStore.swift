@@ -74,6 +74,18 @@ open class PersistentTimelineStore: TimelineStore {
         return path
     }
 
+    open func createVisit(from samples: [LocomotionSample]) -> PersistentVisit {
+        let visit = PersistentVisit(in: self)
+        visit.add(samples)
+        return visit
+    }
+
+    open func createPath(from samples: [LocomotionSample]) -> PersistentPath {
+        let path = PersistentPath(in: self)
+        path.add(samples)
+        return path
+    }
+
     open override func createSample(from sample: ActivityBrainSample) -> PersistentSample {
         return PersistentSample(from: sample, in: self)
     }

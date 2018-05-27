@@ -30,8 +30,17 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public var hasBrokenEdges: Bool {
+        return hasBrokenPreviousItemEdge || hasBrokenNextItemEdge
+    }
+
+    public var hasBrokenPreviousItemEdge: Bool {
         if deleted { return false }
         if previousItem == nil { return true }
+        return false
+    }
+
+    public var hasBrokenNextItemEdge: Bool {
+        if deleted { return false }
         if nextItem == nil && !isCurrentItem { return true }
         return false
     }

@@ -68,6 +68,7 @@ public class TimelineSegment: TransactionObserver {
             guard self?.updatingEnabled == true else { return }
             self?.updateItems()
             if self?.hasChanged == true {
+                self?.timelineItems?.forEach { PersistentProcessor.healEdges(of: $0) }
                 self?.reclassifySamples()
                 self?.process()
                 self?.onUpdate?()

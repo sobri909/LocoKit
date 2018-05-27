@@ -9,6 +9,8 @@ import os.log
 
 public class TimelineProcessor {
 
+    // MARK: - Sequential item processing
+
     public static func process(from fromItem: TimelineItem) {
         fromItem.store?.process {
             var items: [TimelineItem] = [fromItem]
@@ -48,7 +50,6 @@ public class TimelineProcessor {
 
             var merges: Set<Merge> = []
             for workingItem in items {
-                healEdges(of: workingItem)
                 workingItem.sanitiseEdges()
 
                 // add in the merges for one step forward
@@ -59,7 +60,7 @@ public class TimelineProcessor {
                     merges.insert(Merge(keeper: next, deadman: workingItem))
 
                     // if next has a lesser keepness, look at doing a merge against next-next
-                    if next.keepnessScore < workingItem.keepnessScore {
+                    if !workingItem.isDataGap, next.keepnessScore < workingItem.keepnessScore {
                         if let nextNext = next.nextItem, nextNext.keepnessScore > next.keepnessScore {
                             nextNext.sanitiseEdges()
 
@@ -80,7 +81,7 @@ public class TimelineProcessor {
                     previous.sanitiseEdges()
 
                     // if previous has a lesser keepness, look at doing a merge against previous-previous
-                    if previous.keepnessScore < workingItem.keepnessScore {
+                    if !workingItem.isDataGap, previous.keepnessScore < workingItem.keepnessScore {
                         if let prevPrev = previous.previousItem, prevPrev.keepnessScore > previous.keepnessScore {
                             prevPrev.sanitiseEdges()
 
@@ -92,7 +93,8 @@ public class TimelineProcessor {
 
                 // if keepness scores allow, add in a bridge merge over top of working item
                 if let previous = workingItem.previousItem, let next = workingItem.nextItem,
-                    previous.keepnessScore > workingItem.keepnessScore && next.keepnessScore > workingItem.keepnessScore
+                    previous.keepnessScore > workingItem.keepnessScore, next.keepnessScore > workingItem.keepnessScore,
+                    !previous.isDataGap, !next.isDataGap
                 {
                     merges.insert(Merge(keeper: previous, betweener: workingItem, deadman: next))
                     merges.insert(Merge(keeper: next, betweener: workingItem, deadman: previous))
@@ -124,6 +126,8 @@ public class TimelineProcessor {
         }
     }
 
+    // MARK: - Item safe deletion
+
     /**
      Attempt to delete the given timeline item by merging it into an adjacent item.
 
@@ -133,7 +137,6 @@ public class TimelineProcessor {
     public static func safeDelete(_ deadman: TimelineItem, completion: ((TimelineItem?) -> Void)? = nil) {
         guard let store = deadman.store else { return }
         store.process {
-            healEdges(of: deadman)
             deadman.sanitiseEdges()
 
             var merges: Set<Merge> = []
@@ -181,82 +184,6 @@ public class TimelineProcessor {
                 return
             }
         }
-    }
-
-    // MARK: - Item edge healing
-
-    private static func healEdges(of brokenItem: TimelineItem) {
-        if brokenItem.isMergeLocked { return }
-        if !brokenItem.hasBrokenEdges { return }
-
-        print("healEdges(of: \(brokenItem.itemId.shortString))")
-
-        self.healNextEdge(of: brokenItem)
-        self.healPreviousEdge(of: brokenItem)
-    }
-
-    private static func healNextEdge(of brokenItem: TimelineItem) {
-        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
-        guard brokenItem.nextItem == nil && !brokenItem.isCurrentItem else { return }
-        guard let endDate = brokenItem.endDate else { return }
-
-        if let nearest = store.item(
-            where: "deleted = 0 AND itemId != ? AND startDate >= ? ORDER BY ABS(strftime('%s', startDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970]), !nearest.deleted
-        {
-            print("NEAREST NEXT (gap: \(String(format: "%.0fs", nearest.timeInterval(from: brokenItem)!)), "
-                + "hasPrevious: \(nearest.previousItemId?.shortString ?? "false"))")
-
-            if nearest.previousItem == nil, let gap = nearest.timeInterval(from: brokenItem), gap < 60 * 2 {
-                print("HEALED NEXTITEM")
-                brokenItem.nextItem = nearest
-                return
-            }
-        }
-
-        if let overlapper = store.item(
-            where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
-            arguments: [brokenItem.itemId.uuidString, endDate, endDate]), !overlapper.deleted
-        {
-            print("MERGED INTO OVERLAPPING ITEM")
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
-        }
-
-        print("COULDN'T HEAL NEXTITEM EDGE")
-    }
-
-    private static func healPreviousEdge(of brokenItem: TimelineItem) {
-        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
-        guard brokenItem.previousItem == nil else { return }
-        guard let startDate = brokenItem.startDate else { return }
-
-        if let nearest = store.item(
-            where: "deleted = 0 AND itemId != ? AND endDate <= ? ORDER BY ABS(strftime('%s', endDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970]), !nearest.deleted
-        {
-            print("NEAREST PREVIOUS (gap: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), "
-                + "hasNext: \(nearest.nextItemId?.shortString ?? "false"))")
-
-            if nearest.nextItem == nil, let gap = nearest.timeInterval(from: brokenItem), gap < 60 * 2 {
-                print("HEALED PREVIOUSITEM")
-                brokenItem.previousItem = nearest
-                return
-            }
-        }
-
-        if let overlapper = store.item(
-            where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
-            arguments: [brokenItem.itemId.uuidString, startDate, startDate]), !overlapper.deleted
-        {
-            print("MERGED INTO OVERLAPPING ITEM")
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
-        }
-
-        print("COULDN'T HEAL PREVIOUSITEM EDGE")
     }
 
     // MARK: - Data gap insertion

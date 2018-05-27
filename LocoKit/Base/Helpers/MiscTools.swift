@@ -6,6 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import Foundation
+
 public func onMain(_ closure: @escaping () -> ()) {
     if Thread.isMainThread {
         closure()
@@ -34,6 +36,17 @@ public extension UUID {
 
     public var shortString: String {
         return String(uuidString.split(separator: "-")[0])
+    }
+
+}
+
+public extension DateInterval {
+
+    public func contains(_ other: DateInterval) -> Bool {
+        if let overlap = intersection(with: other), overlap == other {
+            return true
+        }
+        return false
     }
 
 }
