@@ -48,12 +48,12 @@ public class PersistentProcessor {
                         overlapper.nextItem = nil
                         modifiedItems.append(overlapper)
                     }
+                }
 
-                    // if only extracted from middle, split the item in two
-                    if !lostPrevEdge && !lostNextEdge && !samplesToSteal.isEmpty {
-                        // TODO: split the item in two
-                        print("TODO: split the item in two")
-                    }
+                // if only extracted from middle, split the item in two
+                if !lostPrevEdge && !lostNextEdge && !samplesToSteal.isEmpty {
+                    // TODO: split the item in two
+                    print("TODO: split the item in two")
                 }
             }
 
