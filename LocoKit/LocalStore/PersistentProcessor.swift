@@ -136,6 +136,7 @@ public class PersistentProcessor {
                 } else { // they don't have an edge connection, so it's safe to connect
                     print("healNextEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString))")
                     brokenItem.nextItem = nearest
+                    return
                 }
             }
 
