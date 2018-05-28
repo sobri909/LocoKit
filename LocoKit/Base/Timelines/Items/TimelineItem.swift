@@ -346,19 +346,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
      - Note: A negative value indicates overlapping items, and thus the duration of their overlap.
      */
     public func timeInterval(from otherItem: TimelineItem) -> TimeInterval? {
-        guard let myRange = self.dateRange, let theirRange = otherItem.dateRange else {
-            return nil
-        }
+        guard let myRange = self.dateRange else { return nil }
+        guard let theirRange = otherItem.dateRange else { return nil }
 
-        if let intersection = myRange.intersection(with: theirRange) {
-            return -intersection.duration
-        }
-        if myRange.end <= theirRange.start {
-            return theirRange.start.timeIntervalSince(myRange.end)
-        }
-        if myRange.start >= theirRange.end {
-            return myRange.start.timeIntervalSince(theirRange.end)
-        }
+        // items overlap?
+        if let intersection = myRange.intersection(with: theirRange) { return -intersection.duration }
+
+        if myRange.end <= theirRange.start { return theirRange.start.timeIntervalSince(myRange.end) }
+        if myRange.start >= theirRange.end { return myRange.start.timeIntervalSince(theirRange.end) }
 
         return nil
     }
