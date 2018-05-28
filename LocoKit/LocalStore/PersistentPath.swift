@@ -43,7 +43,7 @@ open class PersistentPath: Path, PersistentObject {
             if lastSaved == nil {
                 _samples = []
             } else if let store = persistentStore {
-                _samples = store.samples(where: "deleted = 0 AND timelineItemId = ? ORDER BY date",
+                _samples = store.samples(where: "timelineItemId = ? AND deleted = 0 ORDER BY date",
                                          arguments: [itemId.uuidString])
             } else {
                 _samples = []
