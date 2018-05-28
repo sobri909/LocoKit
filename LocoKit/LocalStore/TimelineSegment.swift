@@ -98,19 +98,35 @@ public class TimelineSegment: TransactionObserver {
 
     private func reclassifySamples() {
         guard let items = timelineItems else { return }
-
         guard let classifier = store.recorder?.classifier else { return }
 
         for item in items {
             var count = 0
+            var typeChanged = false
             for sample in item.samples where sample.confirmedType == nil {
+
+                // existing classifier results are already complete?
                 if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
+
+                // reclassify
+                let oldActivityType = sample.activityType
                 sample.classifierResults = classifier.classify(sample, filtered: true)
                 sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
                 if sample.classifierResults != nil { count += 1 }
+
+                // activity type changed?
+                if sample.activityType != oldActivityType { typeChanged = true }
             }
+
+            // item needs rebuild?
+            if typeChanged { item.samplesChanged() }
+
             if count > 0 {
-                os_log("Reclassified samples: %d", type: .debug, count)
+                if typeChanged {
+                    os_log("Reclassified samples: %d (typeChanged: true)", type: .debug, count)
+                } else {
+                    os_log("Reclassified samples: %d", type: .debug, count)
+                }
             }
         }
     }
