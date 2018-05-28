@@ -57,7 +57,7 @@ public class TimelineSegment: TransactionObserver {
         onMain {
             guard self.updatingEnabled else { return }
             self.updateTimer?.invalidate()
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
+            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { [weak self] _ in
                 self?.update()
             }
         }
