@@ -104,7 +104,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             return self._previousItem
         }
         set(newValue) {
-            if newValue == self { fatalError("Can't link to self") }
+            if newValue == self { os_log("Can't link to self", type: .error); return }
             if newValue?.deleted == true { fatalError("Can't link to a deleted item") }
             mutex.sync {
                 let oldValue = self.previousItem
@@ -137,7 +137,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             return self._nextItem
         }
         set(newValue) {
-            if newValue == self { fatalError("Can't link to self") }
+            if newValue == self { os_log("Can't link to self", type: .error); return }
             if newValue?.deleted == true { fatalError("Can't link to a deleted item") }
             mutex.sync {
                 let oldValue = self.nextItem

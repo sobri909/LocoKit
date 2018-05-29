@@ -5,6 +5,8 @@
 //  Created by Matt Greenfield on 26/5/18.
 //
 
+import os.log
+
 public class PersistentProcessor {
 
     // MARK: - ItemSegment brexiting
@@ -219,6 +221,50 @@ public class PersistentProcessor {
         }
 
         print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED")
+    }
+
+    // MARK: - Database sanitising
+
+    public static func sanitise(store: PersistentTimelineStore) {
+        adoptOrphanedSamples(in: store)
+    }
+
+    private static func adoptOrphanedSamples(in store: PersistentTimelineStore) {
+        store.process {
+            let orphans = store.samples(where: "deleted = 0 AND timelineItemId IS NULL ORDER BY date DESC")
+
+            if orphans.count > 0 {
+                os_log("Found orphaned samples: %d", type: .error, orphans.count)
+            }
+
+            var newParents: [TimelineItem] = []
+
+            for orphan in orphans where orphan.timelineItem == nil {
+                if let item = store.item(where: "deleted = 0 AND startDate <= ? AND endDate >= ?",
+                                         arguments: [orphan.date, orphan.date]) {
+                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
+                           orphan.sampleId.shortString, String(describing: orphan.date))
+                    item.add(orphan)
+
+                } else { // create a new item for the orphan
+                    if orphan.movingState == .stationary {
+                        newParents.append(store.createVisit(from: orphan))
+                    } else {
+                        newParents.append(store.createPath(from: orphan))
+                    }
+                    os_log("CREATED NEW PARENT FOR ORPHAN (sample: %@, date: %@)", type: .debug,
+                           orphan.sampleId.shortString, String(describing: orphan.date))
+                }
+            }
+
+            if newParents.isEmpty { return }
+
+            // clean up the new parents
+            newParents.forEach {
+                PersistentProcessor.healEdges(of: $0)
+                TimelineProcessor.process(from: $0)
+            }
+        }
     }
 
 }

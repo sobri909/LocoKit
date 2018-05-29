@@ -48,8 +48,6 @@ open class PersistentTimelineStore: TimelineStore {
         migrateDatabase()
         pool.add(transactionObserver: itemsObserver)
         pool.setupMemoryManagement(in: UIApplication.shared)
-
-        adoptOrphanedSamples()
     }
 
     // MARK: - Adding Items / Samples to the store
@@ -247,25 +245,6 @@ open class PersistentTimelineStore: TimelineStore {
             }
         } catch {
             os_log("%@", error.localizedDescription)
-        }
-    }
-
-    private func adoptOrphanedSamples() {
-        process {
-            let orphans = self.samples(where: "deleted = 0 AND timelineItemId IS NULL ORDER BY date DESC")
-
-            if orphans.count > 0 {
-                os_log("Found orphaned samples: %d", type: .error, orphans.count)
-            }
-
-            for orphan in orphans where orphan.timelineItem == nil {
-                if let item = self.item(where: "deleted = 0 AND startDate <= ? AND endDate >= ?",
-                                         arguments: [orphan.date, orphan.date]) {
-                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
-                           orphan.sampleId.shortString, String(describing: orphan.date))
-                    item.add(orphan)
-                }
-            }
         }
     }
 
