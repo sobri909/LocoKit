@@ -7,7 +7,7 @@
 
 public class PersistentProcessor {
 
-    // MARK: - Brexits
+    // MARK: - ItemSegment brexiting
 
     public static func extractItem(for segment: ItemSegment, in store: PersistentTimelineStore, completion: ((TimelineItem?) -> Void)? = nil) {
         store.process {
@@ -27,29 +27,25 @@ public class PersistentProcessor {
             for overlapper in overlappers {
                 var lostPrevEdge = false, lostNextEdge = false
 
-                for sample in overlapper.samples {
+                // find samples inside the segment's range
+                for sample in overlapper.samples where segmentRange.contains(sample.date) {
+                    if sample == overlapper.samples.first { lostPrevEdge = true }
+                    if sample == overlapper.samples.last { lostNextEdge = true }
+                    samplesToSteal.append(sample)
+                }
 
-                    // sample is inside the segment's range?
-                    if segmentRange.contains(sample.date) {
-                        if sample == overlapper.samples.first { lostPrevEdge = true }
-                        if sample == overlapper.samples.last { lostNextEdge = true }
-                        print("Moving sample from overlapper to inserted item")
-                        samplesToSteal.append(sample)
-                    }
+                // detach previous edge, if modified
+                if lostPrevEdge {
+                    print("Detaching overlapper.previousItem")
+                    overlapper.previousItem = nil
+                    modifiedItems.append(overlapper)
+                }
 
-                    // detach previous edge, if modified
-                    if lostPrevEdge {
-                        print("Detaching overlapper.previousItem")
-                        overlapper.previousItem = nil
-                        modifiedItems.append(overlapper)
-                    }
-
-                    // detach next edge, if modified
-                    if lostNextEdge {
-                        print("Detaching overlapper.nextItem")
-                        overlapper.nextItem = nil
-                        modifiedItems.append(overlapper)
-                    }
+                // detach next edge, if modified
+                if lostNextEdge {
+                    print("Detaching overlapper.nextItem")
+                    overlapper.nextItem = nil
+                    modifiedItems.append(overlapper)
                 }
 
                 // if only extracted from middle, split the item in two
@@ -63,7 +59,10 @@ public class PersistentProcessor {
             let newItem = createItem(from: segment, in: store)
 
             // add the stolen samples to the new item
-            newItem.add(samplesToSteal)
+            if !samplesToSteal.isEmpty {
+                print("Moving \(samplesToSteal.count) samples from overlappers to inserted item")
+                newItem.add(samplesToSteal)
+            }
 
             // delete any newly empty items
             for modifiedItem in modifiedItems where modifiedItem.samples.isEmpty {
