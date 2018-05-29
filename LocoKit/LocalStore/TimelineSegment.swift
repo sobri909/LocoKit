@@ -132,9 +132,13 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func process() {
-        if let items = timelineItems {
-            TimelineProcessor.process(items)
-        }
+        guard let items = timelineItems else { return }
+
+        // shouldn't do processing if currentItem is in the segment and isn't a keeper
+        // (the TimelineRecorder should be the sole authority on processing those cases)
+        for item in items { if item.isCurrentItem && !item.isWorthKeeping { return } }
+
+        TimelineProcessor.process(items)
     }
 
     // MARK: - TransactionObserver
