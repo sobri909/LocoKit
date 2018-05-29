@@ -114,7 +114,7 @@ open class PersistentVisit: Visit, PersistentObject {
         container["stepCount"] = stepCount
         container["floorsAscended"] = floorsAscended
         container["floorsDescended"] = floorsDescended
-        container["activityType"] = modeActivityType?.rawValue
+        container["activityType"] = _modeActivityType?.rawValue
         container["latitude"] = _center?.coordinate.latitude
         container["longitude"] = _center?.coordinate.longitude
     }

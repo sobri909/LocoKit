@@ -55,19 +55,19 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private var updatingPedometerData = false
     private var pedometerDataIsStale = false
 
-    private var _stepCount: Int?
+    public private(set) var _stepCount: Int?
     open var stepCount: Int? {
         if _stepCount == nil || pedometerDataIsStale { updatePedometerData() }
         return _stepCount
     }
 
-    private var _floorsAscended: Int?
+    public private(set) var _floorsAscended: Int?
     public var floorsAscended: Int? {
         if _floorsAscended == nil || pedometerDataIsStale { updatePedometerData() }
         return _floorsAscended
     }
 
-    private var _floorsDescended: Int?
+    public private(set) var _floorsDescended: Int?
     public var floorsDescended: Int? {
         if _floorsDescended == nil || pedometerDataIsStale { updatePedometerData() }
         return _floorsDescended
@@ -90,14 +90,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
 
     public var previousItemId: UUID? {
-        didSet {
-            if previousItemId == itemId { fatalError("Can't link to self") }
-        }
+        didSet { if previousItemId == itemId { fatalError("Can't link to self") } }
     }
     public var nextItemId: UUID? {
-        didSet {
-            if nextItemId == itemId { fatalError("Can't link to self") }
-        }
+        didSet { if nextItemId == itemId { fatalError("Can't link to self") } }
     }
 
     private weak var _previousItem: TimelineItem?
@@ -306,7 +302,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return classifierResults?.first(where: { $0.name != .stationary })?.name
     }
 
-    private var _modeActivityType: ActivityTypeName? = nil
+    public private(set) var _modeActivityType: ActivityTypeName? = nil
 
     /// The most common activity type for the timeline item's samples.
     public var modeActivityType: ActivityTypeName? {
@@ -322,7 +318,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return _modeActivityType
     }
 
-    private var _modeMovingActivityType: ActivityTypeName? = nil
+    public private(set) var _modeMovingActivityType: ActivityTypeName? = nil
 
     /// The most common moving activity type for the timeline item's samples.
     public var modeMovingActivityType: ActivityTypeName? {
@@ -483,14 +479,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
     }
 
-    private(set) public var _center: CLLocation?
+    public private(set) var _center: CLLocation?
     public var center: CLLocation? {
         if let cached = _center { return cached }
         _center = samples.weightedCenter
         return _center
     }
 
-    private(set) public var _radius: Radius?
+    public private(set) var _radius: Radius?
     public var radius: Radius {
         if let cached = _radius { return cached }
         if let center = center { _radius = samples.radius(from: center) }
@@ -498,7 +494,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return _radius!
     }
 
-    private(set) public var _altitude: CLLocationDistance?
+    public private(set) var _altitude: CLLocationDistance?
     public var altitude: CLLocationDistance? {
         if let cached = _altitude { return cached }
         _altitude = samples.weightedMeanAltitude
@@ -576,6 +572,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         } else if let latitude = dict["latitude"] as? Double, let longitude = dict["longitude"] as? Double {
             self._center = CLLocation(latitude: latitude, longitude: longitude)
         }
+        if let rawValue = dict["activityType"] as? String, let activityType = ActivityTypeName(rawValue: rawValue) {
+            if self is Path {
+                _modeMovingActivityType = activityType
+            } else {
+                _modeActivityType = activityType
+            }
+        }
         self.store = store
         store.add(self)
     }
@@ -617,7 +620,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         try container.encode(radius, forKey: .radius)
         try container.encode(altitude, forKey: .altitude)
         try container.encode(stepCount, forKey: .stepCount)
-        try container.encode(modeActivityType, forKey: .activityType)
+        if self is Path {
+            try container.encode(modeMovingActivityType, forKey: .activityType)
+        } else {
+            try container.encode(modeActivityType, forKey: .activityType)
+        }
         try container.encode(floorsAscended, forKey: .floorsAscended)
         try container.encode(floorsDescended, forKey: .floorsDescended)
     }
