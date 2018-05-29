@@ -7,7 +7,7 @@
 
 import GRDB
 
-internal class RowCopy: RowConvertible {
+internal class RowCopy: FetchableRecord {
 
     internal let row: Row
 
