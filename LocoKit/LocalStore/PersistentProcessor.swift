@@ -138,12 +138,16 @@ public class PersistentProcessor {
                     brokenItem.nextItem = nearest
                     return
                 }
-            }
 
-            print("healNextEdge(of: \(brokenItem.itemId.shortString)) "
-                + "NEAREST (itemId: \(nearest.itemId.shortString), "
-                + "gap: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), "
-                + "previousItemId: \(nearest.previousItemId?.shortString ?? "nil"))")
+                print("healNextEdge(of: \(brokenItem.itemId.shortString)) "
+                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: \(String(format: "%0.fs", gap)), "
+                    + "previousItemId: \(nearest.previousItemId?.shortString ?? "nil"))")
+
+            } else {
+                print("healNextEdge(of: \(brokenItem.itemId.shortString)) "
+                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: nil, "
+                    + "previousItemId: \(nearest.previousItemId?.shortString ?? "nil"))")
+            }
         }
 
         if let overlapper = store.item(
@@ -193,12 +197,16 @@ public class PersistentProcessor {
                     brokenItem.previousItem = nearest
                     return
                 }
-            }
 
-            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) "
-                + "NEAREST (itemId: \(nearest.itemId.shortString), "
-                + "gap: \(String(format: "%0.fs", nearest.timeInterval(from: brokenItem)!)), "
-                + "nextItemId: \(nearest.nextItemId?.shortString ?? "nil"))")
+                print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) "
+                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: \(String(format: "%0.fs", gap)), "
+                    + "nextItemId: \(nearest.nextItemId?.shortString ?? "nil"))")
+
+            } else {
+                print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) "
+                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: nil, "
+                    + "nextItemId: \(nearest.nextItemId?.shortString ?? "nil"))")
+            }
         }
 
         if let overlapper = store.item(
