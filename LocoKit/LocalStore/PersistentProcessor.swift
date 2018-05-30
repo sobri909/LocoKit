@@ -27,6 +27,12 @@ public class PersistentProcessor {
 
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {
+                if overlapper.isMergeLocked {
+                    print("An overlapper is merge locked. Aborting extraction.")
+                    completion?(nil)
+                    return
+                }
+
                 var lostPrevEdge = false, lostNextEdge = false
 
                 // find samples inside the segment's range
