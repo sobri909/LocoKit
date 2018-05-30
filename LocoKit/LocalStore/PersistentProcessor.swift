@@ -55,16 +55,12 @@ public class PersistentProcessor {
                     overlapper.nextItem = nil
                     modifiedItems.append(overlapper)
                 }
-
-                // if only extracted from middle, split the item in two
-                if !lostPrevEdge && !lostNextEdge && !samplesToSteal.isEmpty {
-                    // TODO: split the item in two
-                    print("TODO: split the item in two")
-                }
             }
 
             // create the new item
-            let newItem = createItem(from: segment, in: store)
+            let newItem = segment.activityType == .stationary
+                ? store.createVisit(from: segment.samples)
+                : store.createPath(from: segment.samples)
 
             // add the stolen samples to the new item
             if !samplesToSteal.isEmpty {
@@ -74,7 +70,33 @@ public class PersistentProcessor {
 
             // delete any newly empty items
             for modifiedItem in modifiedItems where modifiedItem.samples.isEmpty {
+                print("Deleting a newly empty item")
                 modifiedItem.delete()
+            }
+
+            // if the new item is inside an overlapper, split that overlapper in two
+            for overlapper in overlappers where !overlapper.deleted {
+                guard let newItemRange = newItem.dateRange else { break }
+                guard let overlapperRange = overlapper.dateRange else { continue }
+                guard let intersection = overlapperRange.intersection(with: newItemRange) else { continue }
+                guard intersection.duration < overlapper.duration else { continue }
+
+                print("Splitting an overlapping item in two")
+
+                // get all samples from overlapper up to the point of overlap
+                let samplesToExtract = overlapper.samples.prefix { $0.date < newItemRange.start }
+
+                // create a new item from those samples
+                let splitItem = overlapper is Path
+                    ? store.createPath(from: Array(samplesToExtract))
+                    : store.createVisit(from: Array(samplesToExtract))
+                modifiedItems.append(splitItem)
+
+                // detach the edge to allow proper reconnect at healing time
+                overlapper.previousItem = nil
+
+                // copy metadata to the splitter
+                splitItem.copyMetadata(from: overlapper)
             }
 
             // attempt to connect up the new item
@@ -90,12 +112,6 @@ public class PersistentProcessor {
             // complete with the new item
             completion?(newItem)
         }
-    }
-
-    private static func createItem(from segment: ItemSegment, in store: PersistentTimelineStore) -> TimelineItem {
-        return segment.activityType == .stationary
-            ? store.createVisit(from: segment.samples)
-            : store.createPath(from: segment.samples)
     }
 
     // MARK: - Item edge healing

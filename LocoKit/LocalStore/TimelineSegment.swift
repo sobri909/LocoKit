@@ -69,6 +69,7 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func update() {
+        guard updatingEnabled else { return }
         queue.async { [weak self] in
             guard self?.updatingEnabled == true else { return }
             if self?.hasChanged == true {

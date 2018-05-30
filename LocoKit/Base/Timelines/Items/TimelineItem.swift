@@ -529,6 +529,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
     }
 
+    // MARK: - Item metadata copying
+
+    open func copyMetadata(from otherItem: TimelineItem) {}
+
     // MARK: - Hashable, Comparable
 
     public var hashValue: Int { return itemId.hashValue }
