@@ -13,7 +13,12 @@ public class TimelineSegment: TransactionObserver {
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
 
-    public private(set) var timelineItems: [TimelineItem]?
+    private var _timelineItems: [TimelineItem]?
+    public var timelineItems: [TimelineItem] {
+        if let current = _timelineItems { return current }
+        _timelineItems = store.items(for: query, arguments: arguments)
+        return _timelineItems ?? []
+    }
 
     private let query: String
     private let arguments: StatementArguments?
@@ -48,7 +53,7 @@ public class TimelineSegment: TransactionObserver {
     public func stopUpdating() {
         if !updatingEnabled { return }
         updatingEnabled = false
-        timelineItems = nil
+        _timelineItems = nil
     }
 
     // MARK: - Result updating
@@ -66,9 +71,8 @@ public class TimelineSegment: TransactionObserver {
     private func update() {
         queue.async { [weak self] in
             guard self?.updatingEnabled == true else { return }
-            self?.updateItems()
             if self?.hasChanged == true {
-                self?.timelineItems?.forEach { PersistentProcessor.healEdges(of: $0) }
+                self?.timelineItems.forEach { PersistentProcessor.healEdges(of: $0) }
                 self?.reclassifySamples()
                 self?.process()
                 self?.onUpdate?()
@@ -76,15 +80,11 @@ public class TimelineSegment: TransactionObserver {
         }
     }
 
-    private func updateItems() {
-        timelineItems = store.items(for: query, arguments: arguments)
-    }
-
     private var hasChanged: Bool {
         guard let items = timelineItems as? [PersistentItem] else { return false }
 
         let freshLastSaveDate = items.compactMap { $0.lastSaved }.max()
-        let freshItemCount = timelineItems?.count
+        let freshItemCount = items.count
 
         defer {
             lastSaveDate = freshLastSaveDate
@@ -97,10 +97,9 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func reclassifySamples() {
-        guard let items = timelineItems else { return }
         guard let classifier = store.recorder?.classifier else { return }
 
-        for item in items {
+        for item in timelineItems {
             var count = 0
             var typeChanged = false
             for sample in item.samples where sample.confirmedType == nil {
@@ -132,13 +131,12 @@ public class TimelineSegment: TransactionObserver {
     }
 
     private func process() {
-        guard let items = timelineItems else { return }
 
         // shouldn't do processing if currentItem is in the segment and isn't a keeper
         // (the TimelineRecorder should be the sole authority on processing those cases)
-        for item in items { if item.isCurrentItem && !item.isWorthKeeping { return } }
+        for item in timelineItems { if item.isCurrentItem && !item.isWorthKeeping { return } }
 
-        TimelineProcessor.process(items)
+        TimelineProcessor.process(timelineItems)
     }
 
     // MARK: - TransactionObserver
@@ -158,6 +156,7 @@ public class TimelineSegment: TransactionObserver {
     public func databaseDidCommit(_ db: Database) {
         guard pendingChanges else { return }
         onMain { [weak self] in
+            self?._timelineItems = nil
             self?.needsUpdate()
         }
     }
