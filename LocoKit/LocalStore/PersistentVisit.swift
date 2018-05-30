@@ -99,8 +99,9 @@ open class PersistentVisit: Visit, PersistentObject {
         container["lastSaved"] = transactionDate ?? lastSaved
         container["deleted"] = deleted
         container["isVisit"] = true
-        container["startDate"] = _dateRange?.start
-        container["endDate"] = _dateRange?.end
+        let range = _dateRange ?? dateRange
+        container["startDate"] = range?.start
+        container["endDate"] = range?.end
         if deleted {
             container["previousItemId"] = nil
             container["nextItemId"] = nil

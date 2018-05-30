@@ -99,8 +99,9 @@ open class PersistentPath: Path, PersistentObject {
         container["lastSaved"] = transactionDate ?? lastSaved
         container["deleted"] = deleted
         container["isVisit"] = false
-        container["startDate"] = _dateRange?.start
-        container["endDate"] = _dateRange?.end
+        let range = _dateRange ?? dateRange
+        container["startDate"] = range?.start
+        container["endDate"] = range?.end
         if deleted {
             container["previousItemId"] = nil
             container["nextItemId"] = nil
