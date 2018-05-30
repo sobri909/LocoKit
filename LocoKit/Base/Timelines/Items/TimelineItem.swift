@@ -428,7 +428,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
      */
     open func willConsume(item: TimelineItem) {}
 
-    // MARK: Modifying the timeline item
+    // MARK: - Modifying the timeline item
 
     open func edit(changes: () -> Void) {
         mutex.sync { changes() }
@@ -549,6 +549,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public required init(from dict: [String: Any?], in store: TimelineStore) {
+        self.store = store
         if let uuidString = dict["itemId"] as? String {
             self.itemId = UUID(uuidString: uuidString)!
         } else {
@@ -579,7 +580,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
                 _modeActivityType = activityType
             }
         }
-        self.store = store
         store.add(self)
     }
 

@@ -26,7 +26,20 @@ open class Path: TimelineItem {
 
     public static var maximumModeShiftSpeed = CLLocationSpeed(kmh: 8)
 
-    private var _distance: CLLocationDistance?
+    public private(set) var _distance: CLLocationDistance?
+
+    public required init(from dict: [String: Any?], in store: TimelineStore) {
+        self._distance = dict["distance"] as? CLLocationDistance
+        super.init(from: dict, in: store)
+    }
+
+    public required init(from decoder: Decoder) throws {
+        try super.init(from: decoder)
+    }
+
+    public required init(in store: TimelineStore) {
+        super.init(in: store)
+    }
 
     open override var isValid: Bool {
         if isDataGap { return isValidDataGap }
