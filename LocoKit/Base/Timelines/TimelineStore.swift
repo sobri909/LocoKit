@@ -77,11 +77,11 @@ open class TimelineStore {
         processingQueue.async {
             self.processing = true
             changes()
-            self.save(immediate: true)
+            self.save()
             self.processing = false
         }
     }
 
-    open func save(immediate: Bool) {}
+    open func save() {}
 
 }

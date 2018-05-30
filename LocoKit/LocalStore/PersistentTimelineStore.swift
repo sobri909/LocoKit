@@ -12,7 +12,6 @@ import LocoKitCore
 
 open class PersistentTimelineStore: TimelineStore {
 
-    open var saveBatchSize = 50
     open var keepDeletedObjectsFor: TimeInterval = 60 * 60
     public var sqlDebugLogging = false
 
@@ -195,16 +194,14 @@ open class PersistentTimelineStore: TimelineStore {
                 samplesToSave.insert(sample)
             }
         }
-        save(immediate: immediate)
+        if immediate { save() }
     }
 
-    open override func save(immediate: Bool = true) {
+    open override func save() {
         var savingItems: Set<TimelineItem> = []
         var savingSamples: Set<PersistentSample> = []
 
         mutex.sync {
-            guard immediate || (itemsToSave.count + samplesToSave.count >= saveBatchSize) else { return }
-
             savingItems = itemsToSave.filter { ($0 as? PersistentItem)?.needsSave == true }
             itemsToSave.removeAll(keepingCapacity: true)
 
@@ -215,8 +212,10 @@ open class PersistentTimelineStore: TimelineStore {
         if !savingItems.isEmpty {
             try! pool.write { db in
                 let now = Date()
-                for case let item as PersistentObject in savingItems { item.transactionDate = now }
-                for case let item as PersistentObject in savingItems { try item.save(in: db) }
+                for case let item as PersistentObject in savingItems {
+                    item.transactionDate = now
+                    try item.save(in: db)
+                }
                 db.afterNextTransactionCommit { db in
                     for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
                 }
@@ -225,8 +224,10 @@ open class PersistentTimelineStore: TimelineStore {
         if !savingSamples.isEmpty {
             try! pool.write { db in
                 let now = Date()
-                for case let sample as PersistentObject in savingSamples { sample.transactionDate = now  }
-                for case let sample as PersistentObject in savingSamples { try sample.save(in: db) }
+                for case let sample as PersistentObject in savingSamples {
+                    sample.transactionDate = now
+                    try sample.save(in: db)
+                }
                 db.afterNextTransactionCommit { db in
                     for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
                 }
