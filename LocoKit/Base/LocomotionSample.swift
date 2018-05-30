@@ -135,12 +135,12 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
             // no change? do nothing
             if newValue == oldValue { return }
 
+            // disconnect the old relationship
+            oldValue?.remove(self)
+
             // store the new value
             self._timelineItem = newValue
             self.timelineItemId = newValue?.itemId
-
-            // disconnect the old relationship
-            oldValue?.remove(self)
 
             // complete the other side of the new relationship
             newValue?.add(self)
