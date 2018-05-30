@@ -112,6 +112,7 @@ open class PersistentPath: Path, PersistentObject {
         container["radiusMean"] = _radius?.mean
         container["radiusSD"] = _radius?.sd
         container["altitude"] = _altitude
+        container["distance"] = _distance
         container["stepCount"] = stepCount
         container["floorsAscended"] = floorsAscended
         container["floorsDescended"] = floorsDescended

@@ -346,10 +346,14 @@ open class PersistentTimelineStore: TimelineStore {
                           on: "LocomotionSample", columns: ["lastSaved"])
         }
 
-        // ability to soft delete samples, same as items
         migrator.registerMigration("6.0.0") { db in
+            // ability to soft delete samples, same as items
             try db.alter(table: "LocomotionSample") { table in
                 table.add(column: "deleted", .boolean).defaults(to: false).notNull().indexed()
+            }
+            // caching distance to db reduces costs on fetch
+            try db.alter(table: "TimelineItem") { table in
+                table.add(column: "distance", .double)
             }
         }
 
