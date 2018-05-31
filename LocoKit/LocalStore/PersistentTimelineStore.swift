@@ -162,12 +162,10 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     public func samples(for query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
-        return try! pool.read { db in
-            var samples: [PersistentSample] = []
-            let rows = try Row.fetchCursor(db, query, arguments: arguments)
-            while let row = try rows.next() { samples.append(sample(for: row)) }
-            return samples
+        let rows = try! pool.read { db in
+            return try Row.fetchAll(db, query, arguments: arguments)
         }
+        return rows.map { sample(for: $0) }
     }
 
     // MARK: - Counting
