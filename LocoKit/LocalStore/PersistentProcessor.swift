@@ -123,8 +123,27 @@ public class PersistentProcessor {
     public static func healEdges(of brokenItem: TimelineItem) {
         if brokenItem.isMergeLocked { return }
         if !brokenItem.hasBrokenEdges { return }
-        brokenItem.store?.process { self.healPreviousEdge(of: brokenItem) }
-        brokenItem.store?.process { self.healNextEdge(of: brokenItem) }
+        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
+
+        store.process { self.healPreviousEdge(of: brokenItem) }
+        store.process { self.healNextEdge(of: brokenItem) }
+
+        // it's wholly contained by another item?
+        store.process {
+            guard brokenItem.hasBrokenPreviousItemEdge && brokenItem.hasBrokenNextItemEdge else { return }
+            guard let dateRange = brokenItem.dateRange else { return }
+
+            if let overlapper = store.item(
+                where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
+                arguments: [brokenItem.itemId.uuidString, dateRange.start, dateRange.end]),
+                !overlapper.deleted
+            {
+                print("healEdges(of: \(brokenItem.itemId.shortString)) MERGED INTO CONTAINING ITEM")
+                overlapper.add(brokenItem.samples)
+                brokenItem.delete()
+                return
+            }
+        }
     }
 
     private static func healNextEdge(of brokenItem: TimelineItem) {
