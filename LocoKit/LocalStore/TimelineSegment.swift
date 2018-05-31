@@ -15,8 +15,10 @@ public class TimelineSegment: TransactionObserver {
 
     private var _timelineItems: [TimelineItem]?
     public var timelineItems: [TimelineItem] {
-        if let current = _timelineItems { return current }
-        _timelineItems = store.items(for: query, arguments: arguments)
+        if pendingChanges {
+            _timelineItems = store.items(for: query, arguments: arguments)
+            pendingChanges = false
+        }
         return _timelineItems ?? []
     }
 
@@ -103,6 +105,7 @@ public class TimelineSegment: TransactionObserver {
         for item in timelineItems {
             var count = 0
             var typeChanged = false
+            
             for sample in item.samples where sample.confirmedType == nil {
 
                 // existing classifier results are already complete?
@@ -157,7 +160,6 @@ public class TimelineSegment: TransactionObserver {
     public func databaseDidCommit(_ db: Database) {
         guard pendingChanges else { return }
         onMain { [weak self] in
-            self?._timelineItems = nil
             self?.needsUpdate()
         }
     }
