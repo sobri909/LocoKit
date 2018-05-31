@@ -159,16 +159,16 @@ public class ItemSegment: Equatable {
 
     // MARK: - Modifying the item segment
 
-    func canAdd(_ sample: LocomotionSample) -> Bool {
+    func canAdd(_ sample: LocomotionSample, ignoreRecordingState: Bool = false) -> Bool {
 
-        // off samples group together, regardless of activity type
-        if recordingState == .off && sample.recordingState == .off { return true }
+        // need at least an activityType match
+        if sample.activityType != activityType { return false }
 
-        // off state can't combine with any other recording state
-        if recordingState == .off && sample.recordingState != .off { return false }
-        if recordingState != .off && sample.recordingState == .off { return false }
+        // don't care about recordingStates?
+        if ignoreRecordingState { return true }
 
-        return sample.activityType == activityType
+        // need a recordingState match
+        return sample.recordingState == recordingState
     }
 
     public func add(_ sample: LocomotionSample) {

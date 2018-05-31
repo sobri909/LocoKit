@@ -221,8 +221,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return radius.with3sd.clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
     }
 
+    /// The timeline item's samples grouped up into ItemSegments by sequentially matching activityType and recordingState.
     private var _segments: [ItemSegment]? = nil
-
     public var segments: [ItemSegment] {
         if let segments = _segments { return segments }
 
@@ -254,6 +254,42 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
 
         _segments = segments
+        return segments
+    }
+
+    /// The timeline item's samples grouped up into ItemSegments by sequentially matching activityType.
+    private var _segmentsByActivityType: [ItemSegment]? = nil
+    public var segmentsByActivityType: [ItemSegment] {
+        if let segments = _segmentsByActivityType { return segments }
+
+        var segments: [ItemSegment] = []
+        var current: ItemSegment?
+        for sample in samples {
+
+            // first segment?
+            if current == nil {
+                current = ItemSegment(samples: [sample], timelineItem: self)
+                segments.append(current!)
+                continue
+            }
+
+            // can add it to the current segment?
+            if current?.canAdd(sample, ignoreRecordingState: true) == true {
+                current?.add(sample)
+                continue
+            }
+
+            /** NEED A NEW SEGMENT **/
+
+            // use the sample to finalise the current segment before starting the next
+            current?.endSample = sample
+
+            // create the next segment
+            current = ItemSegment(samples: [sample], timelineItem: self)
+            segments.append(current!)
+        }
+
+        _segmentsByActivityType = segments
         return segments
     }
 
@@ -464,6 +500,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         _radius = nil
         _altitude = nil
         _segments = nil
+        _segmentsByActivityType = nil
         _classifierResults = nil
         _unfilteredClassifierResults = nil
         _modeMovingActivityType = nil
