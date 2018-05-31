@@ -15,7 +15,7 @@ public class TimelineSegment: TransactionObserver {
 
     private var _timelineItems: [TimelineItem]?
     public var timelineItems: [TimelineItem] {
-        if pendingChanges {
+        if pendingChanges || _timelineItems == nil {
             _timelineItems = store.items(for: query, arguments: arguments)
             pendingChanges = false
         }
