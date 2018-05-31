@@ -24,7 +24,7 @@ public class TimelineSegment: TransactionObserver {
 
     private let query: String
     private let arguments: StatementArguments?
-    private let queue = DispatchQueue(label: "TimelineSegment")
+    private let queue = DispatchQueue(label: "TimelineSegment", qos: .utility)
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
