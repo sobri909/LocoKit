@@ -33,7 +33,7 @@ public class TimelineSegment: TransactionObserver {
 
     public convenience init(for dateRange: DateInterval, in store: PersistentTimelineStore,
                             onUpdate: (() -> Void)? = nil) {
-        self.init(for: "deleted = 0 AND endDate > ? AND startDate < ? ORDER BY startDate",
+        self.init(for: "endDate > ? AND startDate < ? AND deleted = 0 ORDER BY startDate",
                   arguments: [dateRange.start, dateRange.end], in: store)
     }
 

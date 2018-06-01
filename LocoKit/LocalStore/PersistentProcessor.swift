@@ -19,7 +19,7 @@ public class PersistentProcessor {
             }
 
             // find the overlapping items
-            let overlappers = store.items(where: "deleted = 0 AND endDate > ? AND startDate < ? ORDER BY startDate",
+            let overlappers = store.items(where: "endDate > ? AND startDate < ? AND deleted = 0 ORDER BY startDate",
                                           arguments: [segmentRange.start, segmentRange.end])
 
             var modifiedItems: [TimelineItem] = []
@@ -134,7 +134,7 @@ public class PersistentProcessor {
             guard let dateRange = brokenItem.dateRange else { return }
 
             if let overlapper = store.item(
-                where: "deleted = 0 AND itemId != ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
+                where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND deleted = 0 AND itemId != ?",
                 arguments: [brokenItem.itemId.uuidString, dateRange.start, dateRange.end]),
                 !overlapper.deleted
             {
@@ -155,7 +155,7 @@ public class PersistentProcessor {
         print("healNextEdge(of: \(brokenItem.itemId.shortString))")
 
         if let nearest = store.item(
-            where: "deleted = 0 AND itemId != ? AND startDate >= ? ORDER BY ABS(strftime('%s', startDate) - ?)",
+            where: "startDate >= ? AND deleted = 0 AND itemId != ? ORDER BY ABS(strftime('%s', startDate) - ?)",
             arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970]), !nearest.deleted
         {
             if nearest.previousItemId == brokenItem.itemId {
@@ -193,7 +193,7 @@ public class PersistentProcessor {
         }
 
         if let overlapper = store.item(
-            where: "deleted = 0 AND itemId != ? AND isVisit = ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
+            where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND isVisit = ? AND deleted = 0 AND itemId != ?",
             arguments: [brokenItem.itemId.uuidString, brokenItem is Visit, endDate, endDate]), !overlapper.deleted
         {
             print("healNextEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
@@ -214,7 +214,7 @@ public class PersistentProcessor {
         print("healPreviousEdge(of: \(brokenItem.itemId.shortString))")
 
         if let nearest = store.item(
-            where: "deleted = 0 AND itemId != ? AND endDate <= ? ORDER BY ABS(strftime('%s', endDate) - ?)",
+            where: "endDate <= ? AND deleted = 0 AND itemId != ? ORDER BY ABS(strftime('%s', endDate) - ?)",
             arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970]), !nearest.deleted
         {
             if nearest.nextItemId == brokenItem.itemId {
@@ -252,7 +252,7 @@ public class PersistentProcessor {
         }
 
         if let overlapper = store.item(
-            where: "deleted = 0 AND itemId != ? AND isVisit = ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND startDate < ? AND endDate > ?",
+            where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND isVisit = ? AND deleted = 0 AND itemId != ?",
             arguments: [brokenItem.itemId.uuidString, brokenItem is Visit, startDate, startDate]), !overlapper.deleted
         {
             print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
@@ -272,7 +272,7 @@ public class PersistentProcessor {
 
     private static func adoptOrphanedSamples(in store: PersistentTimelineStore) {
         store.process {
-            let orphans = store.samples(where: "deleted = 0 AND timelineItemId IS NULL ORDER BY date DESC")
+            let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
 
             if orphans.count > 0 {
                 os_log("Found orphaned samples: %d", type: .error, orphans.count)
@@ -281,7 +281,7 @@ public class PersistentProcessor {
             var newParents: [TimelineItem] = []
 
             for orphan in orphans where orphan.timelineItem == nil {
-                if let item = store.item(where: "deleted = 0 AND startDate <= ? AND endDate >= ?",
+                if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
                                          arguments: [orphan.date, orphan.date]) {
                     os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
                            orphan.sampleId.shortString, String(describing: orphan.date))
