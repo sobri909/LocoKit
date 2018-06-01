@@ -365,6 +365,10 @@ open class PersistentTimelineStore: TimelineStore {
                         UPDATE TimelineItem SET previousItemId = NEW.itemId WHERE itemId = NEW.nextItemId;
                     END
                 """)
+
+            // faster sample fetching for timeline items
+            try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
+                          columns: ["timelineItemId", "deleted", "date"])
         }
 
         // apply the migrations
