@@ -88,7 +88,7 @@ public extension CLLocation {
 
         var sumx: Double = 0, sumy: Double = 0, sumz: Double = 0, totalWeight: Double = 0
 
-        for location in locations {
+        for location in locations where location.hasUsableCoordinate {
             let lat = location.coordinate.latitude.radiansValue
             let lng = location.coordinate.longitude.radiansValue
             let weight = location.horizontalAccuracyWeight(inRange: accuracyRange)
@@ -99,9 +99,7 @@ public extension CLLocation {
             totalWeight += weight
         }
 
-        if totalWeight == 0 {
-            return nil
-        }
+        if totalWeight == 0 { return nil }
 
         let meanx = sumx / totalWeight
         let meany = sumy / totalWeight
