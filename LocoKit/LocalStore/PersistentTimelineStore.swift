@@ -325,15 +325,6 @@ open class PersistentTimelineStore: TimelineStore {
                         UPDATE TimelineItem SET nextItemId = NEW.itemId WHERE itemId = NEW.previousItemId;
                     END
                 """)
-
-            // maintain the linked list at insert time
-            try db.execute("""
-                CREATE TRIGGER TimelineItem_insert AFTER INSERT ON TimelineItem
-                    BEGIN
-                        UPDATE TimelineItem SET previousItemId = NEW.itemId WHERE itemId = NEW.nextItemId;
-                        UPDATE TimelineItem SET nextItemId = NEW.itemId WHERE itemId = NEW.previousItemId;
-                    END
-                """)
         }
 
         // add some missing indexes
@@ -345,14 +336,35 @@ open class PersistentTimelineStore: TimelineStore {
         }
 
         migrator.registerMigration("6.0.0") { db in
+
             // ability to soft delete samples, same as items
             try db.alter(table: "LocomotionSample") { table in
                 table.add(column: "deleted", .boolean).defaults(to: false).notNull().indexed()
             }
+
             // caching distance to db reduces costs on fetch
             try db.alter(table: "TimelineItem") { table in
                 table.add(column: "distance", .double)
             }
+
+            // replacement insert triggers, with more precision
+            try db.execute("DROP TRIGGER IF EXISTS TimelineItem_insert")
+            try db.execute("""
+                CREATE TRIGGER TimelineItem_INSERT_previousEdge
+                    AFTER INSERT ON TimelineItem
+                    WHEN NEW.previousItemId IS NOT NULL
+                    BEGIN
+                        UPDATE TimelineItem SET nextItemId = NEW.itemId WHERE itemId = NEW.previousItemId;
+                    END
+                """)
+            try db.execute("""
+                CREATE TRIGGER TimelineItem_INSERT_nextEdge
+                    AFTER INSERT ON TimelineItem
+                    WHEN NEW.nextItemId IS NOT NULL
+                    BEGIN
+                        UPDATE TimelineItem SET previousItemId = NEW.itemId WHERE itemId = NEW.nextItemId;
+                    END
+                """)
         }
 
         // apply the migrations
