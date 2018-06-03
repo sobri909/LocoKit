@@ -19,8 +19,9 @@ public class PersistentProcessor {
             }
 
             // find the overlapping items
-            let overlappers = store.items(where: "endDate > ? AND startDate < ? AND deleted = 0 ORDER BY startDate",
-                                          arguments: [segmentRange.start, segmentRange.end])
+            let overlappers = store.items(
+                where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
+                arguments: ["startDate": segmentRange.start, "endDate": segmentRange.end])
 
             var modifiedItems: [TimelineItem] = []
             var samplesToSteal: [LocomotionSample] = []
@@ -134,8 +135,12 @@ public class PersistentProcessor {
             guard let dateRange = brokenItem.dateRange else { return }
 
             if let overlapper = store.item(
-                where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND deleted = 0 AND itemId != ?",
-                arguments: [brokenItem.itemId.uuidString, dateRange.start, dateRange.end]),
+                where: """
+                startDate <= :startDate AND endDate >= :endDate AND startDate IS NOT NULL AND endDate IS NOT NULL
+                AND deleted = 0 AND itemId != :itemId
+                """,
+                arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
+                            "itemId": brokenItem.itemId.uuidString]),
                 !overlapper.deleted
             {
                 print("healEdges(of: \(brokenItem.itemId.shortString)) MERGED INTO CONTAINING ITEM")
@@ -155,8 +160,10 @@ public class PersistentProcessor {
         print("healNextEdge(of: \(brokenItem.itemId.shortString))")
 
         if let nearest = store.item(
-            where: "startDate >= ? AND deleted = 0 AND itemId != ? ORDER BY ABS(strftime('%s', startDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, endDate, endDate.timeIntervalSince1970]), !nearest.deleted
+            where: "startDate >= :endDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
+            arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
+                        "timestamp": endDate.timeIntervalSince1970]),
+            !nearest.deleted
         {
             if nearest.previousItemId == brokenItem.itemId {
                 print("healNextEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
@@ -193,8 +200,13 @@ public class PersistentProcessor {
         }
 
         if let overlapper = store.item(
-            where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND isVisit = ? AND deleted = 0 AND itemId != ?",
-            arguments: [brokenItem.itemId.uuidString, brokenItem is Visit, endDate, endDate]), !overlapper.deleted
+            where: """
+            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted
         {
             print("healNextEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
@@ -214,8 +226,10 @@ public class PersistentProcessor {
         print("healPreviousEdge(of: \(brokenItem.itemId.shortString))")
 
         if let nearest = store.item(
-            where: "endDate <= ? AND deleted = 0 AND itemId != ? ORDER BY ABS(strftime('%s', endDate) - ?)",
-            arguments: [brokenItem.itemId.uuidString, startDate, startDate.timeIntervalSince1970]), !nearest.deleted
+            where: "endDate <= :startDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
+            arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
+                        "timestamp": startDate.timeIntervalSince1970]),
+            !nearest.deleted
         {
             if nearest.nextItemId == brokenItem.itemId {
                 print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
@@ -252,8 +266,13 @@ public class PersistentProcessor {
         }
 
         if let overlapper = store.item(
-            where: "startDate < ? AND endDate > ? AND startDate IS NOT NULL AND endDate IS NOT NULL AND isVisit = ? AND deleted = 0 AND itemId != ?",
-            arguments: [brokenItem.itemId.uuidString, brokenItem is Visit, startDate, startDate]), !overlapper.deleted
+            where: """
+            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted
         {
             print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
