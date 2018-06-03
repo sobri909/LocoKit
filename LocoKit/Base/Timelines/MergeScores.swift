@@ -38,8 +38,8 @@ class MergeScores {
         // data gaps can only consume data gaps
         if consumer.isDataGap { return consumee.isDataGap ? .perfect : .impossible }
 
-        // no one except data gaps can consume data gaps
-        if consumee.isDataGap { return .impossible }
+        // anyone can consume an invalid data gap, but no one can consume a valid data gap
+        if consumee.isDataGap { return consumee.isInvalid ? .medium : .impossible }
 
         // nolos can only consume nolos
         if consumer.isNolo { return consumee.isNolo ? .perfect : .impossible }
