@@ -46,6 +46,13 @@ public extension NSNotification.Name {
     public static let willStartSleepMode = Notification.Name("willStartSleepMode")
 
     /**
+     `didStartSleepMode` is sent after sleep mode has begun or resumed.
+
+     - Note: This includes both transitions from `recording` state and `wakeup` state.
+     */
+    public static let didStartSleepMode = Notification.Name("didStartSleepMode")
+
+    /**
      `willStartDeepSleepMode` is sent when deep sleep mode is about to begin or resume.
 
      - Note: This includes both transitions from `recording` state and `wakeup` state.
@@ -53,20 +60,26 @@ public extension NSNotification.Name {
     public static let willStartDeepSleepMode = Notification.Name("willStartDeepSleepMode")
 
     /**
-     `startedSleepMode` is sent after transitioning from `recording` state to `sleeping` state.
+     `wentFromRecordingToSleepMode` is sent after transitioning from `recording` state to `sleeping` state.
      */
-    public static let startedSleepMode = Notification.Name("startedSleepMode")
+    public static let wentFromRecordingToSleepMode = Notification.Name("wentFromRecordingToSleepMode")
 
     /**
-     `stoppedSleepMode` is sent after transitioning from `sleeping` state to `recording` state.
+     `wentFromSleepModeToRecording` is sent after transitioning from `sleeping` state to `recording` state.
      */
-    public static let stoppedSleepMode = Notification.Name("stoppedSleepMode")
+    public static let wentFromSleepModeToRecording = Notification.Name("wentFromSleepModeToRecording")
 
     // broadcasted CLLocationManagerDelegate events
     public static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")
     public static let didUpdateLocations = Notification.Name("didUpdateLocations")
     public static let didRangeBeacons = Notification.Name("didRangeBeacons")
     public static let didVisit = Notification.Name("didVisit")
+
+    @available(*, unavailable, renamed: "wentFromRecordingToSleepMode")
+    public static let startedSleepMode = Notification.Name("startedSleepMode")
+
+    @available(*, unavailable, renamed: "wentFromSleepModeToRecording")
+    public static let stoppedSleepMode = Notification.Name("stoppedSleepMode")
 }
 
 /**
@@ -118,7 +131,9 @@ public extension NSNotification.Name {
     internal static let maximumDesiredAccuracyDecreaseFrequency: TimeInterval = 60 * 2
     internal static let maximumDesiredLocationAccuracyInVisit = kCLLocationAccuracyHundredMeters
     internal static let wiggleHz: Double = 4
-    
+
+    public static let miminumDeepSleepDuration: TimeInterval = 60 * 15
+
     public let pedometer = CMPedometer()
     private let activityManager = CMMotionActivityManager()
 
@@ -248,12 +263,6 @@ public extension NSNotification.Name {
      consumption and extend battery life during long recording sessions.
      */
     @objc public var useLowPowerSleepModeWhileStationary: Bool = true
-
-    /**
-     Whether LocomotionManager should turn off recording while stationary and not resume recording until woken up by
-     iOS, in order to reduce energy consumption and extend battery life during long recording sessions.
-     */
-    @objc public var useDeepSleepModeWhileStationary: Bool = false
 
     /**
      Whether or not LocomotionManager should wake from sleep mode and resume recording when no location data is
@@ -395,8 +404,8 @@ public extension NSNotification.Name {
         recordingState = .recording
 
         // tell everyone that sleep mode has ended (ie we went from sleep/wakeup to recording)
-        if previousState == .wakeup || previousState == .sleeping {
-            let note = Notification(name: .stoppedSleepMode, object: self, userInfo: nil)
+        if RecordingState.sleepStates.contains(previousState) {
+            let note = Notification(name: .wentFromSleepModeToRecording, object: self, userInfo: nil)
             NotificationCenter.default.post(note)
         }
     }
@@ -552,8 +561,7 @@ public extension NSNotification.Name {
         guard useLowPowerSleepModeWhileStationary else { return }
 
         // notify that we're going to sleep
-        let note = Notification(name: .willStartSleepMode, object: self, userInfo: nil)
-        NotificationCenter.default.post(note)
+        NotificationCenter.default.post(Notification(name: .willStartSleepMode, object: self, userInfo: nil))
 
         // kill the gimps
         stopCoreMotion()
@@ -571,31 +579,40 @@ public extension NSNotification.Name {
         let previousState = recordingState
         recordingState = .sleeping
 
+        // notify that we've started sleep mode
+        NotificationCenter.default.post(Notification(name: .didStartSleepMode, object: self, userInfo: nil))
+
         // tell everyone that sleep mode has started (ie we went from recording to sleep)
         if previousState == .recording {
-            let note = Notification(name: .startedSleepMode, object: self, userInfo: nil)
+            let note = Notification(name: .wentFromRecordingToSleepMode, object: self, userInfo: nil)
             NotificationCenter.default.post(note)
         }
-
-        // should be deep sleeping?
-        if useDeepSleepModeWhileStationary { startDeepSleeping() }
     }
 
-    private func startDeepSleeping() {
-        if recordingState == .deepSleeping { return }
-
-        // make sure the SDK settings ask for deep sleep
-        guard useDeepSleepModeWhileStationary else { return }
+    public func startDeepSleeping(until wakeupTime: Date) {
 
         // make sure the device settings allow deep sleep
-        guard canDeepSleep else { return }
+        guard canDeepSleep else {
+            os_log("Deep sleep mode is unavailable due to device settings.", type: .debug)
+            return
+        }
+
+        let deepSleepDuration = wakeupTime.timeIntervalSinceNow
+
+        guard deepSleepDuration >= LocomotionManager.miminumDeepSleepDuration else {
+            os_log("Requested deep sleep duration is too short.", type: .debug)
+            return
+        }
 
         // notify that we're going to deep sleep
         let note = Notification(name: .willStartDeepSleepMode, object: self, userInfo: nil)
         NotificationCenter.default.post(note)
 
         // turn on background fetches
-        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(self.sleepCycleDuration * 10) }
+        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(deepSleepDuration) }
+
+        // request a wakeup call silent push
+        LocoKitService.requestWakeup(at: wakeupTime)
 
         // start the safety nets
         locationManager.startMonitoringVisits()
@@ -613,7 +630,7 @@ public extension NSNotification.Name {
         recordingState = .deepSleeping
     }
 
-    var canDeepSleep: Bool {
+    public var canDeepSleep: Bool {
         guard haveBackgroundLocationPermission else { return false }
         guard UIApplication.shared.backgroundRefreshStatus == .available else { return false }
         return true
