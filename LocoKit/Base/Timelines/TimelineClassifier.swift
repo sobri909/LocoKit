@@ -6,6 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import LocoKitCore
+
 #if canImport(Reachability)
 import Reachability
 #endif
@@ -24,6 +26,8 @@ public class TimelineClassifier: MLClassifierManager {
     #if canImport(Reachability)
     public let reachability = Reachability()!
     #endif
+
+    public let mutex = UnfairLock()
 
     public func classifyTransportTypes(for classifiable: ActivityTypeClassifiable) -> Bool {
 

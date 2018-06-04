@@ -25,6 +25,8 @@ public protocol MLClassifierManager: MLCompositeClassifier {
     var reachability: Reachability { get }
     #endif
 
+    var mutex: UnfairLock { get }
+
 }
 
 extension MLClassifierManager {
@@ -176,38 +178,40 @@ extension MLClassifierManager {
     // MARK: Region specific classifier management
 
     private func updateTheBaseClassifier(for coordinate: CLLocationCoordinate2D) {
+        return mutex.sync {
+            // have a classifier already, and it's still valid?
+            if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
+                return
+            }
 
-        // have a classifier already, and it's still valid?
-        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
+            #if canImport(Reachability)
+            // don't try to fetch classifiers without a network connection
+            guard reachability.connection != .none else { return }
+            #endif
 
-        #if canImport(Reachability)
-        // don't try to fetch classifiers without a network connection
-        guard reachability.connection != .none else { return }
-        #endif
-
-        // attempt to get an updated classifier
-        if let replacement = Classifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate) {
-            baseClassifier = replacement
+            // attempt to get an updated classifier
+            if let replacement = Classifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate) {
+                baseClassifier = replacement
+            }
         }
     }
 
     private func updateTheTransportClassifier(for coordinate: CLLocationCoordinate2D) {
+        return mutex.sync {
+            // have a classifier already, and it's still valid?
+            if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
+                return
+            }
 
-        // have a classifier already, and it's still valid?
-        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
+            #if canImport(Reachability)
+            // don't try to fetch classifiers without a network connection
+            guard reachability.connection != .none else { return }
+            #endif
 
-        #if canImport(Reachability)
-        // don't try to fetch classifiers without a network connection
-        guard reachability.connection != .none else { return }
-        #endif
-
-        // attempt to get an updated classifier
-        if let replacement = Classifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate) {
-            transportClassifier = replacement
+            // attempt to get an updated classifier
+            if let replacement = Classifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate) {
+                transportClassifier = replacement
+            }
         }
     }
 
