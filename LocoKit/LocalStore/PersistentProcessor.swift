@@ -286,16 +286,18 @@ public class PersistentProcessor {
     // MARK: - Database sanitising
 
     public static func sanitise(store: PersistentTimelineStore) {
+        orphanSamplesFromDeadParents(in: store)
         adoptOrphanedSamples(in: store)
+        detachDeadmenEdges(in: store)
     }
 
     private static func adoptOrphanedSamples(in store: PersistentTimelineStore) {
         store.process {
             let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
 
-            if orphans.count > 0 {
-                os_log("Found orphaned samples: %d", type: .error, orphans.count)
-            }
+            if orphans.isEmpty { return }
+
+            os_log("Found orphaned samples: %d", type: .debug, orphans.count)
 
             var newParents: [TimelineItem] = []
 
@@ -317,6 +319,8 @@ public class PersistentProcessor {
                 }
             }
 
+            store.save()
+
             if newParents.isEmpty { return }
 
             // clean up the new parents
@@ -326,5 +330,45 @@ public class PersistentProcessor {
             }
         }
     }
+
+    private static func orphanSamplesFromDeadParents(in store: PersistentTimelineStore) {
+        store.process {
+            let orphans = store.samples(for: """
+                SELECT LocomotionSample.* FROM LocomotionSample
+                    JOIN TimelineItem ON timelineItemId = TimelineItem.itemId
+                WHERE TimelineItem.deleted = 1
+                """)
+
+            if orphans.isEmpty { return }
+
+            print("Samples holding onto dead parents: \(orphans.count)")
+
+            for orphan in orphans where orphan.timelineItemId != nil {
+                print("Detaching an orphan from dead parent.")
+                orphan.timelineItemId = nil
+            }
+
+            store.save()
+        }
+    }
+
+    private static func detachDeadmenEdges(in store: PersistentTimelineStore) {
+        store.process {
+            let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
+
+            if deadmen.isEmpty { return }
+
+            print("Deadmen to edge detach: \(deadmen.count)")
+
+            for deadman in deadmen {
+                print("Detaching edges of a deadman.")
+                deadman.previousItemId = nil
+                deadman.nextItemId = nil
+            }
+
+            store.save()
+        }
+    }
+
 
 }
