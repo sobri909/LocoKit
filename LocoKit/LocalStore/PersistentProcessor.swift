@@ -108,11 +108,48 @@ public class PersistentProcessor {
                 healEdges(of: modifiedItem)
             }
 
-            // TODO: should edge healing do the path extraction between visits? if not, then who?
+            // extract paths around a new visit, as appropriate
+            if let visit = newItem as? Visit {
+                extractPathEdgesFor(visit, in: store)
+            }
 
             // complete with the new item
             completion?(newItem)
         }
+    }
+
+    public static func extractPathEdgesFor(_ visit: Visit, in store: PersistentTimelineStore) {
+        if visit.deleted || visit.isMergeLocked { return }
+
+        if let previousVisit = visit.previousItem as? Visit {
+            extractPathBetween(visit: visit, and: previousVisit, in: store)
+        }
+
+        if let nextVisit = visit.nextItem as? Visit {
+            extractPathBetween(visit: visit, and: nextVisit, in: store)
+        }
+    }
+
+    public static func extractPathBetween(visit: Visit, and otherVisit: Visit, in store: PersistentTimelineStore) {
+        if visit.deleted || visit.isMergeLocked { return }
+        if otherVisit.deleted || otherVisit.isMergeLocked { return }
+        guard visit.nextItem == otherVisit || visit.previousItem == otherVisit else { return }
+
+        let previousVisit = visit.nextItem == otherVisit ? visit : otherVisit
+        let nextVisit = visit.nextItem == otherVisit ? otherVisit : visit
+
+        var pathSegment: ItemSegment
+        if let nextStart = nextVisit.segmentsByActivityType.first, nextStart.activityType != .stationary {
+            pathSegment = nextStart
+        } else if let previousEnd = previousVisit.segmentsByActivityType.last, previousEnd.activityType != .stationary {
+            pathSegment = previousEnd
+        } else {
+            return
+        }
+
+        print("Extracting a path between visits")
+
+        extractItem(for: pathSegment, in: store)
     }
 
     // MARK: - Item edge healing
