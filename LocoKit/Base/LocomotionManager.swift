@@ -650,6 +650,9 @@ public extension NSNotification.Name {
             locationManager.startUpdatingLocation()
         }
 
+        // need to be able to detect nolos
+        restartTheUpdateTimer()
+
         recordingState = .wakeup
     }
 
