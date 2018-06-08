@@ -602,7 +602,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         if let mean = dict["radiusMean"] as? Double, let sd = dict["radiusSD"] as? Double {
             self._radius = Radius(mean: mean, sd: sd)
         }
-        if let start = dict["startDate"] as? Date, let end = dict["endDate"] as? Date {
+        if let start = dict["startDate"] as? Date, let end = dict["endDate"] as? Date, start <= end {
             _dateRange = DateInterval(start: start, end: end)
         }
         self._altitude = dict["altitude"] as? Double
