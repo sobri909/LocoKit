@@ -49,13 +49,6 @@ open class PersistentTimelineStore: TimelineStore {
         pool.setupMemoryManagement(in: UIApplication.shared)
     }
 
-    // MARK: - Adding Items / Samples to the store
-
-    open override func add(_ timelineItem: TimelineItem) {
-        guard let persistentItem = timelineItem as? PersistentItem else { fatalError("NOT A PERSISTENT ITEM") }
-        super.add(persistentItem)
-    }
-
     // MARK: - Item / Sample creation
 
     open override func createVisit(from sample: LocomotionSample) -> PersistentVisit {
