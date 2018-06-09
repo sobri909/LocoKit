@@ -96,7 +96,7 @@ open class PersistentVisit: Visit, PersistentObject {
     
     open func encode(to container: inout PersistenceContainer) {
         container["itemId"] = itemId.uuidString
-        container["lastSaved"] = transactionDate ?? lastSaved
+        container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
         container["deleted"] = deleted
         container["isVisit"] = true
         let range = _dateRange ?? dateRange

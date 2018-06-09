@@ -76,7 +76,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
         container["sampleId"] = sampleId.uuidString
         container["date"] = date
         container["deleted"] = deleted
-        container["lastSaved"] = transactionDate ?? lastSaved
+        container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
         container["movingState"] = movingState.rawValue
         container["recordingState"] = recordingState.rawValue
         container["timelineItemId"] = timelineItemId?.uuidString
