@@ -232,7 +232,7 @@ open class PersistentTimelineStore: TimelineStore {
         do {
             try pool.write { db in
                 try db.execute("DELETE FROM LocomotionSample WHERE deleted = 1 AND date < ?", arguments: [deadline])
-                try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND endDate < ?", arguments: [deadline])
+                try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND (endDate < ? OR endDate IS NULL)", arguments: [deadline])
             }
         } catch {
             os_log("%@", error.localizedDescription)
