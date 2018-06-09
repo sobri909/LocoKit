@@ -54,7 +54,6 @@ open class PersistentTimelineStore: TimelineStore {
     open override func add(_ timelineItem: TimelineItem) {
         guard let persistentItem = timelineItem as? PersistentItem else { fatalError("NOT A PERSISTENT ITEM") }
         super.add(persistentItem)
-        if persistentItem.unsaved { persistentItem.save() }
     }
 
     // MARK: - Item / Sample creation
