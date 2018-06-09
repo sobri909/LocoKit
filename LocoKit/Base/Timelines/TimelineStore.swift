@@ -43,6 +43,16 @@ open class TimelineStore {
         }
     }
 
+    public func itemInStore(matching: (TimelineItem) -> Bool) -> TimelineItem? {
+        return mutex.sync {
+            guard let enumerator = itemMap.objectEnumerator() else { return nil }
+            for case let item as TimelineItem in enumerator {
+                if matching(item) { return item }
+            }
+            return nil
+        }
+    }
+
     open var mostRecentItem: TimelineItem? { return nil }
 
     open func item(for itemId: UUID) -> TimelineItem? { return object(for: itemId) as? TimelineItem }
