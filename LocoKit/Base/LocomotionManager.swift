@@ -69,6 +69,8 @@ public extension NSNotification.Name {
      */
     public static let wentFromSleepModeToRecording = Notification.Name("wentFromSleepModeToRecording")
 
+    public static let backgroundTaskExpired = Notification.Name("backgroundTaskExpired")
+
     // broadcasted CLLocationManagerDelegate events
     public static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")
     public static let didUpdateLocations = Notification.Name("didUpdateLocations")
@@ -741,6 +743,11 @@ public extension NSNotification.Name {
         os_log("Starting LocoKit background task.", type: .debug)
         backgroundTaskId = UIApplication.shared.beginBackgroundTask(withName: "LocoKitBackground") {
             os_log("LocoKit background task expired.", type: .error)
+
+            // tell people that the task expired, thus the app will be suspended soon
+            let note = Notification(name: .backgroundTaskExpired, object: self, userInfo: nil)
+            NotificationCenter.default.post(note)
+            
             self.endBackgroundTask()
         }
     }
