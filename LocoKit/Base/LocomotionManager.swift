@@ -164,6 +164,8 @@ public extension NSNotification.Name {
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
 
+    internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+
     internal lazy var wigglesQueue: OperationQueue = {
         return OperationQueue()
     }()
@@ -388,6 +390,9 @@ public extension NSNotification.Name {
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.startUpdatingLocation()
 
+        // start a background task, to keep iOS happy
+        startBackgroundTask()
+
         // start the motion gimps
         startCoreMotion()
         
@@ -416,9 +421,7 @@ public extension NSNotification.Name {
      Amongst other internal tasks, this will call `stopUpdatingLocation()` on the internal location manager.
      */
     public func stopRecording() {
-        if recordingState == .off {
-            return
-        }
+        if recordingState == .off { return }
 
         // prep the brain for next startup
         ActivityBrain.highlander.freezeTheBrain()
@@ -436,6 +439,9 @@ public extension NSNotification.Name {
         // stop the safety nets
         locationManager.stopMonitoringVisits()
         locationManager.stopMonitoringSignificantLocationChanges()
+
+        // allow the app to suspend and terminate cleanly
+        endBackgroundTask()
         
         recordingState = .off
     }
@@ -624,8 +630,12 @@ public extension NSNotification.Name {
         // stop the motion gimps
         stopCoreMotion()
 
-        // stop the wakeup timer
+        // stop the timers
         stopTheWakeupTimer()
+        stopTheUpdateTimer()
+
+        // allow the app to suspend and terminate cleanly
+        endBackgroundTask()
 
         recordingState = .deepSleeping
     }
@@ -648,6 +658,9 @@ public extension NSNotification.Name {
         if recordingState == .off || recordingState == .deepSleeping {
             locationManager.allowsBackgroundLocationUpdates = true
             locationManager.startUpdatingLocation()
+
+            // start a background task, to keep iOS happy
+            startBackgroundTask()
         }
 
         // need to be able to detect nolos
@@ -719,6 +732,23 @@ public extension NSNotification.Name {
         }
 
         return false
+    }
+
+    // MARK: - Background management
+
+    private func startBackgroundTask() {
+        guard backgroundTaskId == UIBackgroundTaskInvalid else { return }
+        os_log("Starting LocoKit background task.", type: .debug)
+        backgroundTaskId = UIApplication.shared.beginBackgroundTask(withName: "LocoKitBackground") {
+            os_log("LocoKit background task expired.", type: .error)
+            self.endBackgroundTask()
+        }
+    }
+
+    private func endBackgroundTask() {
+        guard backgroundTaskId != UIBackgroundTaskInvalid else { return }
+        os_log("Ending LocoKit background task.", type: .debug)
+        UIApplication.shared.endBackgroundTask(backgroundTaskId)
     }
 
     // MARK: - Core Motion management
@@ -820,10 +850,8 @@ public extension NSNotification.Name {
         
         watchingTheWiggles = false
     }
-    
-}
 
-private extension LocomotionManager {
+    // MARK: - Timers
     
     private func restartTheUpdateTimer() {
         onMain {
@@ -856,10 +884,8 @@ private extension LocomotionManager {
             self.wakeupTimer = nil
         }
     }
-    
-}
 
-private extension LocomotionManager {
+    // MARK: - Updating state and notifying listeners
 
     @objc private func updateAndNotify() {
 
