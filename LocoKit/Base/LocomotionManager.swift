@@ -756,6 +756,7 @@ public extension NSNotification.Name {
         guard backgroundTaskId != UIBackgroundTaskInvalid else { return }
         os_log("Ending LocoKit background task.", type: .debug)
         UIApplication.shared.endBackgroundTask(backgroundTaskId)
+        backgroundTaskId = UIBackgroundTaskInvalid
     }
 
     // MARK: - Core Motion management
