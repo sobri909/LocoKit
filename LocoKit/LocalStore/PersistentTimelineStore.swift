@@ -204,7 +204,8 @@ open class PersistentTimelineStore: TimelineStore {
                 let now = Date()
                 for case let item as PersistentObject in savingItems {
                     item.transactionDate = now
-                    try item.save(in: db)
+                    do { try item.save(in: db) }
+                    catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
                 }
                 db.afterNextTransactionCommit { db in
                     for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
@@ -216,7 +217,8 @@ open class PersistentTimelineStore: TimelineStore {
                 let now = Date()
                 for case let sample as PersistentObject in savingSamples {
                     sample.transactionDate = now
-                    try sample.save(in: db)
+                    do { try sample.save(in: db) }
+                    catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
                 }
                 db.afterNextTransactionCommit { db in
                     for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
