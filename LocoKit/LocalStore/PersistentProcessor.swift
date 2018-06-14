@@ -178,7 +178,7 @@ public class PersistentProcessor {
                 """,
                 arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
                             "itemId": brokenItem.itemId.uuidString]),
-                !overlapper.deleted
+                !overlapper.deleted && !overlapper.isMergeLocked
             {
                 print("healEdges(of: \(brokenItem.itemId.shortString)) MERGED INTO CONTAINING ITEM")
                 overlapper.add(brokenItem.samples)
@@ -200,7 +200,7 @@ public class PersistentProcessor {
             where: "startDate >= :endDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
             arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": endDate.timeIntervalSince1970]),
-            !nearest.deleted
+            !nearest.deleted && !nearest.isMergeLocked
         {
             if nearest.previousItemId == brokenItem.itemId {
                 print("healNextEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
@@ -243,7 +243,7 @@ public class PersistentProcessor {
             """,
             arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted
+            !overlapper.deleted && !overlapper.isMergeLocked
         {
             print("healNextEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
@@ -266,7 +266,7 @@ public class PersistentProcessor {
             where: "endDate <= :startDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
             arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": startDate.timeIntervalSince1970]),
-            !nearest.deleted
+            !nearest.deleted && !nearest.isMergeLocked
         {
             if nearest.nextItemId == brokenItem.itemId {
                 print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
@@ -309,7 +309,7 @@ public class PersistentProcessor {
             """,
             arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted
+            !overlapper.deleted && !overlapper.isMergeLocked
         {
             print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
