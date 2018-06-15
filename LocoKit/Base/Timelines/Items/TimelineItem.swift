@@ -443,7 +443,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             if previousChanged == nil && nextChanged == nil { break }
 
             // break from an infinite loop
-            if previousChanged == lastPreviousChanged && nextChanged == lastNextChanged { break }
+            if previousChanged == lastPreviousChanged || nextChanged == lastNextChanged { break }
 
             lastPreviousChanged = previousChanged
             lastNextChanged = nextChanged
