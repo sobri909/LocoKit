@@ -162,13 +162,13 @@ open class PersistentTimelineStore: TimelineStore {
 
     // MARK: - Counting
 
-    public func countItems(where query: String, arguments: StatementArguments? = nil) -> Int {
+    public func countItems(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
         return try! pool.read { db in
             return try Int.fetchOne(db, "SELECT COUNT(*) FROM TimelineItem WHERE " + query, arguments: arguments)!
         }
     }
 
-    public func countSamples(where query: String, arguments: StatementArguments? = nil) -> Int {
+    public func countSamples(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
         return try! pool.read { db in
             return try Int.fetchOne(db, "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
         }
