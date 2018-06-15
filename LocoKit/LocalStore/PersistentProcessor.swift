@@ -212,11 +212,20 @@ public class PersistentProcessor {
                 // nearest already has an edge connection?
                 if let theirEdge = nearest.previousItem {
 
-                    // broken item's edge is closer than nearest's current edge? steal it
-                    if let theirGap = nearest.timeInterval(from: theirEdge), abs(gap) < abs(theirGap) {
-                        print("healNextEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
-                        brokenItem.nextItem = nearest
-                        return
+                    if let theirGap = nearest.timeInterval(from: theirEdge) {
+
+                        // broken item's edge is closer than nearest's current edge? steal it
+                        if abs(gap) < abs(theirGap) {
+                            print("healNextEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
+                            brokenItem.nextItem = nearest
+                            return
+
+                        } else {
+                            print("healNextEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge is closer)")
+                        }
+
+                    } else {
+                        print("healNextEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge has nil dateRange?)")
                     }
 
                 } else { // they don't have an edge connection, so it's safe to connect
@@ -278,11 +287,20 @@ public class PersistentProcessor {
                 // nearest already has an edge connection?
                 if let theirEdge = nearest.nextItem {
 
-                    // broken item's edge is closer than nearest's current edge? steal it
-                    if let theirGap = nearest.timeInterval(from: theirEdge), abs(gap) < abs(theirGap) {
-                        print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
-                        brokenItem.previousItem = nearest
-                        return
+                    if let theirGap = nearest.timeInterval(from: theirEdge) {
+
+                        // broken item's edge is closer than nearest's current edge? steal it
+                        if abs(gap) < abs(theirGap) {
+                            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
+                            brokenItem.previousItem = nearest
+                            return
+
+                        } else {
+                            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge is closer)")
+                        }
+
+                    } else {
+                        print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge has nil dateRange?)")
                     }
 
                 } else { // they don't have an edge connection, so it's safe to connect
