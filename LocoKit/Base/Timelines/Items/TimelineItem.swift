@@ -99,9 +99,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _previousItem: TimelineItem?
     public var previousItem: TimelineItem? {
         get {
-            if let cached = self._previousItem, cached.itemId == self.previousItemId, !cached.deleted, cached != self { return cached }
-            if let itemId = self.previousItemId, let item = store?.item(for: itemId), !item.deleted, item != self { self._previousItem = item }
-            return self._previousItem
+            if let cached = _previousItem, cached.itemId == previousItemId, !cached.deleted, cached != self { return cached }
+            if let itemId = previousItemId, let item = store?.item(for: itemId), !item.deleted, item != self {
+                _previousItem = item
+                return item
+            }
+            return nil
         }
         set(newValue) {
             if newValue == self { os_log("Can't link to self", type: .error); return }
@@ -132,9 +135,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private weak var _nextItem: TimelineItem?
     public var nextItem: TimelineItem? {
         get {
-            if let cached = self._nextItem, cached.itemId == self.nextItemId, !cached.deleted, cached != self { return cached }
-            if let itemId = self.nextItemId, let item = store?.item(for: itemId), !item.deleted, item != self { self._nextItem = item }
-            return self._nextItem
+            if let cached = _nextItem, cached.itemId == nextItemId, !cached.deleted, cached != self { return cached }
+            if let itemId = nextItemId, let item = store?.item(for: itemId), !item.deleted, item != self {
+                _nextItem = item
+                return item
+            }
+            return nil
         }
         set(newValue) {
             if newValue == self { os_log("Can't link to self", type: .error); return }
