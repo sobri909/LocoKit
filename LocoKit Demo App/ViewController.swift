@@ -101,11 +101,11 @@ class ViewController: UIViewController {
             log(".movingStateChanged (\(loco.movingState))")
         }
 
-        when(loco, does: .startedSleepMode) { _ in
+        when(loco, does: .wentFromRecordingToSleepMode) { _ in
             log(".startedSleepMode")
         }
 
-        when(loco, does: .stoppedSleepMode) { _ in
+        when(loco, does: .wentFromSleepModeToRecording) { _ in
             log(".stoppedSleepMode")
         }
 
@@ -121,8 +121,8 @@ class ViewController: UIViewController {
         // housekeeping
         when(.UIApplicationDidEnterBackground) { _ in
             if let store = self.store as? PersistentTimelineStore {
-                log("store.hardDeleteSoftDeletedItems()")
-                store.hardDeleteSoftDeletedItems()
+                log("store.hardDeleteSoftDeletedObjects()")
+                store.hardDeleteSoftDeletedObjects()
             }
         }
 
