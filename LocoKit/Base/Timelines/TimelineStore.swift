@@ -17,6 +17,8 @@ public extension NSNotification.Name {
 /// An in-memory timeline data store. For persistent timeline data storage, see `PersistentTimelineStore`.
 open class TimelineStore {
 
+    public init() {}
+
     public var recorder: TimelineRecorder?
 
     public let mutex = UnfairLock()
