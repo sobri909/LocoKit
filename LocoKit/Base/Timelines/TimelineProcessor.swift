@@ -186,28 +186,4 @@ public class TimelineProcessor {
         }
     }
 
-    // MARK: - Data gap insertion
-
-    public static func insertDataGapBetween(newer newerItem: TimelineItem, older olderItem: TimelineItem) {
-        guard let store = newerItem.store else { return }
-        store.process {
-            guard !newerItem.isDataGap && !olderItem.isDataGap else { return }
-
-            guard let gap = newerItem.timeInterval(from: olderItem), gap > 60 * 5 else { print("TOO CLOSE"); return }
-
-            guard let startDate = olderItem.endDate else { return }
-            guard let endDate = newerItem.startDate else { return }
-
-            // the edge samples
-            let startSample = PersistentSample(date: startDate, recordingState: .off, in: store)
-            let endSample = PersistentSample(date: endDate, recordingState: .off, in: store)
-
-            // the gap item
-            let gapItem = store.createPath(from: startSample)
-            gapItem.previousItem = olderItem
-            gapItem.nextItem = newerItem
-            gapItem.add(endSample)
-        }
-    }
-
 }

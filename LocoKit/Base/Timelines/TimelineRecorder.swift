@@ -69,7 +69,6 @@ public class TimelineRecorder {
 
     public func startRecording() {
         if isRecording { return }
-        addDataGapItem()
         LocomotionManager.highlander.startRecording()
     }
 
@@ -79,32 +78,6 @@ public class TimelineRecorder {
 
     public var isRecording: Bool {
         return LocomotionManager.highlander.recordingState != .off
-    }
-
-    // MARK: - Startup
-
-    private func addDataGapItem() {
-        store.process {
-            guard let lastItem = self.currentItem, let lastEndDate = lastItem.endDate else { return }
-
-            // don't add a data gap after a data gap
-            if lastItem.isDataGap { return }
-
-            // is the gap too short to be worth filling?
-            if lastEndDate.age < LocomotionManager.highlander.sleepCycleDuration { return }
-
-            // the edge samples
-            let startSample = PersistentSample(date: lastEndDate, recordingState: .off, in: self.store)
-            let endSample = PersistentSample(date: Date(), recordingState: .off, in: self.store)
-
-            // the gap item
-            let gapItem = self.store.createPath(from: startSample)
-            gapItem.previousItem = lastItem
-            gapItem.add(endSample)
-
-            // make it current
-            self.currentItem = gapItem
-        }
     }
 
     // MARK: - The recording cycle
