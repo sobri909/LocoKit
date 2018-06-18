@@ -14,7 +14,7 @@ extension UIStackView {
         let underline = UIView()
         underline.backgroundColor = UIColor(white: 0.85, alpha: 1)
         addArrangedSubview(underline)
-        underline.heightAnchor == 0.5
+        underline.heightAnchor == 1.0 / UIScreen.main.scale
     }
     
     func addGap(height: CGFloat) {
