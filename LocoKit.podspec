@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   
   s.source       = { :git => 'https://github.com/sobri909/LocoKit.git', :tag => '6.0.0' }
   s.frameworks   = 'CoreLocation', 'CoreMotion' 
-  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.1' }
+  s.swift_version = '4.1'
   s.ios.deployment_target = '10.0'
   s.default_subspec = 'Base'
 
