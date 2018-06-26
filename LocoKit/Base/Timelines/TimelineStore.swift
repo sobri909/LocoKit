@@ -77,6 +77,10 @@ open class TimelineStore {
         return LocomotionSample(from: sample, in: self)
     }
 
+    open func createSample(date: Date, recordingState: RecordingState) -> LocomotionSample {
+        return LocomotionSample(date: date, recordingState: recordingState, in: self)
+    }
+
     open func add(_ timelineItem: TimelineItem) {
         mutex.sync { itemMap.setObject(timelineItem, forKey: timelineItem.itemId as NSUUID) }
     }

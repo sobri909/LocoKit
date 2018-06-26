@@ -79,6 +79,10 @@ open class PersistentTimelineStore: TimelineStore {
         return PersistentSample(from: sample, in: self)
     }
 
+    open override func createSample(date: Date, recordingState: RecordingState) -> PersistentSample {
+        return PersistentSample(date: date, recordingState: recordingState, in: self)
+    }
+
     public func object(for row: Row) -> TimelineObject {
         if row["itemId"] as String? != nil { return item(for: row) }
         if row["sampleId"] as String? != nil { return sample(for: row) }

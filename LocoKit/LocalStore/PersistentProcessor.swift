@@ -351,8 +351,8 @@ public class PersistentProcessor {
             guard let endDate = newerItem.startDate else { return }
 
             // the edge samples
-            let startSample = PersistentSample(date: startDate, recordingState: .off, in: store)
-            let endSample = PersistentSample(date: endDate, recordingState: .off, in: store)
+            let startSample = store.createSample(date: startDate, recordingState: .off)
+            let endSample = store.createSample(date: endDate, recordingState: .off)
 
             // the gap item
             let gapItem = store.createPath(from: startSample)
