@@ -12,6 +12,7 @@ public class TimelineSegment: TransactionObserver {
 
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
+    public var debugLogging = false
 
     private var _timelineItems: [TimelineItem]?
     public var timelineItems: [TimelineItem] {
@@ -124,7 +125,7 @@ public class TimelineSegment: TransactionObserver {
             // item needs rebuild?
             if typeChanged { item.samplesChanged() }
 
-            if count > 0 {
+            if debugLogging && count > 0 {
                 if typeChanged {
                     os_log("Reclassified samples: %d (typeChanged: true)", type: .debug, count)
                 } else {

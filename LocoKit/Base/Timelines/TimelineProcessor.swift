@@ -9,6 +9,8 @@ import os.log
 
 public class TimelineProcessor {
 
+    public static var debugLogging = false
+
     // MARK: - Sequential item processing
 
     public static func process(from fromItem: TimelineItem) {
@@ -108,7 +110,7 @@ public class TimelineProcessor {
             if !sortedMerges.isEmpty {
                 var descriptions = ""
                 for merge in sortedMerges { descriptions += String(describing: merge) + "\n" }
-                os_log("Considering:\n%@", type: .debug, descriptions)
+                if debugLogging { os_log("Considering:\n%@", type: .debug, descriptions) }
             }
 
             /** find the highest scoring valid merge **/

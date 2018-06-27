@@ -50,7 +50,7 @@ internal class Merge: Hashable, CustomStringConvertible {
 
     @discardableResult func doIt() -> MergeResult {
         let description = String(describing: self)
-        os_log("Doing:\n%@", type: .debug, description)
+        if TimelineProcessor.debugLogging { os_log("Doing:\n%@", type: .debug, description) }
 
         merge(deadman, into: keeper)
 
