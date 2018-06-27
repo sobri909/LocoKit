@@ -25,6 +25,8 @@ A Machine Learning based location recording and activity detection framework for
 - Optionally persist your recorded samples and timeline items to a local SQL based store, for
   retention between sessions.
 
+[More information about timeline items can be found here](https://github.com/sobri909/LocoKit/blob/master/TimelineItemDescription.md)
+
 # Installation
 
 ```ruby
@@ -109,6 +111,19 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
+## Fetching TimelineItems / Samples
+
+If you wanted to get all timeline items between the start of today and now, you might do this:
+
+```swift
+let date = Date() // some specific day
+let items = store.items(
+        where: "deleted = 0 AND endDate > ? AND startDate < ? ORDER BY endDate",
+        arguments: [date.startOfDay, date.endOfDay])
+```
+
+You can also construct more complex queries, like for fetching all timeline items that overlap a certain geographic region. Or all samples of a specific activity type (eg all "car" samples). Or all timeline items that contain samples over a certain speed (eg paths containing fast driving).
+
 ## Detect Activity Types
 
 Note that if you are using a `TimelineManager`, activity type classifying is already handled 
@@ -143,6 +158,12 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: q
     // do stuff
 }
 ```
+
+## Background Location Monitoring
+
+If you want the app to be relaunched after the user force quits, enable significant location change monitoring.
+
+[More details and requirements here](https://github.com/sobri909/LocoKit/blob/master/BackgroundLocationMonitoring.md)
 
 ## Examples and Screenshots
 
