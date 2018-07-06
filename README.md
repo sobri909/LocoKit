@@ -27,6 +27,19 @@ A Machine Learning based location recording and activity detection framework for
 
 [More information about timeline items can be found here](https://github.com/sobri909/LocoKit/blob/master/TimelineItemDescription.md)
 
+## Supporting the Project
+
+LocoKit is an LGPL licensed open source project. Its ongoing development is made possible 
+thanks to the support of its backers on Patreon.
+
+- [patreon.com/sobri909](https://www.patreon.com/sobri909)
+
+If you have an app that uses LocoKit and is a revenue generating product, please consider
+sponsoring LocoKit development, to ensure the project that your product relies on stays
+healthy and actively maintained.
+
+Thanks so much for your support!
+
 # Installation
 
 ```ruby
