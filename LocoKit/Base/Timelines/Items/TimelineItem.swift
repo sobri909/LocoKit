@@ -24,6 +24,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public let itemId: UUID
 
+    public var source: String = "LocoKit"
+
     open var isMergeLocked: Bool {
         if isCurrentItem && !isWorthKeeping { return true }
         return false
@@ -626,6 +628,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             } else {
                 _modeActivityType = activityType
             }
+        }
+        if let source = dict["source"] as? String, !source.isEmpty {
+            self.source = source
         }
         store.add(self)
     }

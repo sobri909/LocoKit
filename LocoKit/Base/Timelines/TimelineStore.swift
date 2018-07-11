@@ -8,6 +8,7 @@
 
 import os.log
 import LocoKitCore
+import CoreLocation
 
 public extension NSNotification.Name {
     public static let processingStarted = Notification.Name("processingStarted")
@@ -77,8 +78,8 @@ open class TimelineStore {
         return LocomotionSample(from: sample, in: self)
     }
 
-    open func createSample(date: Date, recordingState: RecordingState) -> LocomotionSample {
-        return LocomotionSample(date: date, recordingState: recordingState, in: self)
+    open func createSample(date: Date, location: CLLocation? = nil, recordingState: RecordingState) -> LocomotionSample {
+        return LocomotionSample(date: date, location: location, recordingState: recordingState, in: self)
     }
 
     open func add(_ timelineItem: TimelineItem) {

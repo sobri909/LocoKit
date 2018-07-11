@@ -34,6 +34,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     public let sampleId: UUID
 
+    public var source: String = "LocoKit"
+
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
     public let date: Date
     
@@ -188,8 +190,9 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         store.add(self)
     }
 
-    public convenience init(date: Date, recordingState: RecordingState, in store: TimelineStore) {
-        self.init(date: date, recordingState: recordingState)
+    public convenience init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                            recordingState: RecordingState, in store: TimelineStore) {
+        self.init(date: date, location: location, movingState: movingState, recordingState: recordingState)
         self.store = store
         store.add(self)
     }
@@ -254,21 +257,25 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
             self.confirmedType = nil
         }
 
+        if let source = dict["source"] as? String, !source.isEmpty {
+            self.source = source
+        }
+
         self.rawLocations = nil
         self.filteredLocations = nil
     }
 
     /// For recording samples to mark special events such as app termination.
-    public required init(date: Date, recordingState: RecordingState) {
+    public required init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain, recordingState: RecordingState) {
         self.sampleId = UUID()
 
         self.recordingState = recordingState
-        self.movingState = .uncertain
+        self.movingState = movingState
         self.date = date
 
         self.filteredLocations = []
         self.rawLocations = []
-        self.location = nil
+        self.location = location
 
         self.stepHz = nil
         self.courseVariance = nil

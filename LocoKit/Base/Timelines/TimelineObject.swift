@@ -9,7 +9,7 @@
 public protocol TimelineObject: class {
 
     var objectId: UUID { get }
-
+    var source: String { get set }
     var store: TimelineStore? { get }
 
 }

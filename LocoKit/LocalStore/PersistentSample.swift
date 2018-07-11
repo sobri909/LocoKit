@@ -8,6 +8,7 @@
 
 import GRDB
 import LocoKitCore
+import CoreLocation
 
 open class PersistentSample: LocomotionSample, PersistentObject {
 
@@ -29,8 +30,9 @@ open class PersistentSample: LocomotionSample, PersistentObject {
 
     public required init(from sample: ActivityBrainSample) { super.init(from: sample) }
 
-    public required init(date: Date, recordingState: RecordingState) {
-        super.init(date: date, recordingState: recordingState)
+    public required init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                         recordingState: RecordingState) {
+        super.init(date: date, location: location, movingState: movingState, recordingState: recordingState)
     }
 
     // MARK: Decodable
@@ -74,6 +76,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
 
     open func encode(to container: inout PersistenceContainer) {
         container["sampleId"] = sampleId.uuidString
+        container["source"] = source
         container["date"] = date
         container["deleted"] = deleted
         container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
