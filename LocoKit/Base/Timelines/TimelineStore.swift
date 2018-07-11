@@ -78,7 +78,8 @@ open class TimelineStore {
         return LocomotionSample(from: sample, in: self)
     }
 
-    open func createSample(date: Date, location: CLLocation? = nil, recordingState: RecordingState) -> LocomotionSample {
+    open func createSample(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                           recordingState: RecordingState) -> LocomotionSample {
         return LocomotionSample(date: date, location: location, recordingState: recordingState, in: self)
     }
 

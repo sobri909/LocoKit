@@ -80,7 +80,8 @@ open class PersistentTimelineStore: TimelineStore {
         return PersistentSample(from: sample, in: self)
     }
 
-    open override func createSample(date: Date, location: CLLocation? = nil, recordingState: RecordingState) -> PersistentSample {
+    open override func createSample(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                                    recordingState: RecordingState) -> PersistentSample {
         return PersistentSample(date: date, location: location, recordingState: recordingState, in: self)
     }
 
