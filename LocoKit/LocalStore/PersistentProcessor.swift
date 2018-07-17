@@ -194,8 +194,6 @@ public class PersistentProcessor {
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let endDate = brokenItem.endDate else { return }
 
-        print("healNextEdge(of: \(brokenItem.itemId.shortString))")
-
         if let nearest = store.item(
             where: "startDate >= :endDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
             arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
@@ -203,7 +201,6 @@ public class PersistentProcessor {
             !nearest.deleted && !nearest.isMergeLocked
         {
             if nearest.previousItemId == brokenItem.itemId {
-                print("healNextEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
                 return
             }
 
@@ -216,32 +213,15 @@ public class PersistentProcessor {
 
                         // broken item's edge is closer than nearest's current edge? steal it
                         if abs(gap) < abs(theirGap) {
-                            print("healNextEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
                             brokenItem.nextItem = nearest
                             return
-
-                        } else {
-                            print("healNextEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge is closer)")
                         }
-
-                    } else {
-                        print("healNextEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge has nil dateRange?)")
                     }
 
                 } else { // they don't have an edge connection, so it's safe to connect
-                    print("healNextEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString))")
                     brokenItem.nextItem = nearest
                     return
                 }
-
-                print("healNextEdge(of: \(brokenItem.itemId.shortString)) "
-                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: \(String(format: "%0.fs", gap)), "
-                    + "previousItemId: \(nearest.previousItemId?.shortString ?? "nil"))")
-
-            } else {
-                print("healNextEdge(of: \(brokenItem.itemId.shortString)) "
-                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: nil, "
-                    + "previousItemId: \(nearest.previousItemId?.shortString ?? "nil"))")
             }
         }
 
@@ -254,13 +234,10 @@ public class PersistentProcessor {
                         "itemId": brokenItem.itemId.uuidString]),
             !overlapper.deleted && !overlapper.isMergeLocked
         {
-            print("healNextEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
             brokenItem.delete()
             return
         }
-
-        print("healNextEdge(of: \(brokenItem.itemId.shortString)) FAILED")
     }
 
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
@@ -269,8 +246,6 @@ public class PersistentProcessor {
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let startDate = brokenItem.startDate else { return }
 
-        print("healPreviousEdge(of: \(brokenItem.itemId.shortString))")
-
         if let nearest = store.item(
             where: "endDate <= :startDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
             arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
@@ -278,7 +253,6 @@ public class PersistentProcessor {
             !nearest.deleted && !nearest.isMergeLocked
         {
             if nearest.nextItemId == brokenItem.itemId {
-                print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) NOT BROKEN")
                 return
             }
 
@@ -291,32 +265,15 @@ public class PersistentProcessor {
 
                         // broken item's edge is closer than nearest's current edge? steal it
                         if abs(gap) < abs(theirGap) {
-                            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString)) (my edge is closer)")
                             brokenItem.previousItem = nearest
                             return
-
-                        } else {
-                            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge is closer)")
                         }
-
-                    } else {
-                        print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED: (\(nearest.itemId.shortString)) (their edge has nil dateRange?)")
                     }
 
                 } else { // they don't have an edge connection, so it's safe to connect
-                    print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) HEALED: (\(nearest.itemId.shortString))")
                     brokenItem.previousItem = nearest
                     return
                 }
-
-                print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) "
-                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: \(String(format: "%0.fs", gap)), "
-                    + "nextItemId: \(nearest.nextItemId?.shortString ?? "nil"))")
-
-            } else {
-                print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) "
-                    + "NEAREST (itemId: \(nearest.itemId.shortString), gap: nil, "
-                    + "nextItemId: \(nearest.nextItemId?.shortString ?? "nil"))")
             }
         }
 
@@ -329,13 +286,10 @@ public class PersistentProcessor {
                         "itemId": brokenItem.itemId.uuidString]),
             !overlapper.deleted && !overlapper.isMergeLocked
         {
-            print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) MERGED INTO OVERLAPPING ITEM")
             overlapper.add(brokenItem.samples)
             brokenItem.delete()
             return
         }
-
-        print("healPreviousEdge(of: \(brokenItem.itemId.shortString)) FAILED")
     }
 
     // MARK: - Data gap insertion
