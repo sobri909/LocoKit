@@ -13,27 +13,33 @@ public class TimelineProcessor {
 
     // MARK: - Sequential item processing
 
+    public static func itemsToProcess(from fromItem: TimelineItem) -> [TimelineItem] {
+        var items: [TimelineItem] = [fromItem]
+
+        // collect items before fromItem, up to two keepers
+        var keeperCount = 0
+        var workingItem = fromItem
+        while keeperCount < 2, let previous = workingItem.previousItem {
+            items.append(previous)
+            if previous.isWorthKeeping { keeperCount += 1 }
+            workingItem = previous
+        }
+
+        // collect items after fromItem, up to two keepers
+        keeperCount = 0
+        workingItem = fromItem
+        while keeperCount < 2, let next = workingItem.nextItem {
+            items.append(next)
+            if next.isWorthKeeping { keeperCount += 1 }
+            workingItem = next
+        }
+
+        return items
+    }
+
     public static func process(from fromItem: TimelineItem) {
         fromItem.store?.process {
-            var items: [TimelineItem] = [fromItem]
-
-            // collect items before fromItem, up to two keepers
-            var keeperCount = 0
-            var workingItem = fromItem
-            while keeperCount < 2, let previous = workingItem.previousItem {
-                items.append(previous)
-                if previous.isWorthKeeping { keeperCount += 1 }
-                workingItem = previous
-            }
-
-            // collect items after fromItem, up to two keepers
-            keeperCount = 0
-            workingItem = fromItem
-            while keeperCount < 2, let next = workingItem.nextItem {
-                items.append(next)
-                if next.isWorthKeeping { keeperCount += 1 }
-                workingItem = next
-            }
+            let items = itemsToProcess(from: fromItem)
 
             // recurse until no remaining possible merges
             process(items) { results in
