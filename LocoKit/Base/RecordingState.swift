@@ -39,5 +39,7 @@ public enum RecordingState: String, Codable {
      */
     case off
 
+    public var isSleeping: Bool { return RecordingState.sleepStates.contains(self) }
+
     public static let sleepStates = [wakeup, sleeping, deepSleeping]
 }
