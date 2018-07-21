@@ -9,6 +9,7 @@
 import os.log
 import LocoKitCore
 import CoreLocation
+import CoreMotion
 
 /// The abstract base class for timeline items.
 open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
@@ -59,19 +60,25 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public private(set) var _stepCount: Int?
     open var stepCount: Int? {
-        if _stepCount == nil || pedometerDataIsStale { updatePedometerData() }
+        if CMPedometer.isStepCountingAvailable() && (_stepCount == nil || pedometerDataIsStale) {
+            updatePedometerData()
+        }
         return _stepCount
     }
 
     public private(set) var _floorsAscended: Int?
     public var floorsAscended: Int? {
-        if _floorsAscended == nil || pedometerDataIsStale { updatePedometerData() }
+        if CMPedometer.isFloorCountingAvailable() && (_floorsAscended == nil || pedometerDataIsStale) {
+            updatePedometerData()
+        }
         return _floorsAscended
     }
 
     public private(set) var _floorsDescended: Int?
     public var floorsDescended: Int? {
-        if _floorsDescended == nil || pedometerDataIsStale { updatePedometerData() }
+        if CMPedometer.isFloorCountingAvailable() && (_floorsDescended == nil || pedometerDataIsStale) {
+            updatePedometerData()
+        }
         return _floorsDescended
     }
 
@@ -564,12 +571,24 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
             guard let data = data else { return }
 
-            self._stepCount = data.numberOfSteps.intValue
-            self._floorsAscended = data.floorsAscended?.intValue
-            self._floorsDescended = data.floorsDescended?.intValue
+            var madeChanges = false
+            if self._stepCount != data.numberOfSteps.intValue {
+                self._stepCount = data.numberOfSteps.intValue
+                madeChanges = true
+            }
+            if let floorsAscended = data.floorsAscended?.intValue, self._floorsAscended != floorsAscended {
+                self._floorsAscended = floorsAscended
+                madeChanges = true
+            }
+            if let floorsDescended = data.floorsDescended?.intValue, self._floorsDescended != floorsDescended {
+                self._floorsDescended = floorsDescended
+                madeChanges = true
+            }
 
-            onMain {
-                NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+            if madeChanges {
+                onMain {
+                    NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+                }
             }
         }
     }
