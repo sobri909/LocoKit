@@ -218,6 +218,7 @@ open class Path: TimelineItem {
     internal override func cleanseEdge(with otherPath: Path) -> LocomotionSample? {
         if self.isMergeLocked || otherPath.isMergeLocked { return nil }
         if self.isDataGap || otherPath.isDataGap { return nil }
+        if self.deleted || otherPath.deleted { return nil }
         if otherPath.samples.isEmpty { return nil }
 
         // fail out if separation distance is too much
