@@ -27,7 +27,7 @@ public class TimelineClassifier: MLClassifierManager {
     public let reachability = Reachability()!
     #endif
 
-    public let mutex = UnfairLock()
+    public let mutex = PThreadMutex(type: .recursive)
 
     public func classifyTransportTypes(for classifiable: ActivityTypeClassifiable) -> Bool {
 

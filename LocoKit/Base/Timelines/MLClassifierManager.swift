@@ -25,7 +25,7 @@ public protocol MLClassifierManager: MLCompositeClassifier {
     var reachability: Reachability { get }
     #endif
 
-    var mutex: UnfairLock { get }
+    var mutex: PThreadMutex { get }
 
 }
 
@@ -43,30 +43,31 @@ extension MLClassifierManager {
     }
 
     public func classify(_ classifiable: ActivityTypeClassifiable, filtered: Bool) -> ClassifierResults? {
+        return mutex.sync {
+            // make sure we're capable of returning sensible results
+            guard canClassify(classifiable.location?.coordinate) else { return nil }
 
-        // make sure we're capable of returning sensible results
-        guard canClassify(classifiable.location?.coordinate) else { return nil }
+            // get the base type results
+            guard let classifier = baseClassifier else { return nil }
+            let results = classifier.classify(classifiable)
 
-        // get the base type results
-        guard let classifier = baseClassifier else { return nil }
-        let results = classifier.classify(classifiable)
+            // not asked to test every type every time?
+            if filtered {
+                
+                // don't need to go further if transport didn't win the base round
+                if results.first?.name != .transport { return results }
 
-        // not asked to test every type every time?
-        if filtered {
+                // don't go further if transport classifier isn't approved
+                guard classifyTransportTypes(for: classifiable) else { return results }
+            }
 
-            // don't need to go further if transport didn't win the base round
-            if results.first?.name != .transport { return results }
+            // get the transport type results
+            guard let transportClassifier = transportClassifier else { return results }
+            let transportResults = transportClassifier.classify(classifiable)
 
-            // don't go further if transport classifier isn't approved
-            guard classifyTransportTypes(for: classifiable) else { return results }
+            // combine and return the results
+            return (results - ActivityTypeName.transport) + transportResults
         }
-
-        // get the transport type results
-        guard let transportClassifier = transportClassifier else { return results }
-        let transportResults = transportClassifier.classify(classifiable)
-
-        // combine and return the results
-        return (results - ActivityTypeName.transport) + transportResults
     }
 
     public func classify(_ timelineItem: TimelineItem, filtered: Bool) -> ClassifierResults? {
@@ -214,5 +215,5 @@ extension MLClassifierManager {
             transportClassifier = replacement
         }
     }
-    
+
 }
