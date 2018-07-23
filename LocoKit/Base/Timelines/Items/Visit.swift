@@ -133,9 +133,9 @@ open class Visit: TimelineItem {
         guard let pathEdgeLocation = pathEdge.location else { return nil }
         guard let pathEdgeNextLocation = pathEdgeNext.location else { return nil }
 
-        let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 2)
-        let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 2)
-        let pathEdgeNextIsInside = self.contains(pathEdgeNextLocation, sd: 2)
+        let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 1)
+        let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 1)
+        let pathEdgeNextIsInside = self.contains(pathEdgeNextLocation, sd: 1)
 
         /** ATTEMPT TO MOVE A PATH EDGE TO THE VISIT **/
 
