@@ -85,19 +85,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private var _samples: [LocomotionSample] = []
     open var samples: [LocomotionSample] { return mutex.sync { _samples } }
 
-    private(set) public var _dateRange: DateInterval?
-    public var dateRange: DateInterval? {
-        if let cached = _dateRange { return cached }
-        if let start = samples.first?.date, let end = samples.last?.date {
-            _dateRange = DateInterval(start: start, end: end)
-        }
-        return _dateRange
-    }
-
-    public var startDate: Date? { return dateRange?.start }
-    public var endDate: Date? { return dateRange?.end }
-    public var duration: TimeInterval { return dateRange?.duration ?? 0 }
-
     public var previousItemId: UUID? {
         didSet { if previousItemId == itemId { fatalError("Can't link to self") } }
     }
@@ -179,7 +166,30 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public var isCurrentItem: Bool { return store?.recorder?.currentItem == self }
 
-    // MARK: Timeline item validity
+    // MARK: - Dates, times, durations
+
+    private(set) public var _dateRange: DateInterval?
+    public var dateRange: DateInterval? {
+        if let cached = _dateRange { return cached }
+        if let start = samples.first?.date, let end = samples.last?.date {
+            _dateRange = DateInterval(start: start, end: end)
+        }
+        return _dateRange
+    }
+
+    public var startDate: Date? { return dateRange?.start }
+    public var endDate: Date? { return dateRange?.end }
+    public var duration: TimeInterval { return dateRange?.duration ?? 0 }
+
+    open var startTimeZone: TimeZone? {
+        fatalError("Shouldn't be here.")
+    }
+
+    open var endTimeZone: TimeZone? {
+        fatalError("Shouldn't be here.")
+    }
+
+    // MARK: - Item validity
 
     public var isInvalid: Bool { return !isValid }
 
@@ -308,7 +318,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return segments
     }
 
-    // MARK: Activity Types
+    // MARK: - Activity Types
 
     private var _classifierResults: ClassifierResults? = nil
 
@@ -385,7 +395,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return _modeMovingActivityType
     }
 
-    // MARK: Comparisons and Helpers
+    // MARK: - Comparisons and Helpers
 
     /**
      The time interval between this item and the given item.

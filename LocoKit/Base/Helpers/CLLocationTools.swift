@@ -17,30 +17,19 @@ public struct Radius: Codable {
     public let mean: CLLocationDistance
     public let sd: CLLocationDistance
 
-    public static var zero: Radius {
-        return Radius(mean: 0, sd: 0)
-    }
+    public static var zero: Radius { return Radius(mean: 0, sd: 0) }
 
     public init(mean: CLLocationDistance, sd: CLLocationDistance) {
         self.mean = mean
         self.sd = sd
     }
 
-    public var with0sd: CLLocationDistance {
-        return mean
-    }
-    public var with1sd: CLLocationDistance {
-        return mean + sd
-    }
-    public var with2sd: CLLocationDistance {
-        return withSD(2)
-    }
-    public var with3sd: CLLocationDistance {
-        return withSD(3)
-    }
-    public func withSD(_ modifier: Double) -> CLLocationDistance {
-        return mean + (sd * modifier)
-    }
+    public var with0sd: CLLocationDistance { return mean }
+    public var with1sd: CLLocationDistance { return mean + sd }
+    public var with2sd: CLLocationDistance { return withSD(2) }
+    public var with3sd: CLLocationDistance { return withSD(3) }
+
+    public func withSD(_ modifier: Double) -> CLLocationDistance { return mean + (sd * modifier) }
 
 }
 
@@ -64,6 +53,51 @@ public extension CLLocationSpeed {
     init(kmh: Double) { self.init(kmh / 3.6) }
     var kmh: Double { return self * 3.6 }
 }
+
+public struct CodableLocation: Codable {
+    
+    let latitude: CLLocationDegrees
+    let longitude: CLLocationDegrees
+    let altitude: CLLocationDistance
+    let horizontalAccuracy: CLLocationAccuracy
+    let verticalAccuracy: CLLocationAccuracy
+    let speed: CLLocationSpeed
+    let course: CLLocationDirection
+    let timestamp: Date
+
+    init(location: CLLocation) {
+        self.latitude = location.coordinate.latitude
+        self.longitude = location.coordinate.longitude
+        self.altitude = location.altitude
+        self.horizontalAccuracy = location.horizontalAccuracy
+        self.verticalAccuracy = location.verticalAccuracy
+        self.speed = location.speed
+        self.course = location.course
+        self.timestamp = location.timestamp
+    }
+
+}
+
+public extension CLLocationCoordinate2D {
+
+    public var isUsable: Bool {
+        return !isNull && isValid
+    }
+
+    public var isNullIsland: Bool {
+        return isNull
+    }
+
+    public var isNull: Bool {
+        return latitude == 0 && longitude == 0
+    }
+
+    public var isValid: Bool {
+        return CLLocationCoordinate2DIsValid(self)
+    }
+}
+
+// MARK: - CLLocation
 
 public extension CLLocation {
 
@@ -182,6 +216,18 @@ public extension CLLocation {
 }
 
 public extension CLLocation {
+    public convenience init(from codable: CodableLocation) {
+        self.init(coordinate: CLLocationCoordinate2D(latitude: codable.latitude, longitude: codable.longitude),
+                  altitude: codable.altitude, horizontalAccuracy: codable.horizontalAccuracy,
+                  verticalAccuracy: codable.verticalAccuracy, course: codable.course, speed: codable.speed,
+                  timestamp: codable.timestamp)
+    }
+    public var codable: CodableLocation {
+        return CodableLocation(location: self)
+    }
+}
+
+public extension CLLocation {
     public var isNolo: Bool {
         return !hasUsableCoordinate
     }
@@ -190,66 +236,13 @@ public extension CLLocation {
     }
 }
 
-public struct CodableLocation: Codable {
-    
-    let latitude: CLLocationDegrees
-    let longitude: CLLocationDegrees
-    let altitude: CLLocationDistance
-    let horizontalAccuracy: CLLocationAccuracy
-    let verticalAccuracy: CLLocationAccuracy
-    let speed: CLLocationSpeed
-    let course: CLLocationDirection
-    let timestamp: Date
-
-    init(location: CLLocation) {
-        self.latitude = location.coordinate.latitude
-        self.longitude = location.coordinate.longitude
-        self.altitude = location.altitude
-        self.horizontalAccuracy = location.horizontalAccuracy
-        self.verticalAccuracy = location.verticalAccuracy
-        self.speed = location.speed
-        self.course = location.course
-        self.timestamp = location.timestamp
-    }
-
-}
-
 public extension CLLocation {
-
-    public convenience init(from codable: CodableLocation) {
-        self.init(coordinate: CLLocationCoordinate2D(latitude: codable.latitude, longitude: codable.longitude),
-                  altitude: codable.altitude, horizontalAccuracy: codable.horizontalAccuracy,
-                  verticalAccuracy: codable.verticalAccuracy, course: codable.course, speed: codable.speed,
-                  timestamp: codable.timestamp)
+    public var localTimeZone: TimeZone? {
+        return nil
     }
-
-    public var codable: CodableLocation {
-        return CodableLocation(location: self)
-    }
-
 }
 
-public extension CLLocationCoordinate2D {
-
-    public var isUsable: Bool {
-        return !isNull && isValid
-    }
-
-    public var isNullIsland: Bool {
-        return isNull
-    }
-
-    public var isNull: Bool {
-        return latitude == 0 && longitude == 0
-    }
-
-    public var isValid: Bool {
-        return CLLocationCoordinate2DIsValid(self)
-    }
-
-}
-
-// MARK: [CLLocation]
+// MARK: - [CLLocation]
 
 extension Array where Element: CLLocation {
 

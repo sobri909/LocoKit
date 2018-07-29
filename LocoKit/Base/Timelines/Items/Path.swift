@@ -41,6 +41,18 @@ open class Path: TimelineItem {
         super.init(in: store)
     }
 
+    // MARK: - Dates, times, durations
+
+    open override var startTimeZone: TimeZone? {
+        return samples.first?.localTimeZone
+    }
+
+    open override var endTimeZone: TimeZone? {
+        return samples.last?.localTimeZone
+    }
+
+    // MARK: - Item validity
+
     open override var isValid: Bool {
         if isDataGap { return isValidDataGap }
         if isNolo { return isValidNolo }
@@ -75,6 +87,8 @@ open class Path: TimelineItem {
         return true
     }
 
+    // MARK: - Distance and speed
+
     /// The distance of the path, as the sum of the distances between each sample.
     public var distance: CLLocationDistance {
         if let distance = _distance { return distance }
@@ -102,6 +116,8 @@ open class Path: TimelineItem {
     public var mph: Double { return milesPerHour }
 
     public var milesPerHour: Double { return kilometresPerHour / 1.609344 }
+
+    // MARK: - Comparisons and Helpers
 
     public override func distance(from otherItem: TimelineItem) -> CLLocationDistance? {
         if let path = otherItem as? Path { return distance(from: path) }

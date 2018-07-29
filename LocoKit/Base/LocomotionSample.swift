@@ -171,6 +171,20 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     public var isNolo: Bool { return location?.isNolo ?? true }
 
+    private var _localTimeZone: TimeZone?
+    public var localTimeZone: TimeZone? {
+        if let cached = _localTimeZone { return cached }
+
+        guard let location = location else { return nil }
+        guard location.hasUsableCoordinate else { return nil }
+
+        CLPlacemarkCache.fetchPlacemark(for: location) { [weak self] placemark in
+            self?._localTimeZone = placemark?.timeZone
+        }
+
+        return nil
+    }
+
     public func distance(from otherSample: LocomotionSample) -> CLLocationDistance? {
         guard let myLocation = location, let theirLocation = otherSample.location else { return nil }
         return myLocation.distance(from: theirLocation)

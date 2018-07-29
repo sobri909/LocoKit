@@ -16,6 +16,27 @@ open class Visit: TimelineItem {
     public static var minimumRadius: CLLocationDistance = 10
     public static var maximumRadius: CLLocationDistance = 150
 
+    // MARK: - Dates, times, durations
+
+    private var _localTimeZone: TimeZone?
+    public var localTimeZone: TimeZone? {
+        if let cached = _localTimeZone { return cached }
+
+        guard let center = center else { return nil }
+        guard center.hasUsableCoordinate else { return nil }
+
+        CLPlacemarkCache.fetchPlacemark(for: center) { [weak self] placemark in
+            self?._localTimeZone = placemark?.timeZone
+        }
+
+        return nil
+    }
+
+    open override var startTimeZone: TimeZone? { return localTimeZone }
+    open override var endTimeZone: TimeZone? { return localTimeZone }
+
+    // MARK: - Item validity
+
     open override var isValid: Bool {
         if samples.isEmpty { return false }
         if duration < Visit.minimumValidDuration { return false }
@@ -27,6 +48,8 @@ open class Visit: TimelineItem {
         if duration < Visit.minimumKeeperDuration { return false }
         return true
     }
+
+    // MARK: - Comparisons and Helpers
 
     /// Whether the given location falls within this visit's radius.
     public override func contains(_ location: CLLocation, sd: Double = 4) -> Bool {
