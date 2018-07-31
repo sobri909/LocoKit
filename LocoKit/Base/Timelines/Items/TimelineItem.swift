@@ -60,10 +60,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public private(set) var _stepCount: Int?
     open var stepCount: Int? {
-        if CMPedometer.isStepCountingAvailable() && (_stepCount == nil || pedometerDataIsStale) {
-            updatePedometerData()
+        get {
+            if CMPedometer.isStepCountingAvailable() && (_stepCount == nil || pedometerDataIsStale) {
+                updatePedometerData()
+            }
+            return _stepCount
         }
-        return _stepCount
+        set(newValue) { _stepCount = newValue }
     }
 
     public private(set) var _floorsAscended: Int?
@@ -643,9 +646,15 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             _dateRange = DateInterval(start: start, end: end)
         }
         self._altitude = dict["altitude"] as? Double
-        self._stepCount = dict["stepCount"] as? Int
-        self._floorsAscended = dict["floorsAscended"] as? Int
-        self._floorsDescended = dict["floorsDescended"] as? Int
+        if let steps = dict["stepCount"] as? Int64 {
+            self._stepCount = Int(steps)
+        }
+        if let floors = dict["floorsAscended"] as? Int64 {
+            self._floorsAscended = Int(floors)
+        }
+        if let floors = dict["floorsDescended"] as? Int64 {
+            self._floorsDescended = Int(floors)
+        }
         if let center = dict["center"] as? CLLocation {
             self._center = center
         } else if let latitude = dict["latitude"] as? Double, let longitude = dict["longitude"] as? Double {
