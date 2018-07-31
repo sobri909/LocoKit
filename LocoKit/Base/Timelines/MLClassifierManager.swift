@@ -38,7 +38,7 @@ extension MLClassifierManager {
                 updateTheTransportClassifier(for: coordinate)
             }
         }
-        guard let baseClassifier = baseClassifier else { return false }
+        guard let baseClassifier = mutex.sync(execute: { return baseClassifier }) else { return false }
         return baseClassifier.models.count == baseClassifier.requiredTypes.count
     }
 
@@ -48,7 +48,7 @@ extension MLClassifierManager {
             guard canClassify(classifiable.location?.coordinate) else { return nil }
 
             // get the base type results
-            guard let classifier = baseClassifier else { return nil }
+            guard let classifier = mutex.sync(execute: { return baseClassifier }) else { return nil }
             let results = classifier.classify(classifiable)
 
             // not asked to test every type every time?
@@ -62,7 +62,7 @@ extension MLClassifierManager {
             }
 
             // get the transport type results
-            guard let transportClassifier = transportClassifier else { return results }
+            guard let transportClassifier = mutex.sync(execute: { return transportClassifier }) else { return results }
             let transportResults = transportClassifier.classify(classifiable)
 
             // combine and return the results
