@@ -17,37 +17,34 @@ public func onMain(_ closure: @escaping () -> ()) {
 }
 
 public extension Comparable {
-
     public mutating func clamp(min: Self, max: Self) {
         if self < min { self = min }
         if self > max { self = max }
     }
-
     public func clamped(min: Self, max: Self) -> Self {
         var result = self
         if result < min { result = min }
         if result > max { result = max }
         return result
     }
-
 }
 
 public extension UUID {
-
     public var shortString: String {
         return String(uuidString.split(separator: "-")[0])
     }
-
 }
 
 public extension DateInterval {
-
     public func contains(_ other: DateInterval) -> Bool {
         if let overlap = intersection(with: other), overlap == other {
             return true
         }
         return false
     }
+}
 
+extension Date {
+    func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
 }
 

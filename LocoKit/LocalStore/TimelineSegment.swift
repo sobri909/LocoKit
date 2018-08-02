@@ -8,7 +8,7 @@
 import os.log
 import GRDB
 
-public class TimelineSegment: TransactionObserver {
+public class TimelineSegment: TransactionObserver, Encodable {
 
     public let store: PersistentTimelineStore
     public var onUpdate: (() -> Void)?
@@ -167,6 +167,43 @@ public class TimelineSegment: TransactionObserver {
 
     public func databaseDidRollback(_ db: Database) {
         pendingChanges = false
+    }
+
+    // MARK: - Export helpers
+
+    public var filename: String? {
+        guard let firstRange = timelineItems.first?.dateRange else { return nil }
+        guard let lastRange = timelineItems.last?.dateRange else { return nil }
+
+        let formatter = DateFormatter()
+
+        // single item?
+        if timelineItems.count == 1 {
+            formatter.dateFormat = "yyyy-MM-dd HHmm"
+            return formatter.string(from: firstRange.start)
+
+        }
+
+        // single day?
+        if firstRange.start.isSameDayAs(lastRange.end) || firstRange.end.isSameDayAs(lastRange.start) {
+            formatter.dateFormat = "yyyy-MM-dd"
+
+        } else { // multiple days
+            formatter.dateFormat = "yyyy-MM"
+        }
+
+        return formatter.string(from: lastRange.start)
+    }
+
+    // MARK: - Encodable
+
+    enum CodingKeys: String, CodingKey {
+        case timelineItems
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(timelineItems, forKey: .timelineItems)
     }
 
 }
