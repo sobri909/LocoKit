@@ -717,6 +717,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
         try container.encode(floorsAscended, forKey: .floorsAscended)
         try container.encode(floorsDescended, forKey: .floorsDescended)
+        try container.encode(samples, forKey: .samples)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -734,5 +735,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         case activityType
         case floorsAscended
         case floorsDescended
+        case samples
     }
 }
