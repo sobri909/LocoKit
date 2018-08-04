@@ -701,6 +701,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(itemId, forKey: .itemId)
+        try container.encode(self is Visit, forKey: .isVisit)
         try container.encode(deleted, forKey: .deleted)
         try container.encode(previousItemId, forKey: .previousItemId)
         try container.encode(nextItemId, forKey: .nextItemId)
@@ -723,6 +724,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private enum CodingKeys: String, CodingKey {
         case itemId
         case deleted
+        case isVisit
         case previousItemId
         case nextItemId
         case startDate
