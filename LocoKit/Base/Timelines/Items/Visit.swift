@@ -44,7 +44,7 @@ open class Visit: TimelineItem {
     }
 
     open override var isWorthKeeping: Bool {
-        if !isValid { return false }
+        if isInvalid { return false }
         if duration < Visit.minimumKeeperDuration { return false }
         return true
     }
