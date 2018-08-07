@@ -45,8 +45,9 @@ public extension Radians {
     }
 }
 
-extension CLLocationDistance {
+public extension CLLocationDistance {
     static let feetPerMetre = 3.2808399
+    public var measurement: Measurement<UnitLength> { return Measurement(value: self, unit: UnitLength.meters) }
 }
 
 public extension CLLocationSpeed {
