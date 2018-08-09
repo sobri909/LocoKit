@@ -693,7 +693,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         self._floorsAscended = try? container.decode(Int.self, forKey: .floorsAscended)
         self._floorsDescended = try? container.decode(Int.self, forKey: .floorsDescended)
 
-        if let codableLocation = try? container.decode(CodableLocation.self, forKey: .center) {
+        if let coordinate = try? container.decode(CLLocationCoordinate2D.self, forKey: .center) {
+            self._center = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        } else if let codableLocation = try? container.decode(CodableLocation.self, forKey: .center) {
             self._center = CLLocation(from: codableLocation)
         }
     }
@@ -707,7 +709,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         try container.encode(nextItemId, forKey: .nextItemId)
         try container.encode(startDate, forKey: .startDate)
         try container.encode(endDate, forKey: .endDate)
-        try container.encode(center?.codable, forKey: .center)
+        try container.encode(center?.coordinate, forKey: .center)
         try container.encode(radius, forKey: .radius)
         try container.encode(altitude, forKey: .altitude)
         try container.encode(stepCount, forKey: .stepCount)
