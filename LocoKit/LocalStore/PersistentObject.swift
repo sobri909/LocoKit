@@ -33,6 +33,9 @@ public extension PersistentObject {
         if unsaved { try insert(db) } else if hasChanges { try update(db) }
         hasChanges = false
     }
+    static var persistenceConflictPolicy: PersistenceConflictPolicy {
+        return PersistenceConflictPolicy(insert: .replace, update: .abort)
+    }
 }
 
 public extension PersistentObject where Self: TimelineItem {
