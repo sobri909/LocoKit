@@ -45,14 +45,12 @@ public class PersistentProcessor {
 
                 // detach previous edge, if modified
                 if lostPrevEdge {
-                    print("Detaching overlapper.previousItem")
                     overlapper.previousItem = nil
                     modifiedItems.append(overlapper)
                 }
 
                 // detach next edge, if modified
                 if lostNextEdge {
-                    print("Detaching overlapper.nextItem")
                     overlapper.nextItem = nil
                     modifiedItems.append(overlapper)
                 }
@@ -65,13 +63,11 @@ public class PersistentProcessor {
 
             // add the stolen samples to the new item
             if !samplesToSteal.isEmpty {
-                print("Moving \(samplesToSteal.count) samples from overlappers to inserted item")
                 newItem.add(samplesToSteal)
             }
 
             // delete any newly empty items
             for modifiedItem in modifiedItems where modifiedItem.samples.isEmpty {
-                print("Deleting a newly empty item")
                 modifiedItem.delete()
             }
 
