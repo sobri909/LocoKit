@@ -23,7 +23,6 @@ extension ActivityType {
         
         // motion weights
         let movingWeight = 1.0
-        let coreMotionWeight = 1.0
         var speedWeight = 1.0
         var stepHzWeight = 1.0
         var varianceWeight = 1.0
@@ -52,10 +51,6 @@ extension ActivityType {
         
         if let movingScore = self.movingScore(for: scorable.movingState) {
             scores.append(movingScore * movingWeight)
-        }
-        
-        if let coreMotionType = scorable.coreMotionActivityType {
-            scores.append(coreMotionScore(for: coreMotionType) * coreMotionWeight)
         }
         
         if let speed = scorable.location?.speed, speed >= 0 {
