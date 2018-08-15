@@ -94,7 +94,7 @@ open class Visit: TimelineItem {
         guard let center = center, let otherCenter = otherVisit.center else {
             return nil
         }
-        return center.distance(from: otherCenter) - radius2sd - otherVisit.radius2sd
+        return center.distance(from: otherCenter) - radius1sd - otherVisit.radius1sd
     }
 
     internal func distance(from path: Path) -> CLLocationDistance? {
@@ -104,7 +104,7 @@ open class Visit: TimelineItem {
         guard let pathEdge = path.edgeSample(with: self)?.location, pathEdge.hasUsableCoordinate else {
             return nil
         }
-        return center.distance(from: pathEdge) - radius2sd
+        return center.distance(from: pathEdge) - radius1sd
     }
 
     public override func maximumMergeableDistance(from otherItem: TimelineItem) -> CLLocationDistance {

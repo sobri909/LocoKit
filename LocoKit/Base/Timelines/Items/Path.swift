@@ -187,7 +187,7 @@ open class Path: TimelineItem {
                 continue
             }
             let metresFromCentre = visitCenter.distance(from: sampleLocation)
-            if metresFromCentre <= visit.radius2sd {
+            if metresFromCentre <= visit.radius1sd {
                 insiders.insert(sample)
             }
         }
