@@ -282,21 +282,11 @@ extension ActivityType {
         if let latitudeMin = dict["latitudeMin"] as? Double, let latitudeMax = dict["latitudeMax"] as? Double {
             self.latitudeRange.min = latitudeMin
             self.latitudeRange.max = latitudeMax
-            
-            // TODO: remove this fallback to old table field eventually
-        } else if let latitudeRange = dict["latitudeRange"] as? [Double] {
-            self.latitudeRange.min = latitudeRange[0]
-            self.latitudeRange.max = latitudeRange[1]
         }
         
         if let longitudeMin = dict["longitudeMin"] as? Double, let longitudeMax = dict["longitudeMax"] as? Double {
             self.longitudeRange.min = longitudeMin
             self.longitudeRange.max = longitudeMax
-            
-            // TODO: remove this fallback to old table field eventually
-        } else if let longitudeRange = dict["longitudeRange"] as? [Double] {
-            self.longitudeRange.min = longitudeRange[0]
-            self.longitudeRange.max = longitudeRange[1]
         }
         
         depth = dict["depth"] as? Int ?? inferredDepth
@@ -319,43 +309,28 @@ extension ActivityType {
             speedHistogram?.printModifier = 3.6
             speedHistogram?.printFormat = "%6.1f kmh"
             speedHistogram?.name = "SPEED"
-            
-        } else if let bins = dict["speedDistribution"] as? [Int], let range = dict["speedRange"] as? [Double] {
-            speedHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["stepHzHistogram"] as? String {
             stepHzHistogram = Histogram(string: serialised)
             stepHzHistogram?.printFormat = "%7.2f Hz"
             stepHzHistogram?.name = "STEPHZ"
-            
-        } else if let bins = dict["stepHzDistribution"] as? [Int], let range = dict["stepHzRange"] as? [Double] {
-            stepHzHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["courseVarianceHistogram"] as? String {
             courseVarianceHistogram = Histogram(string: serialised)
             courseVarianceHistogram?.printFormat = "%10.2f"
             courseVarianceHistogram?.name = "COURSE VARIANCE"
-            
-        } else if let bins = dict["courseVarianceDistribution"] as? [Int], let range = dict["courseVarianceRange"] as? [Double] {
-            courseVarianceHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["courseHistogram"] as? String {
             courseHistogram = Histogram(string: serialised)
             courseHistogram?.name = "COURSE"
-            
-        } else if let bins = dict["courseDistribution"] as? [Int], let range = dict["courseRange"] as? [Double] {
-            courseHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["altitudeHistogram"] as? String {
             altitudeHistogram = Histogram(string: serialised)
             altitudeHistogram?.name = "ALTITUDE"
-            
-        } else if let bins = dict["altitudeDistribution"] as? [Int], let range = dict["altitudeRange"] as? [Double] {
-            altitudeHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["timeOfDayHistogram"] as? String {
@@ -363,25 +338,16 @@ extension ActivityType {
             timeOfDayHistogram?.printModifier = 60 / 60 / 60 / 60
             timeOfDayHistogram?.printFormat = "%8.2f h"
             timeOfDayHistogram?.name = "TIME OF DAY"
-            
-        } else if let bins = dict["timeOfDayDistribution"] as? [Int], let range = dict["timeOfDayRange"] as? [Double] {
-            timeOfDayHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["xyAccelerationHistogram"] as? String {
             xyAccelerationHistogram = Histogram(string: serialised)
             xyAccelerationHistogram?.name = "WIGGLES XY"
-            
-        } else if let bins = dict["xyAccelerationDistribution"] as? [Int], let range = dict["xyAccelerationRange"] as? [Double] {
-            xyAccelerationHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
         
         if let serialised = dict["zAccelerationHistogram"] as? String {
             zAccelerationHistogram = Histogram(string: serialised)
             zAccelerationHistogram?.name = "WIGGLES Z"
-            
-        } else if let bins = dict["zAccelerationDistribution"] as? [Int], let range = dict["zAccelerationRange"] as? [Double] {
-            zAccelerationHistogram = Histogram(bins: bins, range: (min: range[0], max: range[1]), pseudoCount: 1)
         }
 
         if let serialised = dict["horizontalAccuracyHistogram"] as? String {
@@ -395,15 +361,6 @@ extension ActivityType {
             for (index, typeScore) in cmTypeScores.enumerated() {
                 let typeName = CoreMotionActivityTypeName.allTypes[index]
                 coreMotionTypeScores[typeName] = typeScore
-            }
-            
-        } else {
-            for coreMotionType in CoreMotionActivityTypeName.allTypes {
-                if let score = dict["coreMotion" + coreMotionType.rawValue.capitalized] as? Double {
-                    coreMotionTypeScores[coreMotionType] = score
-                } else {
-                    coreMotionTypeScores[coreMotionType] = 0
-                }
             }
         }
     }
