@@ -41,11 +41,8 @@ open class MutableActivityType: ActivityType {
             }
             
             // only accept samples that have a coordinate inside the model
-            guard let location = sample.location, location.coordinate.isUsable,
-                self.contains(coordinate: location.coordinate) else
-            {
-                continue
-            }
+            guard let location = sample.location, location.coordinate.isUsable else { continue }
+            guard self.contains(coordinate: location.coordinate) else { continue }
             
             totalEvents += 1
             
@@ -63,9 +60,7 @@ open class MutableActivityType: ActivityType {
                 totalMoving += 1
             }
             
-            // TODO: can remove second clause eventually. zero stepHz is a solved problem, there's just lots of old data
-            // (last time i tried removing it, the models came out yuck. so maybe it's not just old data)
-            if let stepHz = sample.stepHz, (self.name != .walking || stepHz > 0) {
+            if let stepHz = sample.stepHz {
                 allStepHz.append(stepHz)
             }
             
