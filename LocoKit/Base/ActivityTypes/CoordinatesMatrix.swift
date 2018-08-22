@@ -13,13 +13,12 @@ class CoordinatesMatrix {
     
     static let minimumProbability = 0.001
     
-    static let pseudoCount: UInt16 = 1
- 
     var bins: [[UInt16]] // [lat][long]
     var lngBinWidth: Double
     var latBinWidth: Double
     var lngRange: (min: Double, max: Double)
     var latRange: (min: Double, max: Double)
+    let pseudoCount: UInt16
    
     // used for loading from serialised strings
     convenience init?(string: String) {
@@ -30,7 +29,7 @@ class CoordinatesMatrix {
         }
 
         let sizeLine = lines[0].components(separatedBy: ",")
-        guard let latBinCount = Int(sizeLine[0]), let lngBinCount = Int(sizeLine[1]) else {
+        guard let latBinCount = Int(sizeLine[0]), let lngBinCount = Int(sizeLine[1]), let pseudoCount = UInt16(sizeLine[2]) else {
             os_log("BIN COUNTS FAIL")
             return nil
         }
@@ -52,8 +51,7 @@ class CoordinatesMatrix {
         let lngBinWidth = (lngRange.max - lngRange.min) / Double(lngBinCount)
         let latBinWidth = (latRange.max - latRange.min) / Double(latBinCount)
         
-        var bins = Array(repeating: Array<UInt16>(repeating: CoordinatesMatrix.pseudoCount, count: lngBinCount),
-                         count: latBinCount)
+        var bins = Array(repeating: Array<UInt16>(repeating: pseudoCount, count: lngBinCount), count: latBinCount)
         
         let binLines = lines.suffix(from: 3)
         for binLine in binLines {
@@ -75,18 +73,19 @@ class CoordinatesMatrix {
             bins[latBin][lngBin] = UInt16(value)
         }
         
-        self.init(bins: bins, latBinWidth: latBinWidth, lngBinWidth: lngBinWidth, latRange: latRange, lngRange: lngRange)
+        self.init(bins: bins, latBinWidth: latBinWidth, lngBinWidth: lngBinWidth, latRange: latRange,
+                  lngRange: lngRange, pseudoCount: pseudoCount)
     }
     
     // everything pre determined except which bins the coordinates go in. ActivityType uses this directly
     convenience init(coordinates: [CLLocationCoordinate2D], latBinCount: Int, lngBinCount: Int,
-                     latRange: (min: Double, max: Double), lngRange: (min: Double, max: Double)) {
+                     latRange: (min: Double, max: Double), lngRange: (min: Double, max: Double),
+                     pseudoCount: UInt16) {
         let latBinWidth = (latRange.max - latRange.min) / Double(latBinCount)
         let lngBinWidth = (lngRange.max - lngRange.min) / Double(lngBinCount)
         
         // pre fill the bins with pseudo count
-        var bins = Array(repeating: Array<UInt16>(repeating: CoordinatesMatrix.pseudoCount, count: lngBinCount),
-                         count: latBinCount)
+        var bins = Array(repeating: Array<UInt16>(repeating: pseudoCount, count: lngBinCount), count: latBinCount)
         
         // proper fill the bins
         for coordinate in coordinates {
@@ -103,16 +102,18 @@ class CoordinatesMatrix {
             }
         }
         
-        self.init(bins: bins, latBinWidth: latBinWidth, lngBinWidth: lngBinWidth, latRange: latRange, lngRange: lngRange)
+        self.init(bins: bins, latBinWidth: latBinWidth, lngBinWidth: lngBinWidth, latRange: latRange,
+                  lngRange: lngRange, pseudoCount: pseudoCount)
     }
     
     init(bins: [[UInt16]], latBinWidth: Double, lngBinWidth: Double, latRange: (min: Double, max: Double),
-         lngRange: (min: Double, max: Double)) {
+         lngRange: (min: Double, max: Double), pseudoCount: UInt16) {
         self.bins = bins
         self.lngRange = lngRange
         self.latRange = latRange
         self.lngBinWidth = lngBinWidth
         self.latBinWidth = latBinWidth
+        self.pseudoCount = pseudoCount
     }
 }
 
@@ -148,10 +149,10 @@ extension CoordinatesMatrix {
         let lngBin = Int((coordinate.longitude - lngRange.min) / lngBinWidth)
         
         guard latBin >= 0 && latBin < bins.count else {
-            return (Double(CoordinatesMatrix.pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
+            return (Double(pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
         }
         guard lngBin >= 0 && lngBin < bins[0].count else {
-            return (Double(CoordinatesMatrix.pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
+            return (Double(pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
         }
         
         let binCount = bins[latBin][lngBin]
@@ -169,13 +170,13 @@ extension CoordinatesMatrix {
     // x,y,value; ...
     
     var serialised: String {
-        var result = "\(bins.count),\(bins[0].count),\(CoordinatesMatrix.pseudoCount);"
+        var result = "\(bins.count),\(bins[0].count),\(pseudoCount);"
         result += "\(latRange.min),\(latRange.max);"
         result += "\(lngRange.min),\(lngRange.max);"
         
         for (x, bin) in bins.enumerated() {
             for (y, value) in bin.enumerated() {
-                if value > CoordinatesMatrix.pseudoCount {
+                if value > pseudoCount {
                     result += "\(x),\(y),\(value);"
                 }
             }
@@ -206,7 +207,7 @@ extension CoordinatesMatrix: CustomStringConvertible {
             var yString = ""
             for value in lngBins {
                 let pctOfMax = Double(value) / Double(matrixMax)
-                if value <= CoordinatesMatrix.pseudoCount {
+                if value <= pseudoCount {
                     yString += "-"
                 } else if pctOfMax >= 1 {
                     yString += "X"

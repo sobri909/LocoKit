@@ -136,10 +136,13 @@ open class MutableActivityType: ActivityType {
                                             printModifier: 60 / 60 / 60 / 60)
         self.horizontalAccuracyHistogram = Histogram(values: allAccuracies, minBoundary: 0, trimOutliers: true,
                                                      name: "HORIZ ACCURACY")
+
+        // type requires a coordinate match to be non zero? 
+        let pseudoCount = ActivityTypeName.coordinateBoundTypes.contains(name) ? 0 : 1
         
         self.coordinatesMatrix = CoordinatesMatrix(coordinates: allCoordinates, latBinCount: self.numberOfLatBuckets,
                                                    lngBinCount: self.numberOfLongBuckets, latRange: self.latitudeRange,
-                                                   lngRange: self.longitudeRange)
+                                                   lngRange: self.longitudeRange, pseudoCount: UInt16(pseudoCount))
         
         self.lastUpdated = Date()
         

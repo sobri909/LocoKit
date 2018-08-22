@@ -86,6 +86,11 @@ public enum ActivityTypeName: String, Codable {
     public static let transportTypes = [car, train, bus, motorcycle, airplane, boat]
 
     /**
+     Activity types that require a location coordinate match.
+    */
+    public static let coordinateBoundTypes = [car, train, bus]
+
+    /**
      A convenience array containing all activity types.
      */
     public static let allTypes = baseTypes + transportTypes
