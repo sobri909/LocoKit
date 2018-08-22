@@ -59,8 +59,9 @@ open class MutableActivityType: ActivityType {
             if sample.movingState == .moving {
                 totalMoving += 1
             }
-            
-            if let stepHz = sample.stepHz {
+
+            // ignore zero stepHz for walking, because it's a far too common gap in the raw data
+            if let stepHz = sample.stepHz, (self.name != .walking || stepHz > 0) {
                 allStepHz.append(stepHz)
             }
             
