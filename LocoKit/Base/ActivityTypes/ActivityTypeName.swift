@@ -28,71 +28,48 @@ public enum ActivityTypeName: String, Codable {
      */
     case transport
 
-    /**
-     The device's locomotion properties best match walking.
-     */
+    /// The device's locomotion properties best match walking.
     case walking
 
-    /**
-     The device's locomotion properties best match running.
-     */
+    /// The device's locomotion properties best match running.
     case running
 
-    /**
-     The device's locomotion properties best match cycling.
-     */
+    /// The device's locomotion properties best match cycling.
     case cycling
 
-    /**
-     The device's locomotion properties best match travelling by a car.
-     */
+    /// The device's locomotion properties best match travelling by a car.
     case car
 
-    /**
-     The device's locomotion properties best match travelling by a train.
-     */
+    /// The device's locomotion properties best match travelling by a train.
     case train
 
-    /**
-     The device's locomotion properties best match travelling by a bus.
-     */
+    /// The device's locomotion properties best match travelling by a bus.
     case bus
 
-    /**
-     The device's locomotion properties best match travelling by motorcyle.
-     */
+    /// The device's locomotion properties best match travelling by motorcyle.
     case motorcycle
 
-    /**
-     The device's locomotion properties best match travelling by airplane.
-     */
+    /// The device's locomotion properties best match travelling by airplane.
     case airplane
 
-    /**
-     The device's locomotion properties best match travelling by a boat.
-     */
+    /// The device's locomotion properties best match travelling by a boat.
     case boat
+
+    /// The device's locomotion properties best match travelling by tram.
+    case tram
 
     // MARK: Convenience Arrays
     
-    /**
-     A convenience array containing the base activity types.
-     */
+    /// A convenience array containing the base activity types.
     public static let baseTypes = [stationary, transport, walking, running, cycling]
 
-    /**
-     A convenience array containing the extended transport types.
-     */
-    public static let transportTypes = [car, train, bus, motorcycle, airplane, boat]
+    /// A convenience array containing the extended transport types.
+    public static let transportTypes = [car, train, bus, motorcycle, airplane, boat, tram]
 
-    /**
-     Activity types that require a location coordinate match.
-    */
-    public static let coordinateBoundTypes = [car, train, bus]
+    /// Activity types that require a location coordinate match.
+    public static let coordinateBoundTypes = [car, train, bus, tram]
 
-    /**
-     A convenience array containing all activity types.
-     */
+    /// A convenience array containing all activity types.
     public static let allTypes = baseTypes + transportTypes
 
 }
