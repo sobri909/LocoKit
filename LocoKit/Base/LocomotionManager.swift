@@ -255,7 +255,7 @@ public extension NSNotification.Name {
      Whether or not to record Core Motion activity type events. If this option is enabled,
      `LocomotionSample.coreMotionActivityType` will be set with the results.
      */
-    @objc public var recordCoreMotionActivityTypeEvents: Bool = false
+    @objc public var recordCoreMotionActivityTypeEvents: Bool = true
 
     // MARK: Sleep Mode Settings
 
