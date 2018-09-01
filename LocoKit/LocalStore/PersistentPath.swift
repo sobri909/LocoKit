@@ -90,7 +90,7 @@ open class PersistentPath: Path, PersistentObject {
         save()
     }
 
-    // MARK: Persistable
+    // MARK: PersistableRecord
 
     public static let databaseTableName = "TimelineItem"
 
