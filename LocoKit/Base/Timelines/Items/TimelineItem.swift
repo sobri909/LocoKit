@@ -704,22 +704,22 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(itemId, forKey: .itemId)
         try container.encode(self is Visit, forKey: .isVisit)
-        try container.encode(deleted, forKey: .deleted)
-        try container.encode(previousItemId, forKey: .previousItemId)
-        try container.encode(nextItemId, forKey: .nextItemId)
+        if deleted { try container.encode(deleted, forKey: .deleted) }
+        if previousItemId != nil { try container.encode(previousItemId, forKey: .previousItemId) }
+        if nextItemId != nil { try container.encode(nextItemId, forKey: .nextItemId) }
         try container.encode(startDate, forKey: .startDate)
         try container.encode(endDate, forKey: .endDate)
         try container.encode(center?.coordinate, forKey: .center)
         try container.encode(radius, forKey: .radius)
-        try container.encode(altitude, forKey: .altitude)
-        try container.encode(stepCount, forKey: .stepCount)
+        if altitude != nil { try container.encode(altitude, forKey: .altitude) }
+        if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
         if self is Path {
-            try container.encode(modeMovingActivityType, forKey: .activityType)
+            if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
         } else {
-            try container.encode(modeActivityType, forKey: .activityType)
+            if modeActivityType != nil { try container.encode(modeActivityType, forKey: .activityType) }
         }
-        try container.encode(floorsAscended, forKey: .floorsAscended)
-        try container.encode(floorsDescended, forKey: .floorsDescended)
+        if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
+        if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
         try container.encode(samples, forKey: .samples)
     }
 

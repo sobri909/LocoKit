@@ -38,17 +38,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
     // MARK: Decodable
 
     public required init(from decoder: Decoder) throws {
-        do {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
-            try super.init(from: decoder)
-        } catch {
-            fatalError("DECODE FAIL: \(error)")
-        }
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case lastSaved
+        try super.init(from: decoder)
     }
 
     // MARK: Relationships

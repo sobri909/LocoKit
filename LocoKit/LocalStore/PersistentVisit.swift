@@ -136,22 +136,11 @@ open class PersistentVisit: Visit, PersistentObject {
         super.init(from: dict, in: store)
     }
     
-    // MARK: Codable
+    // MARK: Decodable
 
     public required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
         try super.init(from: decoder)
     }
 
-    open override func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(lastSaved, forKey: .lastSaved)
-        try super.encode(to: encoder)
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case lastSaved
-    }
 }
 

@@ -328,17 +328,17 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
     open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sampleId, forKey: .sampleId)
-        try container.encode(timelineItemId, forKey: .timelineItemId)
+        if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
         try container.encode(date, forKey: .date)
         try container.encode(location?.codable, forKey: .location)
         try container.encode(movingState, forKey: .movingState)
         try container.encode(recordingState, forKey: .recordingState)
-        try container.encode(stepHz, forKey: .stepHz)
-        try container.encode(courseVariance, forKey: .courseVariance)
-        try container.encode(xyAcceleration, forKey: .xyAcceleration)
-        try container.encode(zAcceleration, forKey: .zAcceleration)
-        try container.encode(coreMotionActivityType, forKey: .coreMotionActivityType)
-        try container.encode(confirmedType, forKey: .confirmedType)
+        if stepHz != nil { try container.encode(stepHz, forKey: .stepHz) }
+        if courseVariance != nil { try container.encode(courseVariance, forKey: .courseVariance) }
+        if xyAcceleration != nil { try container.encode(xyAcceleration, forKey: .xyAcceleration) }
+        if zAcceleration != nil { try container.encode(zAcceleration, forKey: .zAcceleration) }
+        if coreMotionActivityType != nil { try container.encode(coreMotionActivityType, forKey: .coreMotionActivityType) }
+        if confirmedType != nil { try container.encode(confirmedType, forKey: .confirmedType) }
     }
 
     private enum CodingKeys: String, CodingKey {
