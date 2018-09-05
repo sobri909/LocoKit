@@ -397,8 +397,8 @@ public extension Array where Element: LocomotionSample {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.verticalAccuracyRange
     }
     public var haveAnyUsableLocations: Bool {
-        for sample in self { if sample.hasUsableCoordinate { return false } }
-        return true
+        for sample in self { if sample.hasUsableCoordinate { return true } }
+        return false
     }
     func radius(from center: CLLocation) -> Radius {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.radius(from: center)

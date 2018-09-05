@@ -225,7 +225,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var isNolo: Bool {
         if isDataGap { return false }
         if let nolo = _isNolo { return nolo }
-        _isNolo = samples.haveAnyUsableLocations
+        _isNolo = !samples.haveAnyUsableLocations
         return _isNolo!
     }
 
