@@ -168,6 +168,13 @@ internal extension PersistentTimelineStore {
                 table.add(column: "source", .text).defaults(to: "LocoKit").indexed()
             }
         }
+
+        // add source fields, so that imported data can be distinguished from recorded data
+        migrator.registerMigration("6.0.0 bogus") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "locationIsBogus", .boolean).defaults(to: false)
+            }
+        }
     }
 
 }

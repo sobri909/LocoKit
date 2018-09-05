@@ -163,6 +163,8 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     public var classifiedType: ActivityTypeName? { return unfilteredClassifierResults?.first?.name }
 
+    public var locationIsBogus: Bool = false
+
     // MARK: - Convenience Getters
     
     public lazy var timeOfDay: TimeInterval = { return self.date.sinceStartOfDay }()
@@ -265,6 +267,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
             locationDict["timestamp"] = dict["date"]
             self.location = CLLocation(from: locationDict)
         }
+        self.locationIsBogus = dict["locationIsBogus"] as? Bool ?? false
         if let rawValue = dict["confirmedType"] as? String {
             self.confirmedType = ActivityTypeName(rawValue: rawValue)
         } else {
@@ -331,6 +334,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
         try container.encode(date, forKey: .date)
         try container.encode(location?.codable, forKey: .location)
+        if locationIsBogus { try container.encode(locationIsBogus, forKey: .locationIsBogus) }
         try container.encode(movingState, forKey: .movingState)
         try container.encode(recordingState, forKey: .recordingState)
         if stepHz != nil { try container.encode(stepHz, forKey: .stepHz) }
@@ -346,6 +350,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         case timelineItemId
         case date
         case location
+        case locationIsBogus
         case movingState
         case recordingState
         case stepHz
@@ -379,13 +384,23 @@ public extension Array where Element: LocomotionSample {
         guard let firstDate = first?.date, let lastDate = last?.date else { return 0 }
         return lastDate.timeIntervalSince(firstDate)
     }
-    public var distance: CLLocationDistance { return compactMap { $0.location }.distance }
-    public var weightedMeanAltitude: CLLocationDistance? { return compactMap { $0.location }.weightedMeanAltitude }
-    public var horizontalAccuracyRange: AccuracyRange? { return compactMap { $0.location }.horizontalAccuracyRange }
-    public var verticalAccuracyRange: AccuracyRange? { return compactMap { $0.location }.verticalAccuracyRange }
+    public var distance: CLLocationDistance {
+        return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.distance
+    }
+    public var weightedMeanAltitude: CLLocationDistance? {
+        return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.weightedMeanAltitude
+    }
+    public var horizontalAccuracyRange: AccuracyRange? {
+        return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.horizontalAccuracyRange
+    }
+    public var verticalAccuracyRange: AccuracyRange? {
+        return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.verticalAccuracyRange
+    }
     public var haveAnyUsableLocations: Bool {
         for sample in self { if sample.hasUsableCoordinate { return false } }
         return true
     }
-    func radius(from center: CLLocation) -> Radius { return compactMap { $0.location }.radius(from: center) }
+    func radius(from center: CLLocation) -> Radius {
+        return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.radius(from: center)
+    }
 }

@@ -182,10 +182,8 @@ open class Path: TimelineItem {
             return []
         }
         var insiders: Set<LocomotionSample> = []
-        for sample in samples {
-            guard let sampleLocation = sample.location else {
-                continue
-            }
+        for sample in samples where sample.hasUsableCoordinate {
+            guard let sampleLocation = sample.location else { continue }
             let metresFromCentre = visitCenter.distance(from: sampleLocation)
             if metresFromCentre <= visit.radius1sd {
                 insiders.insert(sample)

@@ -13,12 +13,16 @@ import CoreLocation
 open class PersistentSample: LocomotionSample, PersistentObject {
 
     public override var confirmedType: ActivityTypeName? {
-        didSet {
-            if oldValue != confirmedType {
-                hasChanges = true
-                save()
-            }
-        }
+        didSet { if oldValue != confirmedType { hasChanges = true; save() } }
+    }
+
+    public override var locationIsBogus: Bool {
+        didSet { hasChanges = true; save() }
+    }
+
+    public override var hasUsableCoordinate: Bool {
+        if locationIsBogus { return false }
+        return super.hasUsableCoordinate
     }
 
     // MARK: Required initialisers
@@ -88,6 +92,7 @@ open class PersistentSample: LocomotionSample, PersistentObject {
         container["verticalAccuracy"] = location?.verticalAccuracy
         container["speed"] = location?.speed
         container["course"] = location?.course
+        container["locationIsBogus"] = locationIsBogus
     }
     
     // MARK: PersistentObject
