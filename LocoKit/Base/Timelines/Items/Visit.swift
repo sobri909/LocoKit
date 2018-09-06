@@ -139,7 +139,9 @@ open class Visit: TimelineItem {
         if self.isMergeLocked || path.isMergeLocked { return nil }
         if self.isDataGap || path.isDataGap { return nil }
         if self.deleted || path.deleted { return nil }
-        if path.samples.isEmpty { return nil }
+
+        // edge cleansing isn't allowed to push a path into invalid state
+        if path.samples.count <= Path.minimumValidSamples { return nil }
 
         // fail out if separation distance is too much
         guard withinMergeableDistance(from: path) else { return nil }
