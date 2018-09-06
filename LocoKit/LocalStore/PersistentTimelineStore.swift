@@ -77,12 +77,16 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     open override func createSample(from sample: ActivityBrainSample) -> PersistentSample {
-        return PersistentSample(from: sample, in: self)
+        let sample = PersistentSample(from: sample, in: self)
+        saveOne(sample) // save the sample immediately, to avoid mystery data loss
+        return sample
     }
 
     open override func createSample(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
                                     recordingState: RecordingState) -> PersistentSample {
-        return PersistentSample(date: date, location: location, recordingState: recordingState, in: self)
+        let sample = PersistentSample(date: date, location: location, recordingState: recordingState, in: self)
+        saveOne(sample) // save the sample immediately, to avoid mystery data loss
+        return sample
     }
 
     public func object(for row: Row) -> TimelineObject {
@@ -230,6 +234,21 @@ open class PersistentTimelineStore: TimelineStore {
                     for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
                 }
             }
+        }
+    }
+
+    public func saveOne(_ object: PersistentObject) {
+        do {
+            try pool.write { db in
+                object.transactionDate = Date()
+                do { try object.save(in: db) }
+                catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                db.afterNextTransactionCommit { db in
+                    object.lastSaved = object.transactionDate
+                }
+            }
+        } catch {
+            os_log("%@", type: .error, error.localizedDescription)
         }
     }
 
