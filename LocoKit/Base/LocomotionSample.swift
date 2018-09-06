@@ -318,6 +318,7 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         self.coreMotionActivityType = try? container.decode(CoreMotionActivityTypeName.self, forKey: .coreMotionActivityType)
         self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
 
+        if let bogus = try? container.decode(Bool.self, forKey: .locationIsBogus) { self.locationIsBogus = bogus }
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .location) {
             self.location = CLLocation(from: codableLocation)
         } else {
