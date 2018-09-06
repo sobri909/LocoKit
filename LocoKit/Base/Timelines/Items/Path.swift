@@ -55,7 +55,7 @@ open class Path: TimelineItem {
 
     open override var isValid: Bool {
         if isDataGap { return isValidDataGap }
-        if isNolo { return isValidNolo }
+        if isNolo { return isValidPathNolo }
         if samples.count < Path.minimumValidSamples { return false }
         if duration < Path.minimumValidDuration { return false }
         if distance < Path.minimumValidDistance { return false }
@@ -75,7 +75,7 @@ open class Path: TimelineItem {
         return true
     }
 
-    private var isValidNolo: Bool {
+    private var isValidPathNolo: Bool {
         if samples.count < Path.minimumValidSamples { return false }
         if duration < Path.minimumValidDuration { return false }
         return true

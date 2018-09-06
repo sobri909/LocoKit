@@ -39,6 +39,7 @@ open class Visit: TimelineItem {
 
     open override var isValid: Bool {
         if samples.isEmpty { return false }
+        if isNolo { return false }
         if duration < Visit.minimumValidDuration { return false }
         return true
     }
