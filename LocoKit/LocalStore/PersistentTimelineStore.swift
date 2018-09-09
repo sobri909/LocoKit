@@ -276,7 +276,7 @@ open class PersistentTimelineStore: TimelineStore {
     }
 
     open var dateFields: [String] { return ["lastSaved", "lastModified", "startDate", "endDate", "date"] }
-    open var boolFields: [String] { return ["isVisit", "deleted"] }
+    open var boolFields: [String] { return ["isVisit", "deleted", "locationIsBogus"] }
 }
 
 class ItemsObserver: TransactionObserver {
