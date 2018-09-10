@@ -8,6 +8,11 @@ import CoreLocation
 public extension String {
 
     public init(duration: TimeInterval, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnits: Int = 2) {
+        if duration.isNaN {
+            self.init(format: "NaN")
+            return
+        }
+
         let formatter = DateComponentsFormatter()
         formatter.maximumUnitCount = maximumUnits
         formatter.unitsStyle = style
@@ -21,35 +26,33 @@ public extension String {
         self.init(format: formatter.string(from: duration)!)
     }
 
-    public init(metres: CLLocationDistance, style: DateComponentsFormatter.UnitsStyle = .full) {
-        let usesMetric = Locale.current.usesMetricSystem
+    public init(metres: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .long, isAltitude: Bool = false) {
+        let formatter = MeasurementFormatter()
 
-        let number = usesMetric
-            ? NumberFormatter.localizedString(from: round(metres) as NSNumber, number: .decimal)
-            : NumberFormatter.localizedString(from: round(metres * CLLocationDistance.feetPerMetre) as NSNumber,
-                                              number: .decimal)
-
-        let unit: String
-        switch style {
-        case .full where usesMetric && ["-1", "1"].contains(number):
-            unit = "metre"
-        case .full where usesMetric && !["-1", "1"].contains(number):
-            unit = "metres"
-        case .full where !usesMetric && ["-1", "1"].contains(number):
-            unit = "foot"
-        case .full where !usesMetric && !["-1", "1"].contains(number):
-            unit = "feet"
-        case .abbreviated where usesMetric:
-            unit = "m"
-        case .abbreviated where !usesMetric:
-            unit = "ft"
-        default: // impossiblez
-            unit = ""
+        if isAltitude {
+            formatter.unitOptions = .providedUnit
+            formatter.numberFormatter.maximumFractionDigits = 0
+            if Locale.current.usesMetricSystem {
+                self.init(format: formatter.string(from: metres.measurement))
+            } else {
+                self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
+            }
+            return
         }
 
-        self.init(format: "\(number) \(unit)")
+        formatter.unitOptions = .naturalScale
+        if metres < 1000 || metres > 20000 {
+            formatter.numberFormatter.maximumFractionDigits = 0
+        } else {
+            formatter.numberFormatter.maximumFractionDigits = 1
+        }
+        self.init(format: formatter.string(from: metres.measurement))
     }
 
+    init(speed: CLLocationSpeed) {
+        self.init(metresPerSecond: speed)
+    }
+    
     public init(metresPerSecond mps: Double) {
         let kmh = mps * 3.6
 
