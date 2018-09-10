@@ -125,7 +125,7 @@ public extension NSNotification.Name {
  either from the `movingState` property on the LocomotionManager, or on the latest `locomotionSample`. See the
  `movingState` documentation for further details.
  */
-@objc public class LocomotionManager: NSObject {
+@objc public class LocomotionManager: NSObject, CLLocationManagerDelegate {
    
     // internal settings
     internal static let fallbackUpdateCycle: TimeInterval = 30
@@ -162,6 +162,7 @@ public extension NSNotification.Name {
     internal var watchingTheWiggles = false
     internal var coreMotionPermission = false
     internal var lastAccuracyUpdate: Date?
+    internal var lastLocation: CLLocation?
     
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
@@ -982,9 +983,7 @@ public extension NSNotification.Name {
         }
     }
     
-}
-
-extension LocomotionManager: CLLocationManagerDelegate {
+    // MARK: - CLLocationManagerDelegate
 
     public func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
 
@@ -1034,12 +1033,22 @@ extension LocomotionManager: CLLocationManagerDelegate {
         }
 
         // feed the brain
+        var addedLocations = false
         for location in locations {
+
+            // new location is too soon, and not better than previous? skip it
+            if let last = lastLocation, last.horizontalAccuracy <= location.horizontalAccuracy, last.timestamp.age < 1.1 {
+                continue
+            }
+
+            lastLocation = location
+
             ActivityBrain.highlander.add(rawLocation: location)
+            addedLocations = true
         }
 
         // the payoff
-        updateAndNotify()
+        if addedLocations { updateAndNotify() }
     }
 
 }
