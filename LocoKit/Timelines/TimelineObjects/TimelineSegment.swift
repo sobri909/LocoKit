@@ -76,7 +76,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
         queue.async { [weak self] in
             guard self?.updatingEnabled == true else { return }
             if self?.hasChanged == true {
-                self?.timelineItems.forEach { PersistentProcessor.healEdges(of: $0) }
+                self?.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
                 self?.reclassifySamples()
                 self?.process()
                 self?.onUpdate?()
