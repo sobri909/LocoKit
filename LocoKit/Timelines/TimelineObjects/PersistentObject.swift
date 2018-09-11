@@ -13,7 +13,6 @@ public typealias PersistentItem = PersistentObject & TimelineItem
 
 public protocol PersistentObject: TimelineObject, PersistableRecord {
 
-    var persistentStore: PersistentTimelineStore? { get }
     var transactionDate: Date? { get set }
     var lastSaved: Date? { get set }
     var unsaved: Bool { get }
@@ -28,7 +27,7 @@ public protocol PersistentObject: TimelineObject, PersistableRecord {
 public extension PersistentObject {
     public var unsaved: Bool { return lastSaved == nil }
     public var needsSave: Bool { return unsaved || hasChanges }
-    public func save(immediate: Bool = false) { persistentStore?.save(self, immediate: immediate) }
+    public func save(immediate: Bool = false) { store?.save(self, immediate: immediate) }
     public func save(in db: Database) throws {
         if unsaved { try insert(db) } else if hasChanges { try update(db) }
         hasChanges = false
@@ -36,9 +35,5 @@ public extension PersistentObject {
     static var persistenceConflictPolicy: PersistenceConflictPolicy {
         return PersistenceConflictPolicy(insert: .replace, update: .abort)
     }
-}
-
-public extension PersistentObject where Self: TimelineItem {
-    public var persistentStore: PersistentTimelineStore? { return store as? PersistentTimelineStore }
 }
 

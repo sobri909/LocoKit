@@ -196,7 +196,7 @@ public class TimelineProcessor {
 
     // MARK: - ItemSegment brexiting
 
-    public static func extractItem(for segment: ItemSegment, in store: PersistentTimelineStore, completion: ((TimelineItem?) -> Void)? = nil) {
+    public static func extractItem(for segment: ItemSegment, in store: TimelineStore, completion: ((TimelineItem?) -> Void)? = nil) {
         store.process {
             guard let segmentRange = segment.dateRange else {
                 completion?(nil)
@@ -299,7 +299,7 @@ public class TimelineProcessor {
         }
     }
 
-    public static func extractPathEdgesFor(_ visit: Visit, in store: PersistentTimelineStore) {
+    public static func extractPathEdgesFor(_ visit: Visit, in store: TimelineStore) {
         if visit.deleted || visit.isMergeLocked { return }
 
         if let previousVisit = visit.previousItem as? Visit {
@@ -311,7 +311,7 @@ public class TimelineProcessor {
         }
     }
 
-    public static func extractPathBetween(visit: Visit, and otherVisit: Visit, in store: PersistentTimelineStore) {
+    public static func extractPathBetween(visit: Visit, and otherVisit: Visit, in store: TimelineStore) {
         if visit.deleted || visit.isMergeLocked { return }
         if otherVisit.deleted || otherVisit.isMergeLocked { return }
         guard visit.nextItem == otherVisit || visit.previousItem == otherVisit else { return }
@@ -342,7 +342,7 @@ public class TimelineProcessor {
     public static func healEdges(of brokenItem: TimelineItem) {
         if brokenItem.isMergeLocked { return }
         if !brokenItem.hasBrokenEdges { return }
-        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
+        guard let store = brokenItem.store else { return }
 
         store.process { self.healPreviousEdge(of: brokenItem) }
         store.process { self.healNextEdge(of: brokenItem) }
@@ -370,7 +370,7 @@ public class TimelineProcessor {
     }
 
     private static func healNextEdge(of brokenItem: TimelineItem) {
-        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
+        guard let store = brokenItem.store else { return }
         if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let endDate = brokenItem.endDate else { return }
@@ -422,7 +422,7 @@ public class TimelineProcessor {
     }
 
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
-        guard let store = brokenItem.store as? PersistentTimelineStore else { return }
+        guard let store = brokenItem.store else { return }
         if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let startDate = brokenItem.startDate else { return }
@@ -499,13 +499,13 @@ public class TimelineProcessor {
 
     // MARK: - Database sanitising
 
-    public static func sanitise(store: PersistentTimelineStore) {
+    public static func sanitise(store: TimelineStore) {
         orphanSamplesFromDeadParents(in: store)
         adoptOrphanedSamples(in: store)
         detachDeadmenEdges(in: store)
     }
 
-    private static func adoptOrphanedSamples(in store: PersistentTimelineStore) {
+    private static func adoptOrphanedSamples(in store: TimelineStore) {
         store.process {
             let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
 
@@ -545,7 +545,7 @@ public class TimelineProcessor {
         }
     }
 
-    private static func orphanSamplesFromDeadParents(in store: PersistentTimelineStore) {
+    private static func orphanSamplesFromDeadParents(in store: TimelineStore) {
         store.process {
             let orphans = store.samples(for: """
                 SELECT LocomotionSample.* FROM LocomotionSample
@@ -566,7 +566,7 @@ public class TimelineProcessor {
         }
     }
 
-    private static func detachDeadmenEdges(in store: PersistentTimelineStore) {
+    private static func detachDeadmenEdges(in store: TimelineStore) {
         store.process {
             let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
 

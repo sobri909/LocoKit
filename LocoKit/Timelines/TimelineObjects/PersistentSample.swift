@@ -97,7 +97,6 @@ open class PersistentSample: LocomotionSample, PersistentObject {
     
     // MARK: PersistentObject
 
-    public var persistentStore: PersistentTimelineStore? { return store as? PersistentTimelineStore }
     public var transactionDate: Date?
     public var lastSaved: Date?
     public var hasChanges: Bool = false

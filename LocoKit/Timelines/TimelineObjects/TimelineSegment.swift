@@ -10,7 +10,7 @@ import GRDB
 
 public class TimelineSegment: TransactionObserver, Encodable {
 
-    public let store: PersistentTimelineStore
+    public let store: TimelineStore
     public var onUpdate: (() -> Void)?
     public var debugLogging = false
 
@@ -32,13 +32,12 @@ public class TimelineSegment: TransactionObserver, Encodable {
     private var pendingChanges = false
     private var updatingEnabled = true
 
-    public convenience init(for dateRange: DateInterval, in store: PersistentTimelineStore,
-                            onUpdate: (() -> Void)? = nil) {
+    public convenience init(for dateRange: DateInterval, in store: TimelineStore, onUpdate: (() -> Void)? = nil) {
         self.init(for: "endDate > ? AND startDate < ? AND deleted = 0 ORDER BY startDate",
                   arguments: [dateRange.start, dateRange.end], in: store)
     }
 
-    public init(for query: String, arguments: StatementArguments? = nil, in store: PersistentTimelineStore,
+    public init(for query: String, arguments: StatementArguments? = nil, in store: TimelineStore,
                 onUpdate: (() -> Void)? = nil) {
         self.store = store
         self.query = "SELECT * FROM TimelineItem WHERE " + query

@@ -42,7 +42,7 @@ open class PersistentVisit: Visit, PersistentObject {
             if let existing = _samples { return existing }
             if lastSaved == nil {
                 _samples = []
-            } else if let store = persistentStore {
+            } else if let store = store {
                 _samples = store.samples(where: "timelineItemId = ? AND deleted = 0 ORDER BY date",
                                          arguments: [itemId.uuidString])
             } else {

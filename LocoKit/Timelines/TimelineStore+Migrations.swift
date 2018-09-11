@@ -1,5 +1,5 @@
 //
-//  PersistentTimelineStore+Migrations.swift
+//  TimelineStore+Migrations.swift
 //  LocoKit
 //
 //  Created by Matt Greenfield on 4/6/18.
@@ -7,7 +7,7 @@
 
 import GRDB
 
-internal extension PersistentTimelineStore {
+internal extension TimelineStore {
 
      internal func registerMigrations() {
 
