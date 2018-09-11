@@ -6,10 +6,11 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import GRDB
 import Upsurge
 import CoreLocation
 
-open class Path: TimelineItem {
+open class Path: TimelineItem, CustomStringConvertible {
 
     // valid path settings
     public static var minimumValidDuration: TimeInterval = 10
@@ -273,11 +274,16 @@ open class Path: TimelineItem {
         super.samplesChanged()
         _distance = nil
     }
-}
 
-// MARK: CustomStringConvertible
+    // MARK: - PersistableRecord
 
-extension Path: CustomStringConvertible {
+    open override func encode(to container: inout PersistenceContainer) {
+        super.encode(to: &container)
+        container["isVisit"] = false
+        container["distance"] = _distance
+    }
+
+    // MARK: CustomStringConvertible
 
     public var description: String {
         let itemType = isDataGap ? "datagap" : isNolo ? "nolo" : "path"

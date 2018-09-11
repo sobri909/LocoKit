@@ -12,10 +12,10 @@ public class ItemSegment: Equatable {
 
     public weak var timelineItem: TimelineItem?
 
-    private var unsortedSamples: Set<LocomotionSample> = []
+    private var unsortedSamples: Set<PersistentSample> = []
 
-    private var _samples: [LocomotionSample]?
-    public var samples: [LocomotionSample] {
+    private var _samples: [PersistentSample]?
+    public var samples: [PersistentSample] {
         if let cached = _samples { return cached }
         _samples = unsortedSamples.sorted { $0.date < $1.date }
         return _samples!
@@ -23,7 +23,7 @@ public class ItemSegment: Equatable {
 
     // MARK: - Initialisers
 
-    public init(samples: [LocomotionSample], timelineItem: TimelineItem? = nil) {
+    public init(samples: [PersistentSample], timelineItem: TimelineItem? = nil) {
         self.timelineItem = timelineItem
         self.add(samples)
     }
@@ -41,7 +41,7 @@ public class ItemSegment: Equatable {
      to end at the point where the next begins, without the shared sample being incorrectly subjected to modifications
      made to this segment (eg activity type changes).
      */
-    public var endSample: LocomotionSample? { didSet { samplesChanged() } }
+    public var endSample: PersistentSample? { didSet { samplesChanged() } }
 
     private var manualStartDate: Date?
     private var manualEndDate: Date?
@@ -159,7 +159,7 @@ public class ItemSegment: Equatable {
 
     // MARK: - Modifying the item segment
 
-    func canAdd(_ sample: LocomotionSample, ignoreRecordingState: Bool = false) -> Bool {
+    func canAdd(_ sample: PersistentSample, ignoreRecordingState: Bool = false) -> Bool {
 
         // need at least an activityType match
         if sample.activityType != activityType { return false }
@@ -171,20 +171,20 @@ public class ItemSegment: Equatable {
         return sample.recordingState == recordingState
     }
 
-    public func add(_ sample: LocomotionSample) {
+    public func add(_ sample: PersistentSample) {
         add([sample])
     }
 
-    public func add(_ samples: [LocomotionSample]) {
+    public func add(_ samples: [PersistentSample]) {
         unsortedSamples.formUnion(samples)
         samplesChanged()
     }
 
-    public func remove(_ sample: LocomotionSample) {
+    public func remove(_ sample: PersistentSample) {
         remove([sample])
     }
 
-    public func remove(_ samples: [LocomotionSample]) {
+    public func remove(_ samples: [PersistentSample]) {
         unsortedSamples.subtract(samples)
         samplesChanged()
     }

@@ -33,7 +33,7 @@ open class TimelineStore {
     public let mutex = UnfairLock()
 
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
-    private let sampleMap = NSMapTable<NSUUID, LocomotionSample>.strongToWeakObjects()
+    private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
     private let processingQueue = DispatchQueue(label: "TimelineProcessing", qos: .background)
     public private(set) var processing = false {
         didSet {
@@ -91,30 +91,28 @@ open class TimelineStore {
         }
     }
 
-    open func sample(for sampleId: UUID) -> LocomotionSample? { return object(for: sampleId) as? LocomotionSample }
-
     // MARK: - Item / Sample creation
 
-    open func createVisit(from sample: LocomotionSample) -> PersistentVisit {
-        let visit = PersistentVisit(in: self)
+    open func createVisit(from sample: PersistentSample) -> Visit {
+        let visit = Visit(in: self)
         visit.add(sample)
         return visit
     }
 
-    open func createPath(from sample: LocomotionSample) -> PersistentPath {
-        let path = PersistentPath(in: self)
+    open func createPath(from sample: PersistentSample) -> Path {
+        let path = Path(in: self)
         path.add(sample)
         return path
     }
 
-    open func createVisit(from samples: [LocomotionSample]) -> PersistentVisit {
-        let visit = PersistentVisit(in: self)
+    open func createVisit(from samples: [PersistentSample]) -> Visit {
+        let visit = Visit(in: self)
         visit.add(samples)
         return visit
     }
 
-    open func createPath(from samples: [LocomotionSample]) -> PersistentPath {
-        let path = PersistentPath(in: self)
+    open func createPath(from samples: [PersistentSample]) -> Path {
+        let path = Path(in: self)
         path.add(samples)
         return path
     }
@@ -143,8 +141,8 @@ open class TimelineStore {
         if let item = object(for: UUID(uuidString: itemId)!) as? TimelineItem { return item }
         guard let isVisit = row["isVisit"] as Bool? else { fatalError("MISSING ISVISIT BOOL") }
         return isVisit
-            ? PersistentVisit(from: row.asDict(in: self), in: self)
-            : PersistentPath(from: row.asDict(in: self), in: self)
+            ? Visit(from: row.asDict(in: self), in: self)
+            : Path(from: row.asDict(in: self), in: self)
     }
 
     open func sample(for row: Row) -> PersistentSample {
@@ -157,7 +155,7 @@ open class TimelineStore {
         mutex.sync { itemMap.setObject(timelineItem, forKey: timelineItem.itemId as NSUUID) }
     }
 
-    open func add(_ sample: LocomotionSample) {
+    open func add(_ sample: PersistentSample) {
         mutex.sync { sampleMap.setObject(sample, forKey: sample.sampleId as NSUUID) }
     }
 
@@ -237,7 +235,7 @@ open class TimelineStore {
 
     // MARK: - Saving
 
-    public func save(_ object: PersistentObject, immediate: Bool) {
+    public func save(_ object: TimelineObject, immediate: Bool) {
         mutex.sync {
             if let item = object as? TimelineItem {
                 itemsToSave.insert(item)
@@ -253,7 +251,7 @@ open class TimelineStore {
         var savingSamples: Set<PersistentSample> = []
 
         mutex.sync {
-            savingItems = itemsToSave.filter { ($0 as? PersistentItem)?.needsSave == true }
+            savingItems = itemsToSave.filter { $0.needsSave }
             itemsToSave.removeAll(keepingCapacity: true)
 
             savingSamples = samplesToSave.filter { $0.needsSave }
@@ -263,32 +261,32 @@ open class TimelineStore {
         if !savingItems.isEmpty {
             try! pool.write { db in
                 let now = Date()
-                for case let item as PersistentObject in savingItems {
+                for case let item as TimelineObject in savingItems {
                     item.transactionDate = now
                     do { try item.save(in: db) }
                     catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
                 }
                 db.afterNextTransactionCommit { db in
-                    for case let item as PersistentObject in savingItems { item.lastSaved = item.transactionDate }
+                    for case let item as TimelineObject in savingItems { item.lastSaved = item.transactionDate }
                 }
             }
         }
         if !savingSamples.isEmpty {
             try! pool.write { db in
                 let now = Date()
-                for case let sample as PersistentObject in savingSamples {
+                for case let sample as TimelineObject in savingSamples {
                     sample.transactionDate = now
                     do { try sample.save(in: db) }
                     catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
                 }
                 db.afterNextTransactionCommit { db in
-                    for case let sample as PersistentObject in savingSamples { sample.lastSaved = sample.transactionDate }
+                    for case let sample as TimelineObject in savingSamples { sample.lastSaved = sample.transactionDate }
                 }
             }
         }
     }
 
-    public func saveOne(_ object: PersistentObject) {
+    public func saveOne(_ object: TimelineObject) {
         do {
             try pool.write { db in
                 object.transactionDate = Date()

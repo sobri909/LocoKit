@@ -10,7 +10,13 @@ import GRDB
 import LocoKitCore
 import CoreLocation
 
-open class PersistentSample: LocomotionSample, PersistentObject {
+open class PersistentSample: LocomotionSample, TimelineObject {
+
+    // MARK: TimelineObject
+
+    public var objectId: UUID { return sampleId }
+    public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
+    public var source: String = "LocoKit"
 
     public override var confirmedType: ActivityTypeName? {
         didSet { if oldValue != confirmedType { hasChanges = true; save() } }
@@ -25,10 +31,34 @@ open class PersistentSample: LocomotionSample, PersistentObject {
         return super.hasUsableCoordinate
     }
 
+    // MARK: - Convenience initialisers
+
+    public convenience init(from dict: [String: Any?], in store: TimelineStore) {
+        self.init(from: dict)
+        self.store = store
+        store.add(self)
+    }
+
+    public convenience init(from sample: ActivityBrainSample, in store: TimelineStore) {
+        self.init(from: sample)
+        self.store = store
+        store.add(self)
+    }
+
+    public convenience init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                            recordingState: RecordingState, in store: TimelineStore) {
+        self.init(date: date, location: location, movingState: movingState, recordingState: recordingState)
+        self.store = store
+        store.add(self)
+    }
+
     // MARK: Required initialisers
 
     public required init(from dict: [String: Any?]) {
         self.lastSaved = dict["lastSaved"] as? Date
+        if let uuidString = dict["timelineItemId"] as? String { self.timelineItemId = UUID(uuidString: uuidString)! }
+        if let source = dict["source"] as? String, !source.isEmpty { self.source = source }
+
         super.init(from: dict)
     }
 
@@ -42,12 +72,26 @@ open class PersistentSample: LocomotionSample, PersistentObject {
     // MARK: Decodable
 
     public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: PersistentCodingKeys.self)
+        self.timelineItemId = try? container.decode(UUID.self, forKey: .timelineItemId)
         try super.init(from: decoder)
+    }
+
+    open override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: PersistentCodingKeys.self)
+        if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
+        try super.encode(to: encoder)
+    }
+
+    private enum PersistentCodingKeys: String, CodingKey {
+        case timelineItemId
     }
 
     // MARK: Relationships
 
-    public override var timelineItemId: UUID? {
+    private weak var _timelineItem: TimelineItem?
+
+    public var timelineItemId: UUID? {
         didSet {
             if oldValue != timelineItemId {
                 hasChanges = true
@@ -56,15 +100,40 @@ open class PersistentSample: LocomotionSample, PersistentObject {
         }
     }
 
+    /// The sample's parent `TimelineItem`.
+    public var timelineItem: TimelineItem? {
+        get {
+            if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached }
+            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item }
+            return self._timelineItem
+        }
+        set(newValue) {
+            let oldValue = self.timelineItem
+
+            // no change? do nothing
+            if newValue == oldValue { return }
+
+            // disconnect the old relationship
+            oldValue?.remove(self)
+
+            // store the new value
+            self._timelineItem = newValue
+            self.timelineItemId = newValue?.itemId
+
+            // complete the other side of the new relationship
+            newValue?.add(self)
+        }
+    }
+
     public private(set) var deleted = false 
-    open override func delete() {
+    open func delete() {
         deleted = true
         hasChanges = true
         timelineItem?.remove(self)
         save()
     }
 
-    // MARK: Persistable
+    // MARK: PersistableRecord
     
     public static let databaseTableName = "LocomotionSample"
 

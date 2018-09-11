@@ -7,6 +7,7 @@
 //
 
 import os.log
+import GRDB
 import LocoKitCore
 import CoreLocation
 import CoreMotion
@@ -18,6 +19,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public var objectId: UUID { return itemId }
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
+    public var transactionDate: Date?
+    public var lastSaved: Date?
+    public var hasChanges: Bool = false
 
     public var classifier: MLCompositeClassifier? { return store?.recorder?.classifier }
 
@@ -53,6 +57,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         deleted = true
         previousItem = nil
         nextItem = nil
+        hasChanges = true
+        save()
     }
 
     private var updatingPedometerData = false
@@ -85,14 +91,35 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return _floorsDescended
     }
 
-    private var _samples: [LocomotionSample] = []
-    open var samples: [LocomotionSample] { return mutex.sync { _samples } }
+    private var _samples: [PersistentSample]?
+    open var samples: [PersistentSample] {
+        return mutex.sync {
+            if let existing = _samples { return existing }
+            if lastSaved == nil {
+                _samples = []
+            } else if let store = store {
+                _samples = store.samples(where: "timelineItemId = ? AND deleted = 0 ORDER BY date",
+                                         arguments: [itemId.uuidString])
+            } else {
+                _samples = []
+            }
+            return _samples!
+        }
+    }
+
+    // MARK: - Relationships
 
     public var previousItemId: UUID? {
-        didSet { if previousItemId == itemId { fatalError("Can't link to self") } }
+        didSet {
+            if previousItemId == itemId { fatalError("Can't link to self") }
+            if oldValue != previousItemId { hasChanges = true; save() }
+        }
     }
     public var nextItemId: UUID? {
-        didSet { if nextItemId == itemId { fatalError("Can't link to self") } }
+        didSet {
+            if nextItemId == itemId { fatalError("Can't link to self") }
+            if oldValue != nextItemId { hasChanges = true; save() }
+        }
     }
 
     private weak var _previousItem: TimelineItem?
@@ -418,7 +445,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return nil
     }
 
-    internal func edgeSample(with otherItem: TimelineItem) -> LocomotionSample? {
+    internal func edgeSample(with otherItem: TimelineItem) -> PersistentSample? {
         if otherItem == previousItem {
             return samples.first
         }
@@ -428,7 +455,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return nil
     }
 
-    internal func secondToEdgeSample(with otherItem: TimelineItem) -> LocomotionSample? {
+    internal func secondToEdgeSample(with otherItem: TimelineItem) -> PersistentSample? {
         if otherItem == previousItem { return samples.second }
         if otherItem == nextItem { return samples.secondToLast }
         return nil
@@ -494,32 +521,32 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: - Modifying the timeline item
 
-    open func edit(changes: () -> Void) {
-        mutex.sync { changes() }
-    }
+    public func add(_ sample: PersistentSample) { add([sample]) }
 
-    public func add(_ sample: LocomotionSample) { add([sample]) }
-
-    public func remove(_ sample: LocomotionSample) { remove([sample]) }
+    public func remove(_ sample: PersistentSample) { remove([sample]) }
     
-    open func add(_ samples: [LocomotionSample]) {
+    open func add(_ samples: [PersistentSample]) {
+        var madeChanges = false
         mutex.sync {
-            if deleted { fatalError("Can't add samples to a deleted item") }
+            _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
             for sample in samples where sample.timelineItem != self {
-                sample.timelineItem?.remove(sample)
                 sample.timelineItem = self
+                madeChanges = true
             }
-            _samples = Set(_samples + samples).sorted { $0.date < $1.date }
         }
-        samplesChanged()
+        if madeChanges { samplesChanged() }
     }
 
-    open func remove(_ samples: [LocomotionSample]) {
+    open func remove(_ samples: [PersistentSample]) {
+        var madeChanges = false
         mutex.sync {
-            for sample in samples where sample.timelineItem == self { sample.timelineItem = nil }
-            _samples.removeObjects(samples)
+            _samples?.removeObjects(samples)
+            for sample in samples where sample.timelineItemId == self.itemId {
+                sample.timelineItemId = nil
+                madeChanges = true
+            }
         }
-        samplesChanged()
+        if madeChanges { samplesChanged() }
     }
 
     open func samplesChanged() {
@@ -538,6 +565,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         _dateRange = nil
 
         if oldDateRange != dateRange { pedometerDataIsStale = true }
+
+        hasChanges = true
+        save()
 
         onMain {
             NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
@@ -610,6 +640,36 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     open func copyMetadata(from otherItem: TimelineItem) {}
 
+    // MARK: - PersistableRecord
+
+    public static let databaseTableName = "TimelineItem"
+
+    open func encode(to container: inout PersistenceContainer) {
+        container["itemId"] = itemId.uuidString
+        container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
+        container["deleted"] = deleted
+        container["source"] = source
+        let range = _dateRange ?? dateRange
+        container["startDate"] = range?.start
+        container["endDate"] = range?.end
+        if deleted {
+            container["previousItemId"] = nil
+            container["nextItemId"] = nil
+        } else {
+            container["previousItemId"] = previousItemId?.uuidString
+            container["nextItemId"] = nextItemId?.uuidString
+        }
+        container["radiusMean"] = _radius?.mean
+        container["radiusSD"] = _radius?.sd
+        container["altitude"] = _altitude
+        container["stepCount"] = stepCount
+        container["floorsAscended"] = floorsAscended
+        container["floorsDescended"] = floorsDescended
+        container["activityType"] = _modeMovingActivityType?.rawValue
+        container["latitude"] = _center?.coordinate.latitude
+        container["longitude"] = _center?.coordinate.longitude
+    }
+
     // MARK: - Hashable, Comparable
 
     public var hashValue: Int { return itemId.hashValue }
@@ -636,6 +696,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         } else {
             self.itemId = UUID()
         }
+        self.lastSaved = dict["lastSaved"] as? Date
         self.deleted = dict["deleted"] as? Bool ?? false
         if let uuidString = dict["previousItemId"] as? String { self.previousItemId = UUID(uuidString: uuidString)! }
         if let uuidString = dict["nextItemId"] as? String { self.nextItemId = UUID(uuidString: uuidString)! }

@@ -6,6 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import GRDB
 import CoreLocation
 
 open class Visit: TimelineItem {
@@ -135,7 +136,7 @@ open class Visit: TimelineItem {
         return CLLocationDistanceMax
     }
 
-    internal override func cleanseEdge(with path: Path) -> LocomotionSample? {
+    internal override func cleanseEdge(with path: Path) -> PersistentSample? {
         if self.isMergeLocked || path.isMergeLocked { return nil }
         if self.isDataGap || path.isDataGap { return nil }
         if self.deleted || path.deleted { return nil }
@@ -193,6 +194,13 @@ open class Visit: TimelineItem {
 
     override open func samplesChanged() {
         super.samplesChanged()
+    }
+
+    // MARK: - PersistantRecord
+    
+    open override func encode(to container: inout PersistenceContainer) {
+        super.encode(to: &container)
+        container["isVisit"] = true
     }
 }
 

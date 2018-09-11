@@ -209,7 +209,7 @@ public class TimelineProcessor {
                 arguments: ["startDate": segmentRange.start, "endDate": segmentRange.end])
 
             var modifiedItems: [TimelineItem] = []
-            var samplesToSteal: [LocomotionSample] = []
+            var samplesToSteal: [PersistentSample] = []
 
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {

@@ -24,17 +24,9 @@ import LocoKitCore
  Lesser quality or quantity of available data result in longer sample durations, thus representing the average or most
  common states and location over the sample period instead of a single specific moment.
  */
-open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
-
-    // MARK: TimelineObject
-
-    public var objectId: UUID { return sampleId }
-    
-    public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
+open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     public let sampleId: UUID
-
-    public var source: String = "LocoKit"
 
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
     public let date: Date
@@ -118,39 +110,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
      */
     public let coreMotionActivityType: CoreMotionActivityTypeName?
 
-    // MARK: References
-
-    public var timelineItemId: UUID?
-
-    private weak var _timelineItem: TimelineItem?
-
-    /// The sample's parent `TimelineItem`, if recording is being done via a `TimelineManager`.
-    public var timelineItem: TimelineItem? {
-        get {
-            if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached }
-            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item }
-            return self._timelineItem
-        }
-        set(newValue) {
-            let oldValue = self.timelineItem
-
-            // no change? do nothing
-            if newValue == oldValue { return }
-
-            // disconnect the old relationship
-            oldValue?.remove(self)
-
-            // store the new value
-            self._timelineItem = newValue
-            self.timelineItemId = newValue?.itemId
-
-            // complete the other side of the new relationship
-            newValue?.add(self)
-        }
-    }
-
-    open func delete() {}
-
     public var classifierResults: ClassifierResults?
     public var unfilteredClassifierResults: ClassifierResults?
 
@@ -192,27 +151,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         return myLocation.distance(from: theirLocation)
     }
 
-    // MARK: - Convenience initialisers
-
-    public convenience init(from dict: [String: Any?], in store: TimelineStore) {
-        self.init(from: dict)
-        self.store = store
-        store.add(self)
-    }
-
-    public convenience init(from sample: ActivityBrainSample, in store: TimelineStore) {
-        self.init(from: sample)
-        self.store = store
-        store.add(self)
-    }
-
-    public convenience init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
-                            recordingState: RecordingState, in store: TimelineStore) {
-        self.init(date: date, location: location, movingState: movingState, recordingState: recordingState)
-        self.store = store
-        store.add(self)
-    }
-
     // MARK: - Required initialisers
 
     public required init(from sample: ActivityBrainSample) {
@@ -244,7 +182,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         } else {
             self.sampleId = UUID()
         }
-        if let uuidString = dict["timelineItemId"] as? String { self.timelineItemId = UUID(uuidString: uuidString)! }
         self.date = dict["date"] as! Date
         self.movingState = MovingState(rawValue: dict["movingState"] as! String)!
         self.recordingState = RecordingState(rawValue: dict["recordingState"] as! String)!
@@ -274,16 +211,13 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
             self.confirmedType = nil
         }
 
-        if let source = dict["source"] as? String, !source.isEmpty {
-            self.source = source
-        }
-
         self.rawLocations = nil
         self.filteredLocations = nil
     }
 
     /// For recording samples to mark special events such as app termination.
-    public required init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain, recordingState: RecordingState) {
+    public required init(date: Date, location: CLLocation? = nil, movingState: MovingState = .uncertain,
+                         recordingState: RecordingState) {
         self.sampleId = UUID()
 
         self.recordingState = recordingState
@@ -307,7 +241,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         self.sampleId = (try? container.decode(UUID.self, forKey: .sampleId)) ?? UUID()
-        self.timelineItemId = try? container.decode(UUID.self, forKey: .timelineItemId)
         self.date = try container.decode(Date.self, forKey: .date)
         self.movingState = try container.decode(MovingState.self, forKey: .movingState)
         self.recordingState = try container.decode(RecordingState.self, forKey: .recordingState)
@@ -332,7 +265,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
     open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sampleId, forKey: .sampleId)
-        if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
         try container.encode(date, forKey: .date)
         try container.encode(location?.codable, forKey: .location)
         if locationIsBogus { try container.encode(locationIsBogus, forKey: .locationIsBogus) }
@@ -348,7 +280,6 @@ open class LocomotionSample: ActivityTypeTrainable, TimelineObject, Codable {
 
     private enum CodingKeys: String, CodingKey {
         case sampleId
-        case timelineItemId
         case date
         case location
         case locationIsBogus

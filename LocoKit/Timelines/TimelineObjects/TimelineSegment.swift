@@ -84,7 +84,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
     }
 
     private var hasChanged: Bool {
-        guard let items = timelineItems as? [PersistentItem] else { return false }
+        let items = timelineItems 
 
         let freshLastSaveDate = items.compactMap { $0.lastSaved }.max()
         let freshItemCount = items.count

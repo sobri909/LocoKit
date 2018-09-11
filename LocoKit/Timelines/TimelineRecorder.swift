@@ -151,7 +151,7 @@ public class TimelineRecorder {
         }
     }
 
-    private func process(_ sample: LocomotionSample) {
+    private func process(_ sample: PersistentSample) {
 
         /** first timeline item **/
         guard let currentItem = currentItem else {
@@ -209,7 +209,7 @@ public class TimelineRecorder {
             }
 
             var keptCount = 0
-            var samplesToKill: [LocomotionSample] = []
+            var samplesToKill: [PersistentSample] = []
             for sample in edgeSleepSamples {
 
                 // always keep the oldest sleep sample
@@ -252,7 +252,7 @@ public class TimelineRecorder {
 
     // MARK: - Timeline item creation
 
-    private func createTimelineItem(from sample: LocomotionSample) {
+    private func createTimelineItem(from sample: PersistentSample) {
         let newItem: TimelineItem = sample.movingState == .stationary
             ? store.createVisit(from: sample)
             : store.createPath(from: sample)
