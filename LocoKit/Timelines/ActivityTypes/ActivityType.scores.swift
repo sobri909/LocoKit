@@ -76,15 +76,16 @@ extension ActivityType {
         }
         
         /** context scores **/
+
+        if let altitude = scorable.location?.altitude, altitude != LocomotionMagicValue.nilAltitude {
+            scores.append(altitudeScore(for: altitude) * altitudeWeight)
+        }
         
-        if depth > 0 && name != .stationary { // D0 and stationary should ignore all context factors
+        if depth > 0 && name != .stationary { // D0 and stationary should ignore these context factors
             if let course = scorable.location?.course, course >= 0 {
                 scores.append(courseScore(for: course) * courseWeight)
             }
-            if let altitude = scorable.location?.altitude, altitude != LocomotionMagicValue.nilAltitude {
-                scores.append(altitudeScore(for: altitude) * altitudeWeight)
-            }
-            
+
             // walking and running are golden childs. don't bother with time of day checks
             if name != .walking && name != .running {
                 scores.append(timeOfDayScore(for: scorable.timeOfDay) * timeOfDayWeight)
