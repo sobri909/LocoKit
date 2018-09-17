@@ -34,7 +34,9 @@ open class TimelineStore {
 
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
     private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
-    private let processingQueue = DispatchQueue(label: "TimelineProcessing", qos: .background)
+    private let modelMap = NSMapTable<NSString, ActivityType>.strongToWeakObjects()
+
+    private let processingQueue = DispatchQueue(label: "TimelineProcessing")
     public private(set) var processing = false {
         didSet {
             guard processing != oldValue else { return }
@@ -45,6 +47,7 @@ open class TimelineStore {
 
     public var itemsInStore: Int { return mutex.sync { itemMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var samplesInStore: Int { return mutex.sync { sampleMap.objectEnumerator()?.allObjects.count ?? 0 } }
+    public var modelsInStore: Int { return mutex.sync { modelMap.objectEnumerator()?.allObjects.count ?? 0 } }
 
     public var itemsToSave: Set<TimelineItem> = []
     public var samplesToSave: Set<PersistentSample> = []
@@ -73,25 +76,7 @@ open class TimelineStore {
         return try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
     }()
 
-    public func object(for objectId: UUID) -> TimelineObject? {
-        return mutex.sync {
-            if let item = itemMap.object(forKey: objectId as NSUUID) { return item }
-            if let sample = sampleMap.object(forKey: objectId as NSUUID) { return sample }
-            return nil
-        }
-    }
-
-    public func itemInStore(matching: (TimelineItem) -> Bool) -> TimelineItem? {
-        return mutex.sync {
-            guard let enumerator = itemMap.objectEnumerator() else { return nil }
-            for case let item as TimelineItem in enumerator {
-                if matching(item) { return item }
-            }
-            return nil
-        }
-    }
-
-    // MARK: - Item / Sample creation
+    // MARK: - Object creation
 
     open func createVisit(from sample: PersistentSample) -> Visit {
         let visit = Visit(in: self)
@@ -130,26 +115,7 @@ open class TimelineStore {
         return sample
     }
 
-    public func object(for row: Row) -> TimelineObject {
-        if row["itemId"] as String? != nil { return item(for: row) }
-        if row["sampleId"] as String? != nil { return sample(for: row) }
-        fatalError("Couldn't create an object for the row.")
-    }
-
-    open func item(for row: Row) -> TimelineItem {
-        guard let itemId = row["itemId"] as String? else { fatalError("MISSING ITEMID") }
-        if let item = object(for: UUID(uuidString: itemId)!) as? TimelineItem { return item }
-        guard let isVisit = row["isVisit"] as Bool? else { fatalError("MISSING ISVISIT BOOL") }
-        return isVisit
-            ? Visit(from: row.asDict(in: self), in: self)
-            : Path(from: row.asDict(in: self), in: self)
-    }
-
-    open func sample(for row: Row) -> PersistentSample {
-        guard let sampleId = row["sampleId"] as String? else { fatalError("MISSING SAMPLEID") }
-        if let sample = object(for: UUID(uuidString: sampleId)!) as? PersistentSample { return sample }
-        return PersistentSample(from: row.asDict(in: self), in: self)
-    }
+    // MARK: - Object adding
 
     open func add(_ timelineItem: TimelineItem) {
         mutex.sync { itemMap.setObject(timelineItem, forKey: timelineItem.itemId as NSUUID) }
@@ -157,6 +123,36 @@ open class TimelineStore {
 
     open func add(_ sample: PersistentSample) {
         mutex.sync { sampleMap.setObject(sample, forKey: sample.sampleId as NSUUID) }
+    }
+
+    open func add(_ model: ActivityType) {
+        mutex.sync { modelMap.setObject(model, forKey: model.geoKey as NSString) }
+    }
+
+    // MARK: - Object fetching
+
+    public func object(for objectId: UUID) -> TimelineObject? {
+        return mutex.sync {
+            if let item = itemMap.object(forKey: objectId as NSUUID) { return item }
+            if let sample = sampleMap.object(forKey: objectId as NSUUID) { return sample }
+            return nil
+        }
+    }
+
+    public func itemInStore(matching: (TimelineItem) -> Bool) -> TimelineItem? {
+        return mutex.sync {
+            guard let enumerator = itemMap.objectEnumerator() else { return nil }
+            for case let item as TimelineItem in enumerator {
+                if matching(item) { return item }
+            }
+            return nil
+        }
+    }
+
+    public func object(for row: Row) -> TimelineObject {
+        if row["itemId"] as String? != nil { return item(for: row) }
+        if row["sampleId"] as String? != nil { return sample(for: row) }
+        fatalError("Couldn't create an object for the row.")
     }
 
     // MARK: - Item fetching
@@ -194,6 +190,15 @@ open class TimelineStore {
         }
     }
 
+    open func item(for row: Row) -> TimelineItem {
+        guard let itemId = row["itemId"] as String? else { fatalError("MISSING ITEMID") }
+        if let item = object(for: UUID(uuidString: itemId)!) as? TimelineItem { return item }
+        guard let isVisit = row["isVisit"] as Bool? else { fatalError("MISSING ISVISIT BOOL") }
+        return isVisit
+            ? Visit(from: row.asDict(in: self), in: self)
+            : Path(from: row.asDict(in: self), in: self)
+    }
+
     // MARK: Sample fetching
 
     open func sample(for sampleId: UUID) -> PersistentSample? {
@@ -217,6 +222,39 @@ open class TimelineStore {
             return try Row.fetchAll(db, query, arguments: arguments)
         }
         return rows.map { sample(for: $0) }
+    }
+
+    open func sample(for row: Row) -> PersistentSample {
+        guard let sampleId = row["sampleId"] as String? else { fatalError("MISSING SAMPLEID") }
+        if let sample = object(for: UUID(uuidString: sampleId)!) as? PersistentSample { return sample }
+        return PersistentSample(from: row.asDict(in: self), in: self)
+    }
+
+    // MARK: - Model fetching
+
+    public func model(where query: String, arguments: StatementArguments? = nil) -> ActivityType? {
+        return model(for: "SELECT * FROM ActivityTypeModel WHERE " + query + " LIMIT 1", arguments: arguments)
+    }
+
+    public func model(for query: String, arguments: StatementArguments? = nil) -> ActivityType? {
+        return try! pool.read { db in
+            guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
+            return model(for: row)
+        }
+    }
+
+    public func models(for query: String, arguments: StatementArguments? = nil) -> [ActivityType] {
+        let rows = try! pool.read { db in
+            return try Row.fetchAll(db, query, arguments: arguments)
+        }
+        return rows.map { model(for: $0) }
+    }
+
+    func model(for row: Row) -> ActivityType {
+        guard let geoKey = row["geoKey"] as String? else { fatalError("MISSING GEOKEY") }
+        if let cached = mutex.sync(execute: { modelMap.object(forKey: geoKey as NSString) }) { return cached }
+        if let model = ActivityType(dict: row.asDict(in: self), in: self) { return model }
+        fatalError("FAILED MODEL INIT FROM ROW")
     }
 
     // MARK: - Counting
@@ -336,7 +374,7 @@ open class TimelineStore {
     }
 
     open var dateFields: [String] { return ["lastSaved", "lastModified", "startDate", "endDate", "date"] }
-    open var boolFields: [String] { return ["isVisit", "deleted", "locationIsBogus"] }
+    open var boolFields: [String] { return ["isVisit", "deleted", "locationIsBogus", "isShared", "needsUpdate"] }
 
 }
 

@@ -8,6 +8,7 @@
 
 import os.log
 import CoreLocation
+import GRDB
 
 public struct LocomotionMagicValue {
     @available(*, deprecated: 5.1.0)
@@ -16,15 +17,13 @@ public struct LocomotionMagicValue {
 }
 
 open class MutableActivityType: ActivityType {
-    
+
     static let statsDebug = false
-    
-    public override init?(dict: [String: Any], geoKeyPrefix: String? = nil) {
-        super.init(dict: dict, geoKeyPrefix: geoKeyPrefix)
-    }
-    
+
+    public var needsUpdate = false
+
     public func updateFrom<S: Sequence>(samples: S) where S.Iterator.Element: ActivityTypeTrainable {
-        var totalEvents = 0, totalMoving = 0, accuracyScorables = 0, correctScorables = 0
+        var totalSamples = 0, totalMoving = 0, accuracyScorables = 0, correctScorables = 0
         
         var allAltitudes: [Double] = [], allSpeeds: [Double] = [], allStepHz: [Double] = []
         var allCourses: [Double] = [], allCourseVariances: [Double] = [], allTimesOfDay: [Double] = []
@@ -44,7 +43,7 @@ open class MutableActivityType: ActivityType {
             guard let location = sample.location, location.coordinate.isUsable else { continue }
             guard self.contains(coordinate: location.coordinate) else { continue }
             
-            totalEvents += 1
+            totalSamples += 1
             
             // collect accuracy counts
             if let classifiedType = sample.classifiedType {
@@ -102,7 +101,7 @@ open class MutableActivityType: ActivityType {
             }
         }
         
-        self.totalEvents = totalEvents
+        self.totalSamples = totalSamples
 
         if accuracyScorables > 0 {
             self.accuracyScore = Double(correctScorables) / Double(accuracyScorables)
@@ -111,10 +110,10 @@ open class MutableActivityType: ActivityType {
         }
 
         // no events? we done here
-        guard totalEvents > 0 else { return }
+        guard totalSamples > 0 else { return }
         
         // motion factors
-        self.movingPct = Double(totalMoving) / Double(totalEvents)
+        self.movingPct = Double(totalMoving) / Double(totalSamples)
         self.speedHistogram = Histogram(values: allSpeeds, minBoundary: 0, trimOutliers: true, name: "SPEED",
                                         printFormat: "%6.1f kmh", printModifier: 3.6)
         self.stepHzHistogram = Histogram(values: allStepHz, minBoundary: 0, trimOutliers: true, name: "STEPHZ",
@@ -179,23 +178,7 @@ open class MutableActivityType: ActivityType {
         
         return scores
     }
-    
-    private var coreMotionTypeScoresArray: [Double] {
-        var result: [Double] = []
-        for typeName in CoreMotionActivityTypeName.allTypes {
-            if let score = coreMotionTypeScores[typeName] {
-                result.append(score)
-            } else {
-                result.append(0)
-            }
-        }
-        return result
-    }
-    
-}
 
-extension MutableActivityType {
-    
     public var statsDict: [String: Any] {        
         var dict: [String: Any] = [:]
         
@@ -218,6 +201,11 @@ extension MutableActivityType {
         dict["coordinatesMatrix"] = coordinatesMatrix?.serialised
         
         return dict
+    }
+
+    open override func encode(to container: inout PersistenceContainer) {
+        super.encode(to: &container)
+        container["needsUpdate"] = needsUpdate
     }
     
 }

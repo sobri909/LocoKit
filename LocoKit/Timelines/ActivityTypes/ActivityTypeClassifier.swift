@@ -124,11 +124,6 @@ public class ActivityTypeClassifier: MLClassifier {
         }
     }
 
-    public convenience required init?(requestedTypes: [ActivityTypeName] = ActivityTypeName.baseTypes,
-                                      coordinate: CLLocationCoordinate2D) {
-        self.init(requestedTypes: requestedTypes, coordinate: coordinate, depth: 2)
-    }
-
     public lazy var lastUpdated: Date? = {
         return self.models.lastUpdated
     }()
@@ -144,6 +139,13 @@ public class ActivityTypeClassifier: MLClassifier {
     public lazy var completenessScore: Double = {
         return self.models.completenessScore
     }()
+
+    // MARK: - Init
+    
+    public convenience required init?(requestedTypes: [ActivityTypeName] = ActivityTypeName.baseTypes,
+                                      coordinate: CLLocationCoordinate2D) {
+        self.init(requestedTypes: requestedTypes, coordinate: coordinate, depth: 2)
+    }
     
     convenience init?(requestedTypes: [ActivityTypeName], coordinate: CLLocationCoordinate2D, depth: Int) {
         if requestedTypes.isEmpty {

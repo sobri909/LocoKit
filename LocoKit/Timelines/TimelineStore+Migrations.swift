@@ -175,6 +175,40 @@ internal extension TimelineStore {
                 table.add(column: "locationIsBogus", .boolean).defaults(to: false)
             }
         }
+
+        migrator.registerMigration("7.0.0 models") { db in
+            try db.create(table: "ActivityTypeModel") { table in
+                table.column("geoKey", .text).primaryKey()
+                table.column("lastSaved", .datetime).notNull().indexed()
+                table.column("version", .integer).notNull().indexed()
+                table.column("lastUpdated", .datetime)
+
+                table.column("name", .text).notNull().indexed()
+                table.column("depth", .integer).notNull().indexed()
+                table.column("isShared", .boolean).notNull().indexed()
+                table.column("needsUpdate", .boolean).indexed()
+                table.column("totalSamples", .integer).notNull()
+                table.column("accuracyScore", .double)
+
+                table.column("latitudeMax", .double).notNull().indexed()
+                table.column("latitudeMin", .double).notNull().indexed()
+                table.column("longitudeMax", .double).notNull().indexed()
+                table.column("longitudeMin", .double).notNull().indexed()
+
+                table.column("movingPct", .double)
+                table.column("coreMotionTypeScores", .text)
+                table.column("altitudeHistogram", .text)
+                table.column("courseHistogram", .text)
+                table.column("courseVarianceHistogram", .text)
+                table.column("speedHistogram", .text)
+                table.column("stepHzHistogram", .text)
+                table.column("timeOfDayHistogram", .text)
+                table.column("xyAccelerationHistogram", .text)
+                table.column("zAccelerationHistogram", .text)
+                table.column("horizontalAccuracyHistogram", .text)
+                table.column("coordinatesMatrix", .text)
+            }
+        }
     }
 
 }

@@ -119,15 +119,15 @@ public protocol MLClassifier {
 extension MLClassifier {
 
     public func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults {
-        var totalEvents = 1 // start with 1 to avoid potential div by zero
+        var totalSamples = 1 // start with 1 to avoid potential div by zero
         for model in models {
-            totalEvents += model.totalEvents
+            totalSamples += model.totalSamples
         }
 
         var scores: [ClassifierResultItem] = []
         for model in models {
             let typeScore = model.scoreFor(classifiable: classifiable)
-            let pctOfAllEvents = Double(model.totalEvents) / Double(totalEvents)
+            let pctOfAllEvents = Double(model.totalSamples) / Double(totalSamples)
             let finalScore = typeScore * pctOfAllEvents
 
             let result = ClassifierResultItem(name: model.name, score: finalScore,
@@ -202,7 +202,7 @@ extension MLClassifier {
     }
 
     public var availableTypes: [ActivityTypeName] {
-        return models.sorted { $0.totalEvents > $1.totalEvents }.map { $0.name }
+        return models.sorted { $0.totalSamples > $1.totalSamples }.map { $0.name }
     }
 
     public var centerCoordinate: CLLocationCoordinate2D? {

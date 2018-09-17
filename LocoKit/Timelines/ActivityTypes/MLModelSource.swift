@@ -16,7 +16,6 @@ public protocol MLModelSource {
     var providesDepths: [Int] { get }
     func modelFor(name: ActivityTypeName, coordinate: CLLocationCoordinate2D, depth: Int) -> Model?
     func modelsFor(names: [ActivityTypeName], coordinate: CLLocationCoordinate2D, depth: Int) -> [Model]
-    func add(_ model: Model)
 }
 
 public extension Array where Element: MLModel {
@@ -36,8 +35,8 @@ public extension Array where Element: MLModel {
         var totalScore = 0.0, totalWeight = 0.0
         for model in self {
             if let score = model.accuracyScore, score >= 0 {
-                totalScore += score * Double(model.totalEvents)
-                totalWeight += Double(model.totalEvents)
+                totalScore += score * Double(model.totalSamples)
+                totalWeight += Double(model.totalSamples)
             }
         }
         return totalWeight > 0 ? totalScore / totalWeight : nil

@@ -8,10 +8,10 @@
 
 import CoreLocation
 
-public protocol MLModel: Equatable {
+public protocol MLModel: Hashable {
     var name: ActivityTypeName { get }
     var depth: Int { get }
-    var totalEvents: Int { get }
+    var totalSamples: Int { get }
     var lastFetched: Date { get }
     var lastUpdated: Date? { get }
     var coverageScore: Double { get }

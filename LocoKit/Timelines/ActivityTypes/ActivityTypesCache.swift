@@ -9,6 +9,7 @@
 import os.log
 import LocoKitCore
 import CoreLocation
+import GRDB
 
 public final class ActivityTypesCache: MLModelSource {
   
@@ -21,58 +22,61 @@ public final class ActivityTypesCache: MLModelSource {
     internal static let staleLastUpdatedAge: TimeInterval = 60 * 60 * 24 * 30
     internal static let staleLastFetchedAge: TimeInterval = 60 * 60 * 24 * 7
 
-    var cache: [ActivityType] = []
+    public var store: TimelineStore?
     let mutex = UnfairLock()
 
     public init() {}
     
     public var providesDepths = [0, 1, 2]
-    
+
     public func modelFor(name: ActivityTypeName, coordinate: CLLocationCoordinate2D, depth: Int) -> ActivityType? {
-        guard providesDepths.contains(depth) else {
-            return nil
-        }
-        
-        var match: ActivityType?
-        mutex.sync {
-            if depth == 0 {
-                match = cache.filter { $0.name == name && $0.depth == 0 }.first
-            } else {
-                match = cache.filter { $0.name == name && $0.contains(coordinate: coordinate) && $0.depth == depth }.first
-            }
-        }
-        
-        return match
-    }
-    
-    public func modelsFor(names: [ActivityTypeName], coordinate: CLLocationCoordinate2D, depth: Int) -> [ActivityType] {
-        var matches: [ActivityType] = []
-        for name in names {
-            if let match = modelFor(name: name, coordinate: coordinate, depth: depth) {
-                matches.append(match)
-            }
+        guard let store = store else { return nil }
+        guard providesDepths.contains(depth) else { return nil }
+
+        var query = "SELECT * FROM ActivityTypeModel WHERE isShared = 1 AND name = ? AND depth = ?"
+        var arguments: [DatabaseValueConvertible] = [name.rawValue, depth]
+
+        if depth > 0 {
+            query += " AND latitudeMin <= ? AND latitudeMax >= ? AND longitudeMin <= ? AND longitudeMax >= ?"
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.longitude)
+            arguments.append(coordinate.longitude)
         }
 
+        return store.model(for: query, arguments: StatementArguments(arguments))
+    }
+
+    public func modelsFor(names: [ActivityTypeName], coordinate: CLLocationCoordinate2D, depth: Int) -> [ActivityType] {
+        guard let store = store else { return [] }
+        guard providesDepths.contains(depth) else { return [] }
+
+        var query = "SELECT * FROM ActivityTypeModel WHERE isShared = 1 AND depth = ?"
+        var arguments: [DatabaseValueConvertible] = [depth]
+
+        let marks = repeatElement("?", count: names.count).joined(separator: ",")
+        query += " AND name IN (\(marks))"
+        arguments += names.map { $0.rawValue } as [DatabaseValueConvertible]
+
+        if depth > 0 {
+            query += " AND latitudeMin <= ? AND latitudeMax >= ? AND longitudeMin <= ? AND longitudeMax >= ?"
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.longitude)
+            arguments.append(coordinate.longitude)
+        }
+
+        let models = store.models(for: query, arguments: StatementArguments(arguments))
+
         // start a new fetch if needed
-        if matches.isEmpty || matches.isStale {
+        if models.isEmpty || models.isStale {
             fetchTypesFor(coordinate: coordinate, depth: depth)
         }
 
-        return matches
+        return models
     }
     
-    public func add(_ model: ActivityType) {
-        mutex.sync {
-            // already in the cache? replace it
-            let ditchees = cache.filter { $0 == model }
-            cache.removeObjects(ditchees)
-            
-            // add it
-            cache.append(model)
-        }
-    }
-   
-    // MARK: - Model fetching
+    // MARK: - Remote model fetching
 
     func fetchTypesFor(coordinate: CLLocationCoordinate2D, depth: Int) {
         let latRange = ActivityType.latitudeRangeFor(depth: depth, coordinate: coordinate)
@@ -88,12 +92,12 @@ public final class ActivityTypesCache: MLModelSource {
     }
     
     func parseTypes(json: [String: Any]) {
+        guard let store = store else { return }
         guard let typeDicts = json["activityTypes"] as? [[String: Any]] else { return }
-        
-        for typeDict in typeDicts {
-            if let type = ActivityType(dict: typeDict) {
-                add(type)
-            }
+
+        for dict in typeDicts {
+            let model = ActivityType(dict: dict, in: store)
+            model?.save()
         }
     }
 }
