@@ -945,6 +945,7 @@ public extension NSNotification.Name {
             return
         }
 
+        // too soon for an update?
         if let last = lastAccuracyUpdate, last.age < LocomotionManager.maximumDesiredAccuracyIncreaseFrequency {
             return
         }
@@ -952,12 +953,7 @@ public extension NSNotification.Name {
         let currentlyDesired = locationManager.desiredAccuracy
         let currentlyAchieved = ActivityBrain.highlander.horizontalAccuracy
         
-        let steps = [
-            kCLLocationAccuracyHundredMeters,
-            kCLLocationAccuracyNearestTenMeters,
-            kCLLocationAccuracyBest,
-            kCLLocationAccuracyBestForNavigation
-        ]
+        let steps = [100, 50, 10, kCLLocationAccuracyBest, kCLLocationAccuracyBestForNavigation]
         
         var updatedDesire = steps.first { $0 < currentlyAchieved }!
         
