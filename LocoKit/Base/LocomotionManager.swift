@@ -167,7 +167,7 @@ public extension NSNotification.Name {
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
 
-    internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+    internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
 
     internal lazy var wigglesQueue: OperationQueue = {
         return OperationQueue()
@@ -403,7 +403,7 @@ public extension NSNotification.Name {
         restartTheUpdateTimer()
 
         // don't need background fetches for deep sleep while recording
-        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplicationBackgroundFetchIntervalNever) }
+        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalNever) }
 
         let previousState = recordingState
         recordingState = .recording
@@ -737,7 +737,7 @@ public extension NSNotification.Name {
     // MARK: - Background management
 
     private func startBackgroundTask() {
-        guard backgroundTaskId == UIBackgroundTaskInvalid else { return }
+        guard backgroundTaskId == UIBackgroundTaskIdentifier.invalid else { return }
         os_log("Starting LocoKit background task.", type: .debug)
         backgroundTaskId = UIApplication.shared.beginBackgroundTask(withName: "LocoKitBackground") {
             os_log("LocoKit background task expired.", type: .error)
@@ -751,10 +751,10 @@ public extension NSNotification.Name {
     }
 
     private func endBackgroundTask() {
-        guard backgroundTaskId != UIBackgroundTaskInvalid else { return }
+        guard backgroundTaskId != UIBackgroundTaskIdentifier.invalid else { return }
         os_log("Ending LocoKit background task.", type: .debug)
         UIApplication.shared.endBackgroundTask(backgroundTaskId)
-        backgroundTaskId = UIBackgroundTaskInvalid
+        backgroundTaskId = UIBackgroundTaskIdentifier.invalid
     }
 
     // MARK: - Core Motion management
