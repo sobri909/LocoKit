@@ -356,37 +356,13 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var classifierResults: ClassifierResults? {
         if let cached = _classifierResults { return cached }
 
-        guard let results = classifier?.classify(self, filtered: true) else { return nil }
+        guard let results = classifier?.classify(self) else { return nil }
 
         // don't cache if it's incomplete
         if results.moreComing { return results }
 
         _classifierResults = results
         return results
-    }
-
-    private var _unfilteredClassifierResults: ClassifierResults? = nil
-
-    /// The unfiltered `ActivityTypeClassifier` results for the timeline item.
-    public var unfilteredClassifierResults: ClassifierResults? {
-        if let cached = _unfilteredClassifierResults { return cached }
-
-        guard let results = classifier?.classify(self, filtered: false) else { return nil }
-
-        // don't cache if it's incomplete
-        if results.moreComing { return results }
-
-        _unfilteredClassifierResults = results
-        return results
-    }
-
-    /**
-     The highest scoring activity type for the timeline's samples.
-     - Note: This property is deprecated. Please use `modeActivityType` instead.
-     */
-    @available(*, deprecated: 5.1.1, message: "Please use `modeActivityType` instead.")
-    public var activityType: ActivityTypeName? {
-        return classifierResults?.first?.name
     }
 
     public var movingActivityType: ActivityTypeName? {
@@ -557,7 +533,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         _segments = nil
         _segmentsByActivityType = nil
         _classifierResults = nil
-        _unfilteredClassifierResults = nil
         _modeMovingActivityType = nil
         _modeActivityType = nil
 

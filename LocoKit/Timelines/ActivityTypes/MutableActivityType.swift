@@ -47,11 +47,9 @@ open class MutableActivityType: ActivityType {
             
             // collect accuracy counts
             if let classifiedType = sample.classifiedType {
-                if classifiedType != .transport || ActivityTypeName.baseTypes.contains(confirmedType) {
-                    accuracyScorables += 1
-                    if classifiedType == confirmedType {
-                        correctScorables += 1
-                    }
+                accuracyScorables += 1
+                if classifiedType == confirmedType {
+                    correctScorables += 1
                 }
             }
             
@@ -145,6 +143,7 @@ open class MutableActivityType: ActivityType {
                                                    lngRange: self.longitudeRange, pseudoCount: UInt16(pseudoCount))
         
         self.lastUpdated = Date()
+        self.needsUpdate = false
         
         if MutableActivityType.statsDebug {
             self.printStats()

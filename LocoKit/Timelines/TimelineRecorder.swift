@@ -138,8 +138,7 @@ public class TimelineRecorder {
 
         // classify the sample, if a classifier has been provided
         if let classifier = classifier, classifier.canClassify(sample.location?.coordinate) {
-            sample.classifierResults = classifier.classify(sample, filtered: true)
-            sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+            sample.classifierResults = classifier.classify(sample)
         }
 
         // make sure sleep mode doesn't happen prematurely

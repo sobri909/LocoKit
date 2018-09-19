@@ -128,7 +128,7 @@ class MergeScores {
         // a path with nil type can't consume anyone
         guard let scoringType = consumerType else { return .impossible }
 
-        guard let typeResult = consumee.unfilteredClassifierResults?.first(where: { $0.name == scoringType }) else {
+        guard let typeResult = consumee.classifierResults?.first(where: { $0.name == scoringType }) else {
             return .impossible
         }
 

@@ -26,6 +26,7 @@ public enum ActivityTypeName: String, Codable {
      - Note: A vehicle temporarily stationary at traffic lights or a train station may instead be classified as
      `stationary`.
      */
+    @available(*, deprecated: 7.0.0)
     case transport
 
     /// The device's locomotion properties best match walking.
@@ -61,7 +62,7 @@ public enum ActivityTypeName: String, Codable {
     // MARK: Convenience Arrays
     
     /// A convenience array containing the base activity types.
-    public static let baseTypes = [stationary, transport, walking, running, cycling]
+    public static let baseTypes = [stationary, walking, running, cycling]
 
     /// A convenience array containing the extended transport types.
     public static let transportTypes = [car, train, bus, motorcycle, airplane, boat, tram]

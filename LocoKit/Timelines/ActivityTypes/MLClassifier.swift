@@ -14,7 +14,6 @@ public protocol MLClassifier {
 
     var depth: Int { get }
     var parent: Cache.ParentClassifier? { get }
-    var requiredTypes: [ActivityTypeName] { get }
     var supportedTypes: [ActivityTypeName] { get }
     var models: [Cache.Model] { get }
 
@@ -210,7 +209,6 @@ extension MLClassifier {
     }
 
     public var isStale: Bool {
-        guard availableTypes.count >= requiredTypes.count else { return true }
         return models.isStale
     }
 

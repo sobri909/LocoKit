@@ -20,6 +20,5 @@ public protocol ActivityTypeClassifiable: class {
     var timeOfDay: TimeInterval { get }
 
     var classifierResults: ClassifierResults? { get set }
-    var unfilteredClassifierResults: ClassifierResults? { get set }
     
 }

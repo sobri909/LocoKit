@@ -85,10 +85,6 @@ public class ActivityTypeClassifier: MLClassifier {
     public let supportedTypes: [ActivityTypeName]
     public let models: [Cache.Model]
 
-    public lazy var requiredTypes: [ActivityTypeName] = {
-        return supportedTypes.filter { $0 != .transport }
-    }()
-
     private var _parent: ParentClassifier?
     public var parent: ParentClassifier? {
         get {

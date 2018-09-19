@@ -111,7 +111,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     public let coreMotionActivityType: CoreMotionActivityTypeName?
 
     public var classifierResults: ClassifierResults?
-    public var unfilteredClassifierResults: ClassifierResults?
 
     public var activityType: ActivityTypeName? {
         if let confirmedType = confirmedType { return confirmedType }
@@ -120,7 +119,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     public var confirmedType: ActivityTypeName?
 
-    public var classifiedType: ActivityTypeName? { return unfilteredClassifierResults?.first?.name }
+    public var classifiedType: ActivityTypeName? { return classifierResults?.first?.name }
 
     public var locationIsBogus: Bool = false
 

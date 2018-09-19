@@ -142,18 +142,9 @@ public class ItemSegment: Equatable {
     private var _classifierResults: ClassifierResults? = nil
     public var classifierResults: ClassifierResults? {
         if let results = _classifierResults { return results }
-        guard let results = timelineItem?.classifier?.classify(self, filtered: true) else { return nil }
+        guard let results = timelineItem?.classifier?.classify(self) else { return nil }
         if results.moreComing { return results }
         _classifierResults = results
-        return results
-    }
-
-    private var _unfilteredClassifierResults: ClassifierResults? = nil
-    public var unfilteredClassifierResults: ClassifierResults? {
-        if let results = _unfilteredClassifierResults { return results }
-        guard let results = timelineItem?.classifier?.classify(self, filtered: false) else { return nil }
-        if results.moreComing { return results }
-        _unfilteredClassifierResults = results
         return results
     }
 
@@ -196,7 +187,6 @@ public class ItemSegment: Equatable {
         _radius = nil
         _distance = nil
         _classifierResults = nil
-        _unfilteredClassifierResults = nil
     }
 
     // MARK: - Equatable

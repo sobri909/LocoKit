@@ -113,8 +113,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
 
                 // reclassify
                 let oldActivityType = sample.activityType
-                sample.classifierResults = classifier.classify(sample, filtered: true)
-                sample.unfilteredClassifierResults = classifier.classify(sample, filtered: false)
+                sample.classifierResults = classifier.classify(sample)
                 if sample.classifierResults != nil { count += 1 }
 
                 // activity type changed?
