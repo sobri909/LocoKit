@@ -136,7 +136,7 @@ open class MutableActivityType: ActivityType {
                                                      name: "HORIZ ACCURACY")
 
         // type requires a coordinate match to be non zero? 
-        let pseudoCount = ActivityTypeName.coordinateBoundTypes.contains(name) ? 0 : 1
+        let pseudoCount = ActivityTypeName.extendedTypes.contains(name) ? 0 : 1
         
         self.coordinatesMatrix = CoordinatesMatrix(coordinates: allCoordinates, latBinCount: self.numberOfLatBuckets,
                                                    lngBinCount: self.numberOfLongBuckets, latRange: self.latitudeRange,
