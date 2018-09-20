@@ -34,7 +34,7 @@ open class MutableActivityType: ActivityType {
         
         for sample in samples {
             
-            // only accept samples that match the model
+            // only accept confirmed samples that match the model
             guard let confirmedType = sample.confirmedType, confirmedType == self.name else {
                 continue
             }
@@ -141,7 +141,8 @@ open class MutableActivityType: ActivityType {
         self.coordinatesMatrix = CoordinatesMatrix(coordinates: allCoordinates, latBinCount: self.numberOfLatBuckets,
                                                    lngBinCount: self.numberOfLongBuckets, latRange: self.latitudeRange,
                                                    lngRange: self.longitudeRange, pseudoCount: UInt16(pseudoCount))
-        
+
+        self.version = ActivityType.currentVersion
         self.lastUpdated = Date()
         self.needsUpdate = false
         

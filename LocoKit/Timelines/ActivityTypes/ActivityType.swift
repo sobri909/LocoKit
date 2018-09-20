@@ -10,6 +10,8 @@ import GRDB
 
 open class ActivityType: MLModel, PersistableRecord {
 
+    static let currentVersion = 700000
+
     static let numberOfLatBucketsDepth0 = 18
     static let numberOfLongBucketsDepth0 = 36
     static let numberOfLatBucketsDepth1 = 100
