@@ -953,7 +953,12 @@ public extension NSNotification.Name {
         let currentlyDesired = locationManager.desiredAccuracy
         let currentlyAchieved = ActivityBrain.highlander.horizontalAccuracy
         
-        let steps = [100, 50, 10, kCLLocationAccuracyBest, kCLLocationAccuracyBestForNavigation]
+        let steps = [
+            kCLLocationAccuracyHundredMeters,
+            kCLLocationAccuracyNearestTenMeters,
+            kCLLocationAccuracyBest,
+            kCLLocationAccuracyBestForNavigation
+        ]
         
         var updatedDesire = steps.first { $0 < currentlyAchieved }!
         
