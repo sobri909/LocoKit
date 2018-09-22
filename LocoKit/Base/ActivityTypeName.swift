@@ -30,12 +30,12 @@ public enum ActivityTypeName: String, Codable {
     case boat
     case tram
     case tractor
-    case tuktuk = "tuk-tuk"
+    case tuktuk
     case songthaew
 
     // active types
     case skateboarding
-    case inlineSkating = "inline skating"
+    case inlineSkating
     case snowboarding
     case skiing
     case scooter
@@ -43,6 +43,17 @@ public enum ActivityTypeName: String, Codable {
 
     @available(*, deprecated: 7.0.0)
     case transport
+
+    public var displayName: String {
+        switch self {
+        case .tuktuk:
+            return "tuk-tuk"
+        case .inlineSkating:
+            return "inline skating"
+        default:
+            return rawValue
+        }
+    }
 
     // MARK: - Convenience Arrays
     
