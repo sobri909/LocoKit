@@ -73,6 +73,9 @@ public final class ActivityTypesCache: MLModelSource {
             fetchTypesFor(coordinate: coordinate, depth: depth)
         }
 
+        // if not D2, only return base types (all extended types are coordinate bound)
+        if depth < 2 { return models.filter { ActivityTypeName.baseTypes.contains($0.name) } }
+
         return models
     }
     
