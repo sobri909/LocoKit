@@ -23,6 +23,8 @@ open class MutableActivityType: ActivityType {
     public var needsUpdate = false
 
     public func updateFrom<S: Sequence>(samples: S) where S.Iterator.Element: ActivityTypeTrainable {
+        if isShared { return }
+        
         var totalSamples = 0, totalMoving = 0, accuracyScorables = 0, correctScorables = 0
         
         var allAltitudes: [Double] = [], allSpeeds: [Double] = [], allStepHz: [Double] = []
