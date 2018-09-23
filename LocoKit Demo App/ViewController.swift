@@ -13,14 +13,9 @@ import CoreLocation
 
 class ViewController: UIViewController {
 
-    // using an Activity Types Classifier requires an API key (see below)
-    let useActivityTypesClassifier = false
-
-    // use a plain TimelineStore instead of PersistentTimelineStore if you don't require persistent SQL storage
     let store = TimelineStore()
-
+    
     var recorder: TimelineRecorder
-
     var dataSet: TimelineSegment?
 
     lazy var mapView = { return MapView() }()
@@ -33,12 +28,12 @@ class ViewController: UIViewController {
     // MARK: controller lifecycle
 
     init() {
-        if useActivityTypesClassifier {
+        // LocoKit's Activity Type Classifiers require an API key
+        // API keys can be created at: https://www.bigpaua.com/locokit/account
+        // LocoKitService.apiKey = "<insert your API key here>"
 
-            // using an Activity Types Classifier requires an API key
-            // API keys can be created at: https://www.bigpaua.com/locokit/account
-            LocoKitService.apiKey = "<insert your API key here>"
-
+        if LocoKitService.apiKey != nil {
+            ActivityTypesCache.highlander.store = store
             recorder = TimelineRecorder(store: store, classifier: TimelineClassifier.highlander)
 
         } else {

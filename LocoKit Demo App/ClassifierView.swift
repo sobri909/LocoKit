@@ -11,9 +11,6 @@ import Anchorage
 
 class ClassifierView: UIScrollView {
 
-    var baseClassifier: ActivityTypeClassifier?
-    var transportClassifier: ActivityTypeClassifier?
-
     lazy var rows: UIStackView = {
         let box = UIStackView()
         box.axis = .vertical
@@ -44,106 +41,42 @@ class ClassifierView: UIScrollView {
         // don't bother updating the UI when we're not in the foreground
         guard UIApplication.shared.applicationState == .active else { return }
 
-        let loco = LocomotionManager.highlander
-
+        // don't bother updating the table if we're not the visible tab
         if sample != nil && Settings.visibleTab != self { return }
-
-        if sample != nil {
-            updateTheBaseClassifier()
-        }
 
         rows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         rows.addGap(height: 18)
-        rows.addSubheading(title: "Activity Type Classifier (baseTypes)")
+        rows.addSubheading(title: "Sample Classifier Results")
         rows.addGap(height: 6)
 
-        if let classifier = baseClassifier {
-            rows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
+        let timelineClassifier = TimelineClassifier.highlander
+
+        if let sampleClassifier = timelineClassifier.sampleClassifier {
+            rows.addRow(leftText: "Region coverageScore", rightText: sampleClassifier.coverageScoreString)
         } else {
             rows.addRow(leftText: "Region coverageScore", rightText: "-")
         }
         rows.addGap(height: 6)
 
-        if loco.recordingState == .recording, let sample = sample {
-            if let classifier = baseClassifier {
-                let results = classifier.classify(sample)
+        // if we weren't given a sample, then we were only here to build the initial empty table
+        guard let sample = sample else { return }
 
-                for result in results {
-                    let row = rows.addRow(leftText: result.name.rawValue.capitalized,
-                                                    rightText: String(format: "%.4f", result.score))
+        // get the classifier results for the given sample
+        guard let results = timelineClassifier.classify(sample) else { return }
 
-                    if result.score < 0.01 {
-                        row.subviews.forEach { subview in
-                            if let label = subview as? UILabel {
-                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
-                            }
-                        }
+        for result in results {
+            let row = rows.addRow(leftText: result.name.rawValue.capitalized,
+                                  rightText: String(format: "%.7f", result.score))
+
+            if result.score < 0.01 {
+                row.subviews.forEach { subview in
+                    if let label = subview as? UILabel {
+                        label.textColor = UIColor(white: 0.1, alpha: 0.45)
                     }
                 }
-
-            } else if Settings.enableTheClassifier {
-                rows.addRow(leftText: "Fetching ML models...")
-            } else {
-                rows.addRow(leftText: "Classifier is turned off")
             }
         }
-
-        rows.addGap(height: 14)
-        rows.addSubheading(title: "Activity Type Classifier (transportTypes)")
-        rows.addGap(height: 6)
-
-        if let classifier = transportClassifier {
-            rows.addRow(leftText: "Region coverageScore", rightText: classifier.coverageScoreString)
-        } else {
-            rows.addRow(leftText: "Region coverageScore", rightText: "-")
-        }
-        rows.addGap(height: 6)
-
-        if loco.recordingState == .recording, let sample = sample {
-            if let classifier = transportClassifier {
-                let results = classifier.classify(sample)
-
-                for result in results {
-                    let row = rows.addRow(leftText: result.name.rawValue.capitalized,
-                                                    rightText: String(format: "%.4f", result.score))
-
-                    if result.score < 0.01 {
-                        row.subviews.forEach { subview in
-                            if let label = subview as? UILabel {
-                                label.textColor = UIColor(white: 0.1, alpha: 0.45)
-                            }
-                        }
-                    }
-                }
-
-            } else if Settings.enableTheClassifier && Settings.enableTransportClassifier {
-                rows.addRow(leftText: "Fetching ML models...")
-            } else {
-                rows.addRow(leftText: "Classifier is turned off")
-            }
-        }
-
-        rows.addGap(height: 12)
-    }
-
-    func updateTheBaseClassifier() {
-        guard Settings.enableTheClassifier else {
-            return
-        }
-
-        // need a coordinate to know what classifier to fetch (there's thousands of them)
-        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
-            return
-        }
-
-        // no need to update anything if the current classifier is still valid
-        if let classifier = baseClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
-
-        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
-        baseClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.allTypes, coordinate: coordinate)
     }
 
 }
