@@ -21,7 +21,6 @@ DEPENDENCIES:
   - Crashlytics
   - Fabric
   - LocoKit (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
-  - LocoKit/Base (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
   - LocoKit/Timelines (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
   - LocoKitCore (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
   - SwiftNotes
@@ -45,10 +44,10 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   LocoKit:
-    :commit: 1aafd39fcc61e5e66aeccb13b221362930dac98f
+    :commit: 4543e129b4d8321c1cd12627c2a4cd82e15534eb
     :git: https://github.com/sobri909/LocoKit.git
   LocoKitCore:
-    :commit: 1aafd39fcc61e5e66aeccb13b221362930dac98f
+    :commit: 4543e129b4d8321c1cd12627c2a4cd82e15534eb
     :git: https://github.com/sobri909/LocoKit.git
 
 SPEC CHECKSUMS:
@@ -61,6 +60,6 @@ SPEC CHECKSUMS:
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: ccc04cf699c4fd7f2b5820bc0606b68145c43eb8
+PODFILE CHECKSUM: 0cdcdf545aa3dedb73c0836bc8934d216f7ca040
 
 COCOAPODS: 1.5.3
