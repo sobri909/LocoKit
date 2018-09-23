@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Base' do |sp|
     sp.source_files = 'LocoKit/Base/**/*'
-    sp.dependency 'LocoKitCore', '6.0.0'
+    sp.dependency 'LocoKitCore', '7.0.0'
     sp.dependency 'Upsurge', '~> 0.10'
   end
   
