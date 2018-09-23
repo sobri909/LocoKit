@@ -50,7 +50,6 @@ class ClassifierView: UIScrollView {
 
         if sample != nil {
             updateTheBaseClassifier()
-            updateTheTransportClassifier()
         }
 
         rows.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -144,26 +143,7 @@ class ClassifierView: UIScrollView {
         }
 
         // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
-        baseClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.baseTypes, coordinate: coordinate)
-    }
-
-    func updateTheTransportClassifier() {
-        guard Settings.enableTheClassifier && Settings.enableTransportClassifier else {
-            return
-        }
-
-        // need a coordinate to know what classifier to fetch (there's thousands of them)
-        guard let coordinate = LocomotionManager.highlander.filteredLocation?.coordinate else {
-            return
-        }
-
-        // no need to update anything if the current classifier is still valid
-        if let classifier = transportClassifier, classifier.contains(coordinate: coordinate), !classifier.isStale {
-            return
-        }
-
-        // note: this will return nil if the ML models haven't been fetched yet, but will also trigger a fetch
-        transportClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.transportTypes, coordinate: coordinate)
+        baseClassifier = ActivityTypeClassifier(requestedTypes: ActivityTypeName.allTypes, coordinate: coordinate)
     }
 
 }

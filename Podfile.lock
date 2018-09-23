@@ -1,18 +1,18 @@
 PODS:
-  - Anchorage (4.2.2)
-  - Crashlytics (3.10.1):
-    - Fabric (~> 1.7.5)
-  - Fabric (1.7.6)
-  - GRDB.swift (2.10.0)
-  - LocoKit (5.2.0):
-    - LocoKit/Base (= 5.2.0)
-  - LocoKit/Base (5.2.0):
-    - LocoKitCore (= 5.2.0)
+  - Anchorage (4.3)
+  - Crashlytics (3.10.7):
+    - Fabric (~> 1.7.11)
+  - Fabric (1.7.11)
+  - GRDB.swift (3.3.1)
+  - LocoKit (7.0.0):
+    - LocoKit/Base (= 7.0.0)
+  - LocoKit/Base (7.0.0):
+    - LocoKitCore (= 7.0.0)
     - Upsurge (~> 0.10)
-  - LocoKit/LocalStore (5.2.0):
-    - GRDB.swift (~> 2.10)
+  - LocoKit/Timelines (7.0.0):
+    - GRDB.swift (~> 3)
     - LocoKit/Base
-  - LocoKitCore (5.2.0)
+  - LocoKitCore (7.0.0)
   - SwiftNotes (1.1.0)
   - Upsurge (0.10.2)
 
@@ -20,31 +20,47 @@ DEPENDENCIES:
   - Anchorage
   - Crashlytics
   - Fabric
-  - LocoKit
-  - LocoKit/LocalStore
+  - LocoKit (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
+  - LocoKit/Base (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
+  - LocoKit/Timelines (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
+  - LocoKitCore (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
   - SwiftNotes
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  https://github.com/cocoapods/specs.git:
     - Anchorage
     - Crashlytics
     - Fabric
     - GRDB.swift
-    - LocoKit
-    - LocoKitCore
     - SwiftNotes
     - Upsurge
 
+EXTERNAL SOURCES:
+  LocoKit:
+    :branch: timelines
+    :git: https://github.com/sobri909/LocoKit.git
+  LocoKitCore:
+    :branch: timelines
+    :git: https://github.com/sobri909/LocoKit.git
+
+CHECKOUT OPTIONS:
+  LocoKit:
+    :commit: 1aafd39fcc61e5e66aeccb13b221362930dac98f
+    :git: https://github.com/sobri909/LocoKit.git
+  LocoKitCore:
+    :commit: 1aafd39fcc61e5e66aeccb13b221362930dac98f
+    :git: https://github.com/sobri909/LocoKit.git
+
 SPEC CHECKSUMS:
-  Anchorage: cba8707ea6475f604e04047882ba47c07e4b2ac1
-  Crashlytics: aee1a064cbbf99b32efa3f056a5f458d846bc8ff
-  Fabric: f8d42c893bb187326a7968b62abe55c36a987a46
-  GRDB.swift: 9859cab1b990eac62ee550d3d2208ec1b44f76af
-  LocoKit: 196b61a7095abd3df43b3543b3e45c87e6b08e63
-  LocoKitCore: 98d8eab0dd9694015e0ba32777f6f50e1f4bb337
+  Anchorage: 21a98675245188427f0bcea21404d42a824a766f
+  Crashlytics: ccaac42660eb9351b9960c0d66106b0bcf99f4fa
+  Fabric: f233c9492b3bbc1f04e3882986740f7988a58edb
+  GRDB.swift: d7ec5d5cc95df7f08c655e5a6500b54f4b092e89
+  LocoKit: 9922d3e81a78e7f71661862eb8cbbd3ab7df90ec
+  LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: 29ab42a9e3ef069965f0a70a740392b77019d825
+PODFILE CHECKSUM: ccc04cf699c4fd7f2b5820bc0606b68145c43eb8
 
-COCOAPODS: 1.5.0
+COCOAPODS: 1.5.3

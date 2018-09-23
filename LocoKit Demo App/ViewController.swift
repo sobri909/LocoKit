@@ -17,7 +17,7 @@ class ViewController: UIViewController {
     let useActivityTypesClassifier = false
 
     // use a plain TimelineStore instead of PersistentTimelineStore if you don't require persistent SQL storage
-    let store: TimelineStore = PersistentTimelineStore()
+    let store = TimelineStore()
 
     var recorder: TimelineRecorder
 
@@ -55,14 +55,12 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        if let store = store as? PersistentTimelineStore {
-            let query = "deleted = 0 AND endDate > datetime('now','-24 hours') ORDER BY startDate DESC"
-            dataSet = TimelineSegment(for: query, in: store) {
-                onMain {
-                    let items = self.itemsToShow
-                    self.mapView.update(with: items)
-                    self.timelineView.update(with: items)
-                }
+        let query = "deleted = 0 AND endDate > datetime('now','-24 hours') ORDER BY startDate DESC"
+        dataSet = TimelineSegment(for: query, in: store) {
+            onMain {
+                let items = self.itemsToShow
+                self.mapView.update(with: items)
+                self.timelineView.update(with: items)
             }
         }
 
@@ -120,10 +118,8 @@ class ViewController: UIViewController {
 
         // housekeeping
         when(.UIApplicationDidEnterBackground) { _ in
-            if let store = self.store as? PersistentTimelineStore {
-                log("store.hardDeleteSoftDeletedObjects()")
-                store.hardDeleteSoftDeletedObjects()
-            }
+            log("store.hardDeleteSoftDeletedObjects()")
+            self.store.hardDeleteSoftDeletedObjects()
         }
 
         // view tree stuff
@@ -271,22 +267,6 @@ class ViewController: UIViewController {
     }
 
     var itemsToShow: [TimelineItem] {
-        if store is PersistentTimelineStore { return persistentItemsToShow }
-
-        guard let currentItem = recorder.currentItem else { return [] }
-
-        // collect the linked list of timeline items
-        var items: [TimelineItem] = [currentItem]
-        var workingItem = currentItem
-        while let previous = workingItem.previousItem {
-            items.append(previous)
-            workingItem = previous
-        }
-
-        return items
-    }
-
-    var persistentItemsToShow: [TimelineItem] {
         return dataSet?.timelineItems ?? []
     }
 
