@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "LocoKitCore"
-  s.version      = "6.0.0"
+  s.version      = "7.0.0"
   s.summary      = "Location and activity recording framework"
   s.homepage     = "https://www.bigpaua.com/locokit/"
   s.author       = { "Matt Greenfield" => "matt@bigpaua.com" }
