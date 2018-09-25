@@ -366,7 +366,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     }
 
     public var movingActivityType: ActivityTypeName? {
-        return classifierResults?.first(where: { $0.name != .stationary })?.name
+        guard let first = classifierResults?.first(where: { $0.name != .stationary }) else { return nil }
+        return first.score > 0 ? first.name : nil
     }
 
     public private(set) var _modeActivityType: ActivityTypeName? = nil

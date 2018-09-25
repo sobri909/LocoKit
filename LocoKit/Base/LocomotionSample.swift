@@ -113,13 +113,15 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     public var classifierResults: ClassifierResults?
 
     public var activityType: ActivityTypeName? {
-        if let confirmedType = confirmedType { return confirmedType }
-        return classifierResults?.first?.name
+        return confirmedType ?? classifiedType
     }
 
     public var confirmedType: ActivityTypeName?
 
-    public var classifiedType: ActivityTypeName? { return classifierResults?.first?.name }
+    public var classifiedType: ActivityTypeName? {
+        guard let first = classifierResults?.first else { return nil }
+        return first.score > 0 ? first.name : nil
+    }
 
     public var locationIsBogus: Bool = false
 
