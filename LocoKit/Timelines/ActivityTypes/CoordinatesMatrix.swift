@@ -9,7 +9,7 @@
 import os.log
 import CoreLocation
 
-class CoordinatesMatrix {
+class CoordinatesMatrix: CustomStringConvertible {
     
     static let minimumProbability = 0.001
     
@@ -115,54 +115,50 @@ class CoordinatesMatrix {
         self.latBinWidth = latBinWidth
         self.pseudoCount = pseudoCount
     }
-}
 
-extension CoordinatesMatrix {
-    
-    func probabilityFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
-        guard latBinWidth > 0 && lngBinWidth > 0 else {
-            return 0
-        }
-        
+    lazy var matrixMax: UInt16 = {
         var matrixMax: UInt16 = 0
         for bin in bins {
             if let rowMax = bin.max() {
                 matrixMax = max(rowMax, UInt16(matrixMax))
             }
         }
-        
-        guard matrixMax > 0 else {
-            return 0
-        }
-       
+        return matrixMax
+    }()
+
+    // MARK: - Scores
+
+    func probabilityFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
+        guard latBinWidth > 0 && lngBinWidth > 0 else { return 0 }
+        guard matrixMax > 0 else { return 0 }
+
+        var trimmedMatrixMax = matrixMax
+
         if var maxThreshold = maxThreshold {
-            
             // fix overflows
             if maxThreshold > Int(UInt16.max) {
                 maxThreshold = Int(UInt16.max)
             }
             
-            matrixMax.clamp(min: 0, max: UInt16(maxThreshold))
+            trimmedMatrixMax.clamp(min: 0, max: UInt16(maxThreshold))
         }
         
         let latBin = Int((coordinate.latitude - latRange.min) / latBinWidth)
         let lngBin = Int((coordinate.longitude - lngRange.min) / lngBinWidth)
         
         guard latBin >= 0 && latBin < bins.count else {
-            return (Double(pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
+            return (Double(pseudoCount) / Double(trimmedMatrixMax)).clamped(min: 0, max: 1)
         }
         guard lngBin >= 0 && lngBin < bins[0].count else {
-            return (Double(pseudoCount) / Double(matrixMax)).clamped(min: 0, max: 1)
+            return (Double(pseudoCount) / Double(trimmedMatrixMax)).clamped(min: 0, max: 1)
         }
         
         let binCount = bins[latBin][lngBin]
         
-        return (Double(binCount) / Double(matrixMax)).clamped(min: 0, max: 1)
+        return (Double(binCount) / Double(trimmedMatrixMax)).clamped(min: 0, max: 1)
     }
     
-}
-
-extension CoordinatesMatrix {
+    // MARK: - Serialisation
    
     // xCount,yCount,pseudoCount;
     // xMin,xMax;
@@ -185,9 +181,7 @@ extension CoordinatesMatrix {
         return result
     }
     
-}
-
-extension CoordinatesMatrix: CustomStringConvertible {
+    // MARK: - CustomStringConvertible
     
     var description: String {
         var result = ""
@@ -222,4 +216,5 @@ extension CoordinatesMatrix: CustomStringConvertible {
         
         return result
     }
+
 }
