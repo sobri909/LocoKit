@@ -104,52 +104,66 @@ open class MutableActivityType: ActivityType {
         self.totalSamples = totalSamples
 
         if accuracyScorables > 0 {
-            self.accuracyScore = Double(correctScorables) / Double(accuracyScorables)
+            accuracyScore = Double(correctScorables) / Double(accuracyScorables)
         } else {
-            self.accuracyScore = nil
+            accuracyScore = nil
         }
 
-        // no events? we done here
-        guard totalSamples > 0 else { return }
-        
-        // motion factors
-        self.movingPct = Double(totalMoving) / Double(totalSamples)
-        self.speedHistogram = Histogram(values: allSpeeds, minBoundary: 0, trimOutliers: true, name: "SPEED",
-                                        printFormat: "%6.1f kmh", printModifier: 3.6)
-        self.stepHzHistogram = Histogram(values: allStepHz, minBoundary: 0, trimOutliers: true, name: "STEPHZ",
-                                         printFormat: "%7.2f Hz")
-        self.xyAccelerationHistogram = Histogram(values: allXYAccelerations, minBoundary: 0, trimOutliers: true,
-                                                 name: "WIGGLES XY")
-        self.zAccelerationHistogram = Histogram(values: allZAccelerations, minBoundary: 0, trimOutliers: true,
-                                                name: "WIGGLES Z")
-        self.courseVarianceHistogram = Histogram(values: allCourseVariances, minBoundary: 0, maxBoundary: 1,
-                                                 name: "COURSE VARIANCE", printFormat: "%10.2f")
-        self.coreMotionTypeScores = self.coreMotionTypeScoresDict(for: allCoreMotionTypes)
-        
-        // context factors
-        self.altitudeHistogram = Histogram(values: allAltitudes, trimOutliers: true, name: "ALTITUDE",
-                                           printFormat: "%8.0f m")
-        self.courseHistogram = Histogram(values: allCourses, minBoundary: 0, maxBoundary: 360, name: "COURSE",
-                                         printFormat: "%8.0f °")
-        self.timeOfDayHistogram = Histogram(values: allTimesOfDay, minBoundary: 0, maxBoundary: 60 * 60 * 24,
-                                            pseudoCount: 100, name: "TIME OF DAY", printFormat: "%8.2f h",
-                                            printModifier: 60 / 60 / 60 / 60)
-        self.horizontalAccuracyHistogram = Histogram(values: allAccuracies, minBoundary: 0, trimOutliers: true,
-                                                     name: "HORIZ ACCURACY")
+        coreMotionTypeScores = coreMotionTypeScoresDict(for: allCoreMotionTypes)
 
-        // type requires a coordinate match to be non zero? 
-        let pseudoCount = ActivityTypeName.extendedTypes.contains(name) ? 0 : 1
-        
-        self.coordinatesMatrix = CoordinatesMatrix(coordinates: allCoordinates, latBinCount: self.numberOfLatBuckets,
-                                                   lngBinCount: self.numberOfLongBuckets, latRange: self.latitudeRange,
-                                                   lngRange: self.longitudeRange, pseudoCount: UInt16(pseudoCount))
+        if totalSamples == 0 {
+            movingPct = 0.5
+            speedHistogram = nil
+            stepHzHistogram = nil
+            xyAccelerationHistogram = nil
+            zAccelerationHistogram = nil
+            courseVarianceHistogram = nil
+            altitudeHistogram = nil
+            courseHistogram = nil
+            timeOfDayHistogram = nil
+            horizontalAccuracyHistogram = nil
+            coordinatesMatrix = nil
 
-        self.version = ActivityType.currentVersion
-        self.lastUpdated = Date()
-        self.needsUpdate = false
+        } else {
+
+            // motion factors
+            movingPct = Double(totalMoving) / Double(totalSamples)
+            speedHistogram = Histogram(values: allSpeeds, minBoundary: 0, trimOutliers: true, name: "SPEED",
+                                       printFormat: "%6.1f kmh", printModifier: 3.6)
+            stepHzHistogram = Histogram(values: allStepHz, minBoundary: 0, trimOutliers: true, name: "STEPHZ",
+                                        printFormat: "%7.2f Hz")
+            xyAccelerationHistogram = Histogram(values: allXYAccelerations, minBoundary: 0, trimOutliers: true,
+                                                name: "WIGGLES XY")
+            zAccelerationHistogram = Histogram(values: allZAccelerations, minBoundary: 0, trimOutliers: true,
+                                               name: "WIGGLES Z")
+            courseVarianceHistogram = Histogram(values: allCourseVariances, minBoundary: 0, maxBoundary: 1,
+                                                name: "COURSE VARIANCE", printFormat: "%10.2f")
+
+            // context factors
+            altitudeHistogram = Histogram(values: allAltitudes, trimOutliers: true, name: "ALTITUDE",
+                                          printFormat: "%8.0f m")
+            courseHistogram = Histogram(values: allCourses, minBoundary: 0, maxBoundary: 360, name: "COURSE",
+                                        printFormat: "%8.0f °")
+            timeOfDayHistogram = Histogram(values: allTimesOfDay, minBoundary: 0, maxBoundary: 60 * 60 * 24,
+                                           pseudoCount: 100, name: "TIME OF DAY", printFormat: "%8.2f h",
+                                           printModifier: 60 / 60 / 60 / 60)
+            horizontalAccuracyHistogram = Histogram(values: allAccuracies, minBoundary: 0, trimOutliers: true,
+                                                    name: "HORIZ ACCURACY")
+
+            // type requires a coordinate match to be non zero?
+            let pseudoCount = ActivityTypeName.extendedTypes.contains(name) ? 0 : 1
+
+            coordinatesMatrix = CoordinatesMatrix(coordinates: allCoordinates, latBinCount: numberOfLatBuckets,
+                                                  lngBinCount: numberOfLongBuckets, latRange: latitudeRange,
+                                                  lngRange: longitudeRange, pseudoCount: UInt16(pseudoCount))
+        }
+
+        version = ActivityType.currentVersion
+        lastUpdated = Date()
+        needsUpdate = false
         
         if MutableActivityType.statsDebug {
-            self.printStats()
+            printStats()
         }
     }
 
