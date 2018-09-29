@@ -1,5 +1,7 @@
 # LocoKit
 
+[![Join the chat at https://gitter.im/LocoKit/Lobby](https://badges.gitter.im/LocoKit/Lobby.svg)](https://gitter.im/LocoKit/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 A Machine Learning based location recording and activity detection framework for iOS.
 
 ## Location and Motion Recording
