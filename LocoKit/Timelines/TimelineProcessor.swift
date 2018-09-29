@@ -85,9 +85,6 @@ public class TimelineProcessor {
                     merges.insert(Merge(keeper: workingItem, deadman: previous))
                     merges.insert(Merge(keeper: previous, deadman: workingItem))
 
-                    // clean up edges
-                    previous.sanitiseEdges()
-
                     // if previous has a lesser keepness, look at doing a merge against previous-previous
                     if !workingItem.isDataGap, previous.keepnessScore < workingItem.keepnessScore {
                         if let prevPrev = previous.previousItem, !prevPrev.isDataGap, prevPrev.keepnessScore > previous.keepnessScore {
