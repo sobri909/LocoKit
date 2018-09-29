@@ -95,19 +95,19 @@ class Histogram {
     
     // used for loading from serialised strings
     convenience init?(string: String) {
-        let lines = string.components(separatedBy: ";")
+        let lines = string.split(separator: ";")
         
         guard lines.count > 2 else {
             return nil
         }
         
-        let sizeLine = lines[0].components(separatedBy: ",")
+        let sizeLine = lines[0].split(separator: ",")
         guard let binCount = Int(sizeLine[0]), let pseudoCount = Int(sizeLine[1]) else {
             os_log("BIN COUNTS FAIL")
             return nil
         }
         
-        let rangeLine = lines[1].components(separatedBy: ",")
+        let rangeLine = lines[1].split(separator: ",")
         guard let rangeMin = Double(rangeLine[0]), let rangeMax = Double(rangeLine[1]) else {
             os_log("RANGE FAIL")
             return nil
@@ -119,7 +119,7 @@ class Histogram {
         
         let binLines = lines.suffix(from: 2)
         for binLine in binLines {
-            let bits = binLine.components(separatedBy: ",")
+            let bits = binLine.split(separator: ",")
             guard bits.count == 2 else {
                 continue
             }

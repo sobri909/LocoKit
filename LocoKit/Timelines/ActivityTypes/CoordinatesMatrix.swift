@@ -22,25 +22,25 @@ class CoordinatesMatrix {
    
     // used for loading from serialised strings
     convenience init?(string: String) {
-        let lines = string.components(separatedBy: ";")
+        let lines = string.split(separator: ";")
         
         guard lines.count > 3 else {
             return nil
         }
 
-        let sizeLine = lines[0].components(separatedBy: ",")
+        let sizeLine = lines[0].split(separator: ",")
         guard let latBinCount = Int(sizeLine[0]), let lngBinCount = Int(sizeLine[1]), let pseudoCount = UInt16(sizeLine[2]) else {
             os_log("BIN COUNTS FAIL")
             return nil
         }
         
-        let latRangeLine = lines[1].components(separatedBy: ",")
+        let latRangeLine = lines[1].split(separator: ",")
         guard let latMin = Double(latRangeLine[0]), let latMax = Double(latRangeLine[1]) else {
             os_log("LAT RANGE FAIL")
             return nil
         }
         
-        let lngRangeLine = lines[2].components(separatedBy: ",")
+        let lngRangeLine = lines[2].split(separator: ",")
         guard let lngMin = Double(lngRangeLine[0]), let lngMax = Double(lngRangeLine[1]) else {
             os_log("LNG RANGE FAIL")
             return nil
@@ -55,7 +55,7 @@ class CoordinatesMatrix {
         
         let binLines = lines.suffix(from: 3)
         for binLine in binLines {
-            let bits = binLine.components(separatedBy: ",")
+            let bits = binLine.split(separator: ",")
             guard bits.count == 3 else {
                 continue
             }
