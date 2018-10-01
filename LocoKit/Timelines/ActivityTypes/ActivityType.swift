@@ -188,7 +188,7 @@ open class ActivityType: MLModel, PersistableRecord {
 
         var cmTypeScoreDoubles: [Double]?
         if let cmTypeScores = dict["coreMotionTypeScores"] as? String {
-            cmTypeScoreDoubles = cmTypeScores.split(separator: ",").map { Double($0) ?? 0 }
+            cmTypeScoreDoubles = cmTypeScores.split(separator: ",", omittingEmptySubsequences: false).map { Double($0) ?? 0 }
         } else if let doubles = dict["coreMotionTypeScores"] as? [Double], !doubles.isEmpty {
             cmTypeScoreDoubles = doubles
         }
