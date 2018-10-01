@@ -9,30 +9,29 @@
 import os.log
 import Upsurge
 
-class Histogram {
+open class Histogram: CustomStringConvertible {
    
-    let bins: [Int]
-    let binWidth: Double
-    let range: (min: Double, max: Double)
-    let pseudoCount: Int
+    public let bins: [Int]
+    public let binWidth: Double
+    public let range: (min: Double, max: Double)
+    public let pseudoCount: Int
     
-    static let defaultPseudoCount = 1
+    public static let defaultPseudoCount = 1
     
-    var name: String?
-    var binName: String?
-    var binValueName: String?
-    var binValueNamePlural: String?
-    var printFormat: String?
-    var printModifier: Double?
+    public var name: String?
+    public var binName: String?
+    public var binValueName: String?
+    public var binValueNamePlural: String?
+    public var printFormat: String?
+    public var printModifier: Double?
     
-    var binCount: Int {
-        return bins.count
-    }
-    
-    convenience init(values: [Double], minBoundary: Double? = nil, maxBoundary: Double? = nil,
-         pseudoCount: Int = Histogram.defaultPseudoCount, trimOutliers: Bool = false, name: String? = nil,
-         printFormat: String? = nil, printModifier: Double? = nil)
-    {
+    public var binCount: Int { return bins.count }
+
+    public convenience init(values: [Double], maxBins: Int? = nil, minBoundary: Double? = nil, maxBoundary: Double? = nil,
+                     pseudoCount: Int = Histogram.defaultPseudoCount, trimOutliers: Bool = false,
+                     snapToBoundaries: Bool = false, name: String? = nil,
+                     printFormat: String? = nil, printModifier: Double? = nil) {
+
         let mean = Upsurge.mean(values)
         let sd = Upsurge.std(values)
         
@@ -56,14 +55,24 @@ class Histogram {
             return
         }
         
-        let range = (min: minValue, max: maxValue)
+        var range = (min: minValue, max: maxValue)
+
+        // snap range to boundaries if min/max values are close enough
+        if snapToBoundaries, let minBoundary = minBoundary, let maxBoundary = maxBoundary {
+            let boundarySpread = maxBoundary - minBoundary
+            if minValue - minBoundary < boundarySpread * 0.02 { range.min = minBoundary }
+            if maxBoundary - maxValue < boundarySpread * 0.02 { range.max = maxBoundary }
+        }
         
         guard range.min < range.max else {
             self.init(bins: [pseudoCount + 1], range: range, pseudoCount: pseudoCount)
             return
         }
         
-        let binCount = Histogram.numberOfBins(filteredValues)
+        var binCount = Histogram.numberOfBins(filteredValues)
+        if let maxBins = maxBins, binCount > maxBins {
+            binCount = maxBins
+        }
         let binWidth = (range.max - range.min) / Double(binCount)
         
         var bins = [Int](repeating: pseudoCount, count: binCount)
@@ -92,9 +101,9 @@ class Histogram {
         self.printFormat = printFormat
         self.printModifier = printModifier
     }
-    
+
     // used for loading from serialised strings
-    convenience init?(string: String) {
+    public convenience init?(string: String) {
         let lines = string.split(separator: ";", omittingEmptySubsequences: false)
         
         guard lines.count > 2 else {
@@ -135,17 +144,14 @@ class Histogram {
         self.init(bins: bins, range: range, pseudoCount: pseudoCount)
     }
     
-    init(bins: [Int], range: (min: Double, max: Double), pseudoCount: Int) {
+    public init(bins: [Int], range: (min: Double, max: Double), pseudoCount: Int) {
         self.bins = bins
         self.range = range
         self.binWidth = (range.max - range.min) / Double(bins.count)
         self.pseudoCount = pseudoCount
     }
-}
 
-extension Histogram {
-
-    func binFor(_ value: Double, numberOfBins: Int, range: (min: Double, max: Double)) -> Int? {
+    public func binFor(_ value: Double, numberOfBins: Int, range: (min: Double, max: Double)) -> Int? {
         let binWidth = (range.max - range.min) / Double(numberOfBins)
         let maxBucket = Double(numberOfBins - 1)
         
@@ -165,15 +171,11 @@ extension Histogram {
         return Int(bucket)
     }
     
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         return bins.count == 1 && bins[0] == 0
     }
     
-}
-
-extension Histogram {
-    
-    func probabilityFor(_ value: Double) -> Double {
+    public func probabilityFor(_ value: Double) -> Double {
         guard let max = bins.max() else {
             return 0
         }
@@ -212,7 +214,7 @@ extension Histogram {
         return (Double(bins[bin]) / Double(max)).clamped(min: 0, max: 1)
     }
    
-    func percentOfTotalFor(bin: Int) -> Double? {
+    public func percentOfTotalFor(bin: Int) -> Double? {
         guard bin < bins.count else {
             return nil
         }
@@ -226,32 +228,28 @@ extension Histogram {
         return Double(bins[bin]) / Double(sum)
     }
     
-    func bottomFor(bin: Int) -> Double {
+    public func bottomFor(bin: Int) -> Double {
         return range.min + (binWidth * Double(bin))
     }
     
-     func middleFor(bin: Int) -> Double {
+    public func middleFor(bin: Int) -> Double {
         let valueBottom = bottomFor(bin: bin)
         return valueBottom + (binWidth * 0.5)
     }
     
-    func topFor(bin: Int) -> Double {
+    public func topFor(bin: Int) -> Double {
         let valueBottom = bottomFor(bin: bin)
         return valueBottom + binWidth
     }
     
-    func formattedStringFor(bin: Int) -> String {
+    public func formattedStringFor(bin: Int) -> String {
         let format = printFormat ?? "%.2f"
         let modifier = printModifier ?? 1.0
         
         return String(format: format, middleFor(bin: bin) * modifier)
     }
-    
-}
 
-extension Histogram {
-    
-    var peakIndexes: [Int]? {
+    public var peakIndexes: [Int]? {
         guard let maxBin = bins.max(), maxBin > 0 else {
             return nil
         }
@@ -268,7 +266,7 @@ extension Histogram {
     }
     
     // the first (and hopefully the only) peak index
-     var peakIndex: Int? {
+    public var peakIndex: Int? {
         guard let peakIndexes = peakIndexes, peakIndexes.count == 1 else {
             return nil
         }
@@ -276,7 +274,7 @@ extension Histogram {
         return peakIndexes.first
     }
 
-    var peakRanges: [(from: Double, to: Double)]? {
+    public var peakRanges: [(from: Double, to: Double)]? {
         guard let peakIndexes = peakIndexes else {
             return nil
         }
@@ -313,12 +311,8 @@ extension Histogram {
         
         return ranges
     }
-    
-}
 
-extension Histogram {
-    
-    static func numberOfBins(_ metric: [Double], defaultBins: Int = 10) -> Int {
+    public static func numberOfBins(_ metric: [Double], defaultBins: Int = 10) -> Int {
         let h = binWidth(metric), ulim = max(metric), llim = min(metric)
         if h <= (ulim - llim) / Double(metric.count) {
             return defaultBins
@@ -336,16 +330,12 @@ extension Histogram {
         let q3 = sorted[Int(floor(Double(sorted.count) * 3.0 / 4.0))]
         return q3 - q1
     }
-   
-}
 
-extension Histogram {
-    
     // binsCount,pseudoCount;
     // range.min,range.max;
     // binIndex,value; ...
 
-    var serialised: String {
+    public var serialised: String {
         var result = "\(bins.count),\(pseudoCount);"
         result += "\(range.min),\(range.max);"
         
@@ -357,12 +347,10 @@ extension Histogram {
         
         return result
     }
-   
-}
 
-extension Histogram: CustomStringConvertible {
+    // MARK: - CustomStringConvertible
     
-    var description: String {
+    public var description: String {
         guard let max = bins.max(), max > 0 else {
             return "\(name ?? "UNNAMED"): Nada."
         }

@@ -9,19 +9,19 @@
 import os.log
 import CoreLocation
 
-class CoordinatesMatrix: CustomStringConvertible {
+open class CoordinatesMatrix: CustomStringConvertible {
     
-    static let minimumProbability = 0.001
+    public static let minimumProbability = 0.001
     
-    var bins: [[UInt16]] // [lat][long]
-    var lngBinWidth: Double
-    var latBinWidth: Double
-    var lngRange: (min: Double, max: Double)
-    var latRange: (min: Double, max: Double)
-    let pseudoCount: UInt16
+    public let bins: [[UInt16]] // [lat][long]
+    public let lngBinWidth: Double
+    public let latBinWidth: Double
+    public let lngRange: (min: Double, max: Double)
+    public let latRange: (min: Double, max: Double)
+    public let pseudoCount: UInt16
    
     // used for loading from serialised strings
-    convenience init?(string: String) {
+    public convenience init?(string: String) {
         let lines = string.split(separator: ";", omittingEmptySubsequences: false)
         
         guard lines.count > 3 else {
@@ -78,7 +78,7 @@ class CoordinatesMatrix: CustomStringConvertible {
     }
     
     // everything pre determined except which bins the coordinates go in. ActivityType uses this directly
-    convenience init(coordinates: [CLLocationCoordinate2D], latBinCount: Int, lngBinCount: Int,
+    public convenience init(coordinates: [CLLocationCoordinate2D], latBinCount: Int, lngBinCount: Int,
                      latRange: (min: Double, max: Double), lngRange: (min: Double, max: Double),
                      pseudoCount: UInt16) {
         let latBinWidth = (latRange.max - latRange.min) / Double(latBinCount)
@@ -106,7 +106,7 @@ class CoordinatesMatrix: CustomStringConvertible {
                   lngRange: lngRange, pseudoCount: pseudoCount)
     }
     
-    init(bins: [[UInt16]], latBinWidth: Double, lngBinWidth: Double, latRange: (min: Double, max: Double),
+    public init(bins: [[UInt16]], latBinWidth: Double, lngBinWidth: Double, latRange: (min: Double, max: Double),
          lngRange: (min: Double, max: Double), pseudoCount: UInt16) {
         self.bins = bins
         self.lngRange = lngRange
@@ -128,7 +128,7 @@ class CoordinatesMatrix: CustomStringConvertible {
 
     // MARK: - Scores
 
-    func probabilityFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
+    public func probabilityFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
         guard latBinWidth > 0 && lngBinWidth > 0 else { return 0 }
         guard matrixMax > 0 else { return 0 }
 
@@ -165,7 +165,7 @@ class CoordinatesMatrix: CustomStringConvertible {
     // yMin,yMax;
     // x,y,value; ...
     
-    var serialised: String {
+    public var serialised: String {
         var result = "\(bins.count),\(bins[0].count),\(pseudoCount);"
         result += "\(latRange.min),\(latRange.max);"
         result += "\(lngRange.min),\(lngRange.max);"
@@ -183,7 +183,7 @@ class CoordinatesMatrix: CustomStringConvertible {
     
     // MARK: - CustomStringConvertible
     
-    var description: String {
+    public var description: String {
         var result = ""
         
         result += "lngRange: \(lngRange)\n"
