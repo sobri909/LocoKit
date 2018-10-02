@@ -98,6 +98,10 @@ public class ItemSegment: Equatable {
         return distance
     }
 
+    public var hasAnyUsableLocations: Bool {
+        return samples.haveAnyUsableLocations
+    }
+
     // MARK: - Keepness scores
 
     public var isInvalid: Bool { return !isValid }
