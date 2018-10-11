@@ -117,7 +117,9 @@ open class ActivityType: MLModel, PersistableRecord {
 
         geoKey = dict["geoKey"] as? String ?? inferredGeoKey
 
-        version = dict["version"] as? Int ?? 0
+        if let version = dict["version"] as? Int { self.version = version }
+        else if let version = dict["version"] as? Int64 { self.version = Int(version) }
+        
         if let total = dict["totalSamples"] as? Int { totalSamples = total }
         else if let total = dict["totalSamples"] as? Int64 { totalSamples = Int(total) }
         else if let total = dict["totalEvents"] as? Int { totalSamples = total }
