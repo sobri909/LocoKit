@@ -48,3 +48,12 @@ extension Date {
     func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
 }
 
+public extension TimeInterval {
+    public static var oneMinute: TimeInterval { return 60 }
+    public static var oneHour: TimeInterval { return oneMinute * 60 }
+    public static var oneDay: TimeInterval { return oneHour * 24 }
+    public static var oneWeek: TimeInterval { return oneDay * 7 }
+    public static var oneMonth: TimeInterval { return oneDay * 30 }
+    public static var oneYear: TimeInterval { return oneMonth * 12 }
+}
+

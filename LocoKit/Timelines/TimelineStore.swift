@@ -364,6 +364,19 @@ open class TimelineStore {
         }
     }
 
+    open func deleteStaleSharedModels() {
+        let deadline = Date(timeIntervalSinceNow: -ActivityTypesCache.staleLastUpdatedAge)
+        do {
+            try pool.write { db in
+                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND version = 0")
+                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated IS NULL")
+                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
+            }
+        } catch {
+            os_log("%@", error.localizedDescription)
+        }
+    }
+
     // MARK: - Database creation and migrations
 
     public var migrator = DatabaseMigrator()

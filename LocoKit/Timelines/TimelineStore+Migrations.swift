@@ -209,6 +209,10 @@ internal extension TimelineStore {
                 table.column("coordinatesMatrix", .text)
             }
         }
+
+        migrator.registerMigration("7.0.1") { db in
+            try db.create(index: "ActivityTypeModel_on_lastUpdated", on: "ActivityTypeModel", columns: ["lastUpdated"])
+        }
     }
 
 }
