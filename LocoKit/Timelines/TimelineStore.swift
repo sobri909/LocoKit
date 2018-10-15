@@ -386,7 +386,7 @@ open class TimelineStore {
         try! migrator.migrate(pool)
     }
 
-    open var dateFields: [String] { return ["lastSaved", "lastModified", "startDate", "endDate", "date"] }
+    open var dateFields: [String] { return ["lastSaved", "lastModified", "lastUpdated", "startDate", "endDate", "date"] }
     open var boolFields: [String] { return ["isVisit", "deleted", "locationIsBogus", "isShared", "needsUpdate"] }
 
 }
