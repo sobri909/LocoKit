@@ -62,8 +62,16 @@ public extension Array where Element: MLModel {
         return mostRecentFetch
     }
 
+    public var missingBaseTypes: [ActivityTypeName] {
+        let haveTypes = self.map { $0.name }
+        return ActivityTypeName.baseTypes.filter { !haveTypes.contains($0) }
+    }
+
     public var isStale: Bool {
         if isEmpty { return true }
+
+        // missing a base model?
+        guard missingBaseTypes.isEmpty else { return true }
 
         // nil lastUpdated is presumably UD models pending first update
         guard let lastUpdated = lastUpdated else { return false }
