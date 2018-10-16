@@ -10,6 +10,8 @@ import GRDB
 
 public class TimelineSegment: TransactionObserver, Encodable {
 
+    public static var reclassifySamples = true
+
     public let store: TimelineStore
     public var onUpdate: (() -> Void)?
     public var debugLogging = false
@@ -100,6 +102,8 @@ public class TimelineSegment: TransactionObserver, Encodable {
     }
 
     private func reclassifySamples() {
+        guard TimelineSegment.reclassifySamples else { return }
+        
         guard let classifier = store.recorder?.classifier else { return }
 
         for item in timelineItems {
