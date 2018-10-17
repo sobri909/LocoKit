@@ -130,7 +130,7 @@ class MapView: MKMapView {
         let path = PathPolyline(coordinates: &coords, count: coords.count)
         path.color = color
 
-        add(path)
+        addOverlay(path)
     }
 
     func add(_ samples: [LocomotionSample]) {
@@ -159,7 +159,7 @@ class MapView: MKMapView {
         let line = PathPolyline(coordinates: &coords, count: coords.count)
         line.color = .brown
 
-        add(line)
+        addOverlay(line)
     }
 
     func add(_ visit: Visit) {
@@ -169,7 +169,7 @@ class MapView: MKMapView {
 
         let circle = VisitCircle(center: center.coordinate, radius: visit.radius2sd)
         circle.color = .orange
-        add(circle, level: .aboveLabels)
+        addOverlay(circle, level: .aboveLabels)
     }
 
 
@@ -181,7 +181,7 @@ class MapView: MKMapView {
             if mapRect == nil {
                 mapRect = overlay.boundingMapRect
             } else {
-                mapRect = MKMapRectUnion(mapRect!, overlay.boundingMapRect)
+                mapRect = mapRect!.union(overlay.boundingMapRect)
             }
         }
 

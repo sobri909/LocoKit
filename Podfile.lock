@@ -1,9 +1,9 @@
 PODS:
   - Anchorage (4.3)
-  - Crashlytics (3.10.7):
-    - Fabric (~> 1.7.11)
-  - Fabric (1.7.11)
-  - GRDB.swift (3.3.1)
+  - Crashlytics (3.10.9):
+    - Fabric (~> 1.7.13)
+  - Fabric (1.7.13)
+  - GRDB.swift (3.4.0)
   - LocoKit (7.0.0):
     - LocoKit/Base (= 7.0.0)
   - LocoKit/Base (7.0.0):
@@ -44,17 +44,17 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   LocoKit:
-    :commit: 4543e129b4d8321c1cd12627c2a4cd82e15534eb
+    :commit: f65b00eeb2d17dfb5d52a636ad732a2781d1d2a0
     :git: https://github.com/sobri909/LocoKit.git
   LocoKitCore:
-    :commit: 4543e129b4d8321c1cd12627c2a4cd82e15534eb
+    :commit: f65b00eeb2d17dfb5d52a636ad732a2781d1d2a0
     :git: https://github.com/sobri909/LocoKit.git
 
 SPEC CHECKSUMS:
   Anchorage: 21a98675245188427f0bcea21404d42a824a766f
-  Crashlytics: ccaac42660eb9351b9960c0d66106b0bcf99f4fa
-  Fabric: f233c9492b3bbc1f04e3882986740f7988a58edb
-  GRDB.swift: d7ec5d5cc95df7f08c655e5a6500b54f4b092e89
+  Crashlytics: 55e24fc23989680285a21cb1146578d9d18e432c
+  Fabric: 25d0963b691fc97be566392243ff0ecef5a68338
+  GRDB.swift: 0100cdc153f3a42348652e33e0b5697c53eee792
   LocoKit: 9922d3e81a78e7f71661862eb8cbbd3ab7df90ec
   LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb

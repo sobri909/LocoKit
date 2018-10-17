@@ -107,12 +107,12 @@ class ViewController: UIViewController {
             self.setNeedsStatusBarAppearanceUpdate()
         }
 
-        when(.UIApplicationDidReceiveMemoryWarning) { _ in
+        when(UIApplication.didReceiveMemoryWarningNotification) { _ in
             log("UIApplicationDidReceiveMemoryWarning")
         }
 
         // housekeeping
-        when(.UIApplicationDidEnterBackground) { _ in
+        when(UIApplication.didEnterBackgroundNotification) { _ in
             log("store.hardDeleteSoftDeletedObjects()")
             self.store.hardDeleteSoftDeletedObjects()
         }
@@ -186,8 +186,8 @@ class ViewController: UIViewController {
             chosenView = settingsView
         }
 
-        view.bringSubview(toFront: chosenView)
-        view.bringSubview(toFront: viewToggleBar)
+        view.bringSubviewToFront(chosenView)
+        view.bringSubviewToFront(viewToggleBar)
         chosenView.flashScrollIndicators()
         Settings.visibleTab = chosenView
     }
