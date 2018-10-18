@@ -213,6 +213,11 @@ internal extension TimelineStore {
         migrator.registerMigration("7.0.1") { db in
             try db.create(index: "ActivityTypeModel_on_lastUpdated", on: "ActivityTypeModel", columns: ["lastUpdated"])
         }
+
+        migrator.registerMigration("7.0.1 segments") { db in
+            try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
+                          columns: ["deleted", "startDate"])
+        }
     }
 
 }
