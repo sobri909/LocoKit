@@ -32,6 +32,7 @@ public enum ActivityTypeName: String, Codable {
     case tractor
     case tuktuk
     case songthaew
+    case scooter
 
     // active types
     case skateboarding
