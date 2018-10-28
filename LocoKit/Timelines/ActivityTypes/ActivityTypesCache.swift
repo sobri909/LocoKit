@@ -19,7 +19,7 @@ public final class ActivityTypesCache: MLModelSource {
     public static var highlander = ActivityTypesCache()
 
     internal static let minimumRefetchWait: TimeInterval = .oneHour
-    internal static let staleLastUpdatedAge: TimeInterval = .oneMonth
+    internal static let staleLastUpdatedAge: TimeInterval = .oneMonth * 2
     internal static let staleLastFetchedAge: TimeInterval = .oneWeek
 
     public var store: TimelineStore?
