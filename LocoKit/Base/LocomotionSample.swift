@@ -118,6 +118,8 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     public var confirmedType: ActivityTypeName?
 
+    public var previousSampleConfirmedType: ActivityTypeName?
+
     public var classifiedType: ActivityTypeName? {
         guard let first = classifierResults?.first else { return nil }
         return first.score > 0 ? first.name : nil
@@ -195,9 +197,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         } else {
             self.coreMotionActivityType = nil
         }
-        if let typeName = dict["confirmedType"] as? String {
-            self.confirmedType = ActivityTypeName(rawValue: typeName)
-        }
         if let location = dict["location"] as? CLLocation {
             self.location = location
         } else {
@@ -210,6 +209,11 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             self.confirmedType = ActivityTypeName(rawValue: rawValue)
         } else {
             self.confirmedType = nil
+        }
+        if let rawValue = dict["previousSampleConfirmedType"] as? String {
+            self.previousSampleConfirmedType = ActivityTypeName(rawValue: rawValue)
+        } else {
+            self.previousSampleConfirmedType = nil
         }
 
         self.rawLocations = nil

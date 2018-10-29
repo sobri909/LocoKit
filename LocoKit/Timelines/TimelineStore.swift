@@ -206,6 +206,10 @@ open class TimelineStore {
         return sample(for: "SELECT * FROM LocomotionSample WHERE sampleId = ?", arguments: [sampleId.uuidString])
     }
 
+    public func sample(where query: String, arguments: StatementArguments? = nil) -> PersistentSample? {
+        return sample(for: "SELECT * FROM LocomotionSample WHERE " + query + " LIMIT 1", arguments: arguments)
+    }
+
     public func samples(where query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
         return samples(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments)
     }

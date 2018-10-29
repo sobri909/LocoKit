@@ -218,6 +218,12 @@ internal extension TimelineStore {
             try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
                           columns: ["deleted", "startDate"])
         }
+
+        migrator.registerMigration("7.0.2") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "previousSampleConfirmedType", .text)
+            }
+        }
     }
 
 }

@@ -15,6 +15,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
     public let store: TimelineStore
     public var onUpdate: (() -> Void)?
     public var debugLogging = false
+    public var shouldUpdateMarkovValues = true
 
     private var _timelineItems: [TimelineItem]?
     public var timelineItems: [TimelineItem] {
@@ -79,6 +80,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
             if self?.hasChanged == true {
                 self?.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
                 self?.reclassifySamples()
+                self?.updateMarkovValues()
                 self?.process()
                 self?.onUpdate?()
             }
@@ -133,6 +135,16 @@ public class TimelineSegment: TransactionObserver, Encodable {
                 } else {
                     os_log("Reclassified samples: %d", type: .debug, count)
                 }
+            }
+        }
+    }
+
+    public func updateMarkovValues() {
+        guard shouldUpdateMarkovValues else { return }
+
+        for item in timelineItems {
+            for sample in item.samples where sample.confirmedType != nil {
+                sample.nextSample?.previousSampleConfirmedType = sample.confirmedType
             }
         }
     }

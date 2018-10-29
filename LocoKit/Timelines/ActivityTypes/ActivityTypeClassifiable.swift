@@ -18,6 +18,7 @@ public protocol ActivityTypeClassifiable: class {
     var xyAcceleration: Double? { get }
     var zAcceleration: Double? { get }
     var timeOfDay: TimeInterval { get }
+    var previousSampleConfirmedType: ActivityTypeName? { get }
 
     var classifierResults: ClassifierResults? { get set }
     

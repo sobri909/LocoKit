@@ -12,14 +12,24 @@ import CoreLocation
 
 open class PersistentSample: LocomotionSample, TimelineObject {
 
-    // MARK: TimelineObject
+    // MARK: - TimelineObject
 
     public var objectId: UUID { return sampleId }
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var source: String = "LocoKit"
 
     public override var confirmedType: ActivityTypeName? {
-        didSet { if oldValue != confirmedType { hasChanges = true; save() } }
+        didSet {
+            if oldValue != confirmedType {
+                hasChanges = true
+                nextSample?.previousSampleConfirmedType = confirmedType
+                save()
+            }
+        }
+    }
+
+    public override var previousSampleConfirmedType: ActivityTypeName? {
+        didSet { if oldValue != previousSampleConfirmedType { hasChanges = true; save() } }
     }
 
     public override var locationIsBogus: Bool {
@@ -52,7 +62,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         store.add(self)
     }
 
-    // MARK: Required initialisers
+    // MARK: - Required initialisers
 
     public required init(from dict: [String: Any?]) {
         self.lastSaved = dict["lastSaved"] as? Date
@@ -69,7 +79,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         super.init(date: date, location: location, movingState: movingState, recordingState: recordingState)
     }
 
-    // MARK: Decodable
+    // MARK: - Decodable
 
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: PersistentCodingKeys.self)
@@ -87,7 +97,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         case timelineItemId
     }
 
-    // MARK: Relationships
+    // MARK: - Relationships
 
     private weak var _timelineItem: TimelineItem?
 
@@ -125,6 +135,13 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         }
     }
 
+    private weak var _nextSample: PersistentSample?
+    public var nextSample: PersistentSample? {
+        if let cached = _nextSample { return cached }
+        _nextSample = store?.sample(where: "date > ? ORDER BY date", arguments: [self.date])
+        return _nextSample
+    }
+
     public private(set) var deleted = false 
     open func delete() {
         deleted = true
@@ -133,7 +150,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         save()
     }
 
-    // MARK: PersistableRecord
+    // MARK: - PersistableRecord
     
     public static let databaseTableName = "LocomotionSample"
 
@@ -152,6 +169,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["zAcceleration"] = zAcceleration
         container["coreMotionActivityType"] = coreMotionActivityType?.rawValue
         container["confirmedType"] = confirmedType?.rawValue
+        container["previousSampleConfirmedType"] = previousSampleConfirmedType?.rawValue
 
         // location
         container["latitude"] = location?.coordinate.latitude
@@ -164,7 +182,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["locationIsBogus"] = locationIsBogus
     }
     
-    // MARK: PersistentObject
+    // MARK: - PersistentObject
 
     public var transactionDate: Date?
     public var lastSaved: Date?
