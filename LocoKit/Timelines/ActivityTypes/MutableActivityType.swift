@@ -33,7 +33,9 @@ open class MutableActivityType: ActivityType {
         var allCoordinates: [CLLocationCoordinate2D] = []
         var allCoreMotionTypes: [CoreMotionActivityTypeName] = []
         var allAccuracies: [CLLocationAccuracy] = []
-        
+        // bootstrap with one of each, for the pseudo count
+        var allPreviousTypes: [ActivityTypeName] = ActivityTypeName.allTypes
+
         for sample in samples {
             
             // only accept confirmed samples that match the model
@@ -99,8 +101,13 @@ open class MutableActivityType: ActivityType {
             if location.course >= 0 {
                 allCourses.append(location.course)
             }
+
+            // markov
+            if let previousType = sample.previousSampleConfirmedType {
+                allPreviousTypes.append(previousType)
+            }
         }
-        
+
         self.totalSamples = totalSamples
 
         if accuracyScorables > 0 {
@@ -110,6 +117,7 @@ open class MutableActivityType: ActivityType {
         }
 
         coreMotionTypeScores = coreMotionTypeScoresDict(for: allCoreMotionTypes)
+        previousSampleActivityTypeScores = markovScoresDict(for: allPreviousTypes)
 
         if totalSamples == 0 {
             movingPct = 0.5
@@ -192,6 +200,34 @@ open class MutableActivityType: ActivityType {
             }
         }
         
+        return scores
+    }
+
+    private func markovScoresDict(for values: [ActivityTypeName]) -> [ActivityTypeName: Double] {
+        var totals: [ActivityTypeName: Double] = [:]
+        var scores: [ActivityTypeName: Double] = [:]
+
+        for activityType in ActivityTypeName.allTypes {
+            totals[activityType] = 0
+            scores[activityType] = 0
+        }
+
+        guard values.count > 0 else {
+            return scores
+        }
+
+        for activityType in values {
+            if totals[activityType] != nil {
+                totals[activityType]! += 1
+            }
+        }
+
+        for activityType in ActivityTypeName.allTypes {
+            if let total = totals[activityType], total > 0 {
+                scores[activityType] = total / Double(values.count)
+            }
+        }
+
         return scores
     }
 

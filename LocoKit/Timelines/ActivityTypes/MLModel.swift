@@ -20,5 +20,5 @@ public protocol MLModel: Hashable {
     var centerCoordinate: CLLocationCoordinate2D { get }
     
     func contains(coordinate: CLLocationCoordinate2D) -> Bool
-    func scoreFor(classifiable scorable: ActivityTypeClassifiable) -> Double
+    func scoreFor(classifiable scorable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> Double
 }

@@ -18,7 +18,7 @@ extension ActivityType {
         }
     }
     
-    public func scoreFor(classifiable scorable: ActivityTypeClassifiable) -> Double {
+    public func scoreFor(classifiable scorable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> Double {
         let depth = self.depth
         
         // motion weights
@@ -35,6 +35,7 @@ extension ActivityType {
         let altitudeWeight = 1.0
         var latLongWeight = 1.0
         let horizAccuracyWeight = 1.0
+        let markovWeight = 1.0
         
         if depth == 2 {
             speedWeight = 2.0 // cars, trains, etc go different speeds in different locales
@@ -77,6 +78,10 @@ extension ActivityType {
         
         /** context scores **/
 
+        if let previousType = previousResults?.first?.name, !previousSampleActivityTypeScores.isEmpty {
+            scores.append(previousTypeScore(for: previousType) * markovWeight)
+        }
+
         if let altitude = scorable.location?.altitude, altitude != LocomotionMagicValue.nilAltitude {
             scores.append(altitudeScore(for: altitude) * altitudeWeight)
         }
@@ -108,17 +113,14 @@ extension ActivityType {
         
         return score.clamped(min: 0, max: 1)
     }
-}
 
-extension ActivityType {
-   
+    // MARK: -
+
     func scoreFor(_ value: Double, in histogram: Histogram) -> Double {
         return histogram.probabilityFor(value)
     }
-    
-}
 
-extension ActivityType {
+    // MARK: -
 
     func movingScore(for movingState: MovingState) -> Double? {
         if movingState == .uncertain {
@@ -139,19 +141,14 @@ extension ActivityType {
     }
 
     func coreMotionScore(for coreMotionType: CoreMotionActivityTypeName) -> Double {
-        guard let value = coreMotionTypeScores[coreMotionType] else {
-            return 0
-        }
-        
-        var maxPercent = 0.0
-        for (_, percent) in coreMotionTypeScores {
-            maxPercent = max(maxPercent, percent)
-        }
-        
-        guard maxPercent > 0 else {
-            return 0
-        }
-        
+        guard let value = coreMotionTypeScores[coreMotionType] else { return 0 }
+        guard let maxPercent = coreMotionTypeScores.values.max(), maxPercent > 0 else { return 0 }
+        return value / maxPercent
+    }
+
+    func previousTypeScore(for previousType: ActivityTypeName) -> Double {
+        guard let value = previousSampleActivityTypeScores[previousType] else { return 0 }
+        guard let maxPercent = previousSampleActivityTypeScores.values.max(), maxPercent > 0 else { return 0 }
         return value / maxPercent
     }
     

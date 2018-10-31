@@ -24,15 +24,11 @@ public class TimelineRecorder {
      */
     public var samplesPerMinute: Double = 10
 
-    // MARK: - Recorder creation
-
     private(set) public var store: TimelineStore
     private(set) public var classifier: MLCompositeClassifier?
+    private(set) public var lastClassifierResults: ClassifierResults?
 
-    // convenience access to an often used optional bool
-    public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
-        return classifier?.canClassify(coordinate) == true
-    }
+    // MARK: - Recorder creation
 
     public init(store: TimelineStore, classifier: MLCompositeClassifier? = nil) {
         self.store = store
@@ -63,6 +59,11 @@ public class TimelineRecorder {
                 self?.currentItem = results.kept
             }
         }
+    }
+
+    // convenience access to an often used optional bool
+    public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
+        return classifier?.canClassify(coordinate) == true
     }
 
     // MARK: - Starting and stopping recording
@@ -138,7 +139,8 @@ public class TimelineRecorder {
 
         // classify the sample, if a classifier has been provided
         if let classifier = classifier, classifier.canClassify(sample.location?.coordinate) {
-            sample.classifierResults = classifier.classify(sample)
+            sample.classifierResults = classifier.classify(sample, previousResults: lastClassifierResults)
+            lastClassifierResults = sample.classifierResults
         }
 
         // make sure sleep mode doesn't happen prematurely

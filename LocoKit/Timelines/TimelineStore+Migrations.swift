@@ -224,6 +224,12 @@ internal extension TimelineStore {
                 table.add(column: "previousSampleConfirmedType", .text)
             }
         }
+
+        migrator.registerMigration("7.0.2 markov") { db in
+            try db.alter(table: "ActivityTypeModel") { table in
+                table.add(column: "previousSampleActivityTypeScores", .text)
+            }
+        }
     }
 
 }

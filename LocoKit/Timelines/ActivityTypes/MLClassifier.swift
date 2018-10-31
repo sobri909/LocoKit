@@ -48,7 +48,7 @@ public protocol MLClassifier {
      classifies samples only once every six seconds at most, due to the expectation that the app will be recording
      and classifying potentially hours of data each day.
      */
-    func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults
+    func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults
 
     /**
      Determine whether the given coordinate is inside the classifier's geographical region.
@@ -117,7 +117,7 @@ public protocol MLClassifier {
 
 extension MLClassifier {
 
-    public func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults {
+    public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults {
         var totalSamples = 1 // start with 1 to avoid potential div by zero
         for model in models {
             totalSamples += model.totalSamples
@@ -125,7 +125,7 @@ extension MLClassifier {
 
         var scores: [ClassifierResultItem] = []
         for model in models {
-            let typeScore = model.scoreFor(classifiable: classifiable)
+            let typeScore = model.scoreFor(classifiable: classifiable, previousResults: previousResults)
             let pctOfAllEvents = Double(model.totalSamples) / Double(totalSamples)
             let finalScore = typeScore * pctOfAllEvents
 
@@ -149,7 +149,7 @@ extension MLClassifier {
             return ClassifierResults(results: scores, moreComing: depth > 0)
         }
 
-        let parentResults = parent.classify(classifiable)
+        let parentResults = parent.classify(classifiable, previousResults: previousResults)
 
         // if classifier doesn't contain the coord, it should defer all weight to parent
         let selfWeight = contained ? completenessScore : 0

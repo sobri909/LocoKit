@@ -49,6 +49,7 @@ open class ActivityType: MLModel, PersistableRecord {
     var xyAccelerationHistogram: Histogram?
     var zAccelerationHistogram: Histogram?
     var horizontalAccuracyHistogram: Histogram?
+    var previousSampleActivityTypeScores: [ActivityTypeName: Double] = [:]
     
     /** context factors **/
    
@@ -77,6 +78,14 @@ open class ActivityType: MLModel, PersistableRecord {
             } else {
                 result.append(0)
             }
+        }
+        return result
+    }
+
+    public var previousSampleActivityTypeScoresSerialised: String {
+        var result = ""
+        for (activityType, score) in previousSampleActivityTypeScores {
+            result += "\(activityType.rawValue):\(score);"
         }
         return result
     }
@@ -199,6 +208,18 @@ open class ActivityType: MLModel, PersistableRecord {
                 let name = CoreMotionActivityTypeName.allTypes[index]
                 coreMotionTypeScores[name] = score
             }
+        }
+
+        if let markovScores = dict["previousSampleActivityTypeScores"] as? String {
+            var typeScores: [ActivityTypeName: Double] = [:]
+            let typeScoreRows = markovScores.split(separator: ";")
+            for row in typeScoreRows {
+                let bits = row.split(separator: ":")
+                guard let name = ActivityTypeName(rawValue: String(bits[0])) else { continue }
+                guard let score = Double(String(bits[1])) else { continue }
+                typeScores[name] = score
+            }
+            previousSampleActivityTypeScores = typeScores
         }
 
         store.add(self)
@@ -431,6 +452,7 @@ open class ActivityType: MLModel, PersistableRecord {
 
         container["movingPct"] = movingPct
         container["coreMotionTypeScores"] = coreMotionTypeScoresArray.map { String($0) }.joined(separator: ",")
+        container["previousSampleActivityTypeScores"] = previousSampleActivityTypeScoresSerialised
 
         container["altitudeHistogram"] = altitudeHistogram?.serialised
         container["courseHistogram"] = courseHistogram?.serialised

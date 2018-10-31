@@ -34,7 +34,7 @@ extension MLClassifierManager {
         return mutex.sync { sampleClassifier } != nil
     }
 
-    public func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults? {
+    public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults? {
         return mutex.sync {
             // make sure we're capable of returning sensible results
             guard canClassify(classifiable.location?.coordinate) else { return nil }
@@ -43,7 +43,7 @@ extension MLClassifierManager {
             guard let classifier = mutex.sync(execute: { return sampleClassifier }) else { return nil }
 
             // get the results
-            return classifier.classify(classifiable)
+            return classifier.classify(classifiable, previousResults: previousResults)
         }
     }
 
@@ -84,7 +84,8 @@ extension MLClassifierManager {
 
         return ClassifierResults(results: resultsArray, moreComing: results.moreComing)
     }
-    
+
+    // Note: samples must be provided in date ascending order
     public func classify(_ samples: [ActivityTypeClassifiable]) -> ClassifierResults? {
         if samples.isEmpty { return nil }
 
@@ -96,6 +97,7 @@ extension MLClassifierManager {
         }
 
         var moreComing = false
+        var lastResults: ClassifierResults?
 
         for sample in samples {
 
@@ -104,7 +106,7 @@ extension MLClassifierManager {
 
             // nil or incomplete existing results? get fresh results
             if tmpResults == nil || tmpResults?.moreComing == true {
-                sample.classifierResults = classify(sample)
+                sample.classifierResults = classify(sample, previousResults: lastResults)
                 tmpResults = sample.classifierResults ?? tmpResults
             }
 
@@ -122,6 +124,8 @@ extension MLClassifierManager {
                     allAccuracies[typeName]!.append(0)
                 }
             }
+
+            lastResults = results
         }
 
         var finalResults: [ClassifierResultItem] = []

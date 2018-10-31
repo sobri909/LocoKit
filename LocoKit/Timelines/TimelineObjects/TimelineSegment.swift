@@ -103,15 +103,18 @@ public class TimelineSegment: TransactionObserver, Encodable {
         return false
     }
 
+    // Note: this expects samples to be in date ascending order
     private func reclassifySamples() {
         guard TimelineSegment.reclassifySamples else { return }
         
         guard let classifier = store.recorder?.classifier else { return }
 
+        var lastResults: ClassifierResults?
+
         for item in timelineItems {
             var count = 0
             var typeChanged = false
-            
+
             for sample in item.samples where sample.confirmedType == nil {
 
                 // existing classifier results are already complete?
@@ -119,11 +122,13 @@ public class TimelineSegment: TransactionObserver, Encodable {
 
                 // reclassify
                 let oldActivityType = sample.activityType
-                sample.classifierResults = classifier.classify(sample)
+                sample.classifierResults = classifier.classify(sample, previousResults: lastResults)
                 if sample.classifierResults != nil { count += 1 }
 
                 // activity type changed?
                 if sample.activityType != oldActivityType { typeChanged = true }
+
+                lastResults = sample.classifierResults
             }
 
             // item needs rebuild?
