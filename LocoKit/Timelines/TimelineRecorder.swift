@@ -237,6 +237,9 @@ public class TimelineRecorder {
     private func updateSleepModeAcceptability() {
         let loco = LocomotionManager.highlander
 
+        // don't muck about with recording state if it's been explicitly turned off
+        if loco.recordingState == .off { return }
+
         // sleep mode requires currentItem to be a keeper visit
         guard let currentVisit = currentVisit, currentVisit.isWorthKeeping else {
             loco.useLowPowerSleepModeWhileStationary = false
