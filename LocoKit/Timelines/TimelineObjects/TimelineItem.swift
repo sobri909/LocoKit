@@ -201,7 +201,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     private(set) public var _dateRange: DateInterval?
     public var dateRange: DateInterval? {
         if let cached = _dateRange { return cached }
-        if let start = samples.first?.date, let end = samples.last?.date {
+        guard let start = samples.first?.date else { return nil }
+        if let nextItemSart = nextItem?.startDate {
+            _dateRange = DateInterval(start: start, end: nextItemSart)
+        } else if let end = samples.last?.date {
             _dateRange = DateInterval(start: start, end: end)
         }
         return _dateRange
