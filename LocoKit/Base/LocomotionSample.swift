@@ -315,8 +315,6 @@ extension LocomotionSample: Hashable {
 }
 
 public extension Array where Element: LocomotionSample {
-    public var center: CLLocation? { return CLLocation(centerFor: self) }
-    public var weightedCenter: CLLocation? { return CLLocation(weightedCenterFor: self) }
     public var duration: TimeInterval {
         guard let firstDate = first?.date, let lastDate = last?.date else { return 0 }
         return lastDate.timeIntervalSince(firstDate)
@@ -339,5 +337,49 @@ public extension Array where Element: LocomotionSample {
     }
     func radius(from center: CLLocation) -> Radius {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.radius(from: center)
+    }
+
+    // MARK: -
+
+    public var center: CLLocation? { return CLLocation(centerFor: self) }
+
+    /**
+     The weighted centre for an array of samples
+     - Note: More weight will be given to samples classified with "stationary" type
+     */
+    public var weightedCenter: CLLocation? {
+        if self.isEmpty { return nil }
+
+        guard let accuracyRange = self.horizontalAccuracyRange else { return nil }
+
+        // only one sample? that's the centre then
+        if self.count == 1 { return self.first?.location }
+
+        var sumx: Double = 0, sumy: Double = 0, sumz: Double = 0, totalWeight: Double = 0
+
+        for sample in self where sample.hasUsableCoordinate {
+            guard let location = sample.location else { continue }
+
+            let lat = location.coordinate.latitude.radiansValue
+            let lng = location.coordinate.longitude.radiansValue
+
+            var weight = location.horizontalAccuracyWeight(inRange: accuracyRange)
+
+            // give double weight to stationary samples
+            if let activityType = sample.activityType, activityType == .stationary { weight *= 2 }
+
+            sumx += (cos(lat) * cos(lng)) * weight
+            sumy += (cos(lat) * sin(lng)) * weight
+            sumz += sin(lat) * weight
+            totalWeight += weight
+        }
+
+        if totalWeight == 0 { return nil }
+
+        let meanx = sumx / totalWeight
+        let meany = sumy / totalWeight
+        let meanz = sumz / totalWeight
+
+        return CLLocation(x: meanx, y: meany, z: meanz)
     }
 }
