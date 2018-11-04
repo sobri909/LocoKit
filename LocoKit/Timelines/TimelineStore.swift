@@ -36,7 +36,7 @@ open class TimelineStore {
     private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
     private let modelMap = NSMapTable<NSString, ActivityType>.strongToWeakObjects()
 
-    private let processingQueue = DispatchQueue(label: "TimelineProcessing")
+    private let processingQueue = DispatchQueue(label: "TimelineProcessing", qos: .background)
     public private(set) var processing = false {
         didSet {
             guard processing != oldValue else { return }

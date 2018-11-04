@@ -28,7 +28,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
 
     private let query: String
     private let arguments: StatementArguments?
-    private let queue = DispatchQueue(label: "TimelineSegment", qos: .utility)
+    private let queue = DispatchQueue(label: "TimelineSegment", qos: .background)
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
