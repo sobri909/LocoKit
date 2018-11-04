@@ -365,8 +365,8 @@ public extension Array where Element: LocomotionSample {
 
             var weight = location.horizontalAccuracyWeight(inRange: accuracyRange)
 
-            // give double weight to stationary samples
-            if let activityType = sample.activityType, activityType == .stationary { weight *= 2 }
+            // give extra weight to stationary samples
+            if let activityType = sample.activityType, activityType == .stationary { weight *= 3 }
 
             sumx += (cos(lat) * cos(lng)) * weight
             sumy += (cos(lat) * sin(lng)) * weight
