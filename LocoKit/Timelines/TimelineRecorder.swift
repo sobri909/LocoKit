@@ -203,31 +203,30 @@ public class TimelineRecorder {
 
         // if in sleep mode, only retain the last 10 sleep mode samples
         if RecordingState.sleepStates.contains(sample.recordingState) {
+            guard let endDate = currentItem.endDate else { return }
 
             // collect the contiguous sleep samples from the end
             let edgeSleepSamples = currentItem.samples.reversed().prefix {
                 RecordingState.sleepStates.contains($0.recordingState)
             }
 
-            var keptCount = 0
+            // keep most recent 5 minutes of sleep samples
+            let keeperBoundary: TimeInterval = .oneMinute * 5
+
             var samplesToKill: [PersistentSample] = []
             for sample in edgeSleepSamples {
 
+                // always keep the newest sleep sample
+                if sample == edgeSleepSamples.first { continue }
+
                 // always keep the oldest sleep sample
-                if sample == edgeSleepSamples.last {
-                    break
-                }
+                if sample == edgeSleepSamples.last { break }
 
-                // keep 15 most recent samples, plus one sample per 15 mins
-                let allowedCount: Double = 15 + (sample.date.age / (60 * 15))
-
-                // sample would go over the limit?
-                if keptCount + 1 > Int(allowedCount) {
+                // sample older than the time window?
+                if endDate.timeIntervalSince(sample.date) > keeperBoundary {
                     samplesToKill.append(sample)
                     continue
                 }
-
-                keptCount += 1
             }
 
             samplesToKill.forEach { $0.delete() }

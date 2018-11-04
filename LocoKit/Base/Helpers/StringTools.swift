@@ -7,7 +7,7 @@ import CoreLocation
 
 public extension String {
 
-    public init(duration: TimeInterval, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnits: Int = 2) {
+    public init(duration: TimeInterval, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
         if duration.isNaN {
             self.init(format: "NaN")
             return
@@ -17,7 +17,7 @@ public extension String {
         formatter.maximumUnitCount = maximumUnits
         formatter.unitsStyle = style
 
-        if duration < 60 {
+        if alwaysIncludeSeconds || duration < 60 * 2 {
             formatter.allowedUnits = [.second, .minute, .hour, .day, .month]
         } else {
             formatter.allowedUnits = [.minute, .hour, .day, .month]
