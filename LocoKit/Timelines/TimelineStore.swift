@@ -306,6 +306,13 @@ open class TimelineStore {
                     item.transactionDate = now
                     do { try item.save(in: db) }
                     catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                    catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+                        // constraint fails (linked list inconsistencies) are non fatal
+                        // so let's break the edges and put the item back in the queue
+                        (item as? TimelineItem)?.previousItemId = nil
+                        (item as? TimelineItem)?.nextItemId = nil
+                        save(item, immediate: false)
+                    }
                 }
                 db.afterNextTransactionCommit { db in
                     for case let item as TimelineObject in savingItems { item.lastSaved = item.transactionDate }
