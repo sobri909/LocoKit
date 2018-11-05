@@ -1,9 +1,9 @@
 PODS:
   - Anchorage (4.3)
-  - Crashlytics (3.10.9):
-    - Fabric (~> 1.7.13)
-  - Fabric (1.7.13)
-  - GRDB.swift (3.4.0)
+  - Crashlytics (3.11.1):
+    - Fabric (~> 1.8.1)
+  - Fabric (1.8.2)
+  - GRDB.swift (3.5.0)
   - LocoKit (7.0.0):
     - LocoKit/Base (= 7.0.0)
   - LocoKit/Base (7.0.0):
@@ -20,9 +20,9 @@ DEPENDENCIES:
   - Anchorage
   - Crashlytics
   - Fabric
-  - LocoKit (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
-  - LocoKit/Timelines (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
-  - LocoKitCore (from `https://github.com/sobri909/LocoKit.git`, branch `timelines`)
+  - LocoKit (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
+  - LocoKit/Timelines (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
+  - LocoKitCore (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
   - SwiftNotes
 
 SPEC REPOS:
@@ -36,30 +36,30 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   LocoKit:
-    :branch: timelines
+    :branch: develop
     :git: https://github.com/sobri909/LocoKit.git
   LocoKitCore:
-    :branch: timelines
+    :branch: develop
     :git: https://github.com/sobri909/LocoKit.git
 
 CHECKOUT OPTIONS:
   LocoKit:
-    :commit: f65b00eeb2d17dfb5d52a636ad732a2781d1d2a0
+    :commit: b5fe3cfc7573e45e0e432fb345f84afd45d47fee
     :git: https://github.com/sobri909/LocoKit.git
   LocoKitCore:
-    :commit: f65b00eeb2d17dfb5d52a636ad732a2781d1d2a0
+    :commit: b5fe3cfc7573e45e0e432fb345f84afd45d47fee
     :git: https://github.com/sobri909/LocoKit.git
 
 SPEC CHECKSUMS:
   Anchorage: 21a98675245188427f0bcea21404d42a824a766f
-  Crashlytics: 55e24fc23989680285a21cb1146578d9d18e432c
-  Fabric: 25d0963b691fc97be566392243ff0ecef5a68338
-  GRDB.swift: 0100cdc153f3a42348652e33e0b5697c53eee792
+  Crashlytics: ca7ab4bc304aa216bdc2e4c1a96389ee77252203
+  Fabric: d2b22f443ba195d8a7cc204da230977c72733b40
+  GRDB.swift: 225cf9c1354753e92e20c2a1fa2912b924c9da6e
   LocoKit: 9922d3e81a78e7f71661862eb8cbbd3ab7df90ec
   LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: 0cdcdf545aa3dedb73c0836bc8934d216f7ca040
+PODFILE CHECKSUM: 0f6244ef2892c96dc03c4928fbad49d78829fe08
 
 COCOAPODS: 1.5.3
