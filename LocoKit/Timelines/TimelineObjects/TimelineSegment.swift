@@ -28,7 +28,6 @@ public class TimelineSegment: TransactionObserver, Encodable {
 
     private let query: String
     private let arguments: StatementArguments?
-    private let queue = DispatchQueue(label: "TimelineSegment", qos: .background)
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
@@ -75,15 +74,17 @@ public class TimelineSegment: TransactionObserver, Encodable {
 
     private func update() {
         guard updatingEnabled else { return }
-        queue.async { [weak self] in
-            guard self?.updatingEnabled == true else { return }
-            if self?.hasChanged == true {
-                self?.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
-                self?.reclassifySamples()
-                self?.updateMarkovValues()
-                self?.process()
-                self?.onUpdate?()
-            }
+        
+        Jobs.addParallelJob("TimelineSegment.update") { [weak self] in
+            guard let self = self else { return }
+            guard self.updatingEnabled else { return }
+            guard self.hasChanged else { return }
+
+            self.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
+            self.reclassifySamples()
+            self.updateMarkovValues()
+            self.process()
+            self.onUpdate?()
         }
     }
 

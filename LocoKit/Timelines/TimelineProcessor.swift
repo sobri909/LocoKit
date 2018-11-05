@@ -341,11 +341,11 @@ public class TimelineProcessor {
         if !brokenItem.hasBrokenEdges { return }
         guard let store = brokenItem.store else { return }
 
-        store.process { self.healPreviousEdge(of: brokenItem) }
-        store.process { self.healNextEdge(of: brokenItem) }
-
-        // it's wholly contained by another item?
         store.process {
+            self.healPreviousEdge(of: brokenItem)
+            self.healNextEdge(of: brokenItem)
+
+            // it's wholly contained by another item?
             guard brokenItem.hasBrokenPreviousItemEdge && brokenItem.hasBrokenNextItemEdge else { return }
             guard let dateRange = brokenItem.dateRange else { return }
 
