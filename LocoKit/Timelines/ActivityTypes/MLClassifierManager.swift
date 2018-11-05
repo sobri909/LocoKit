@@ -34,7 +34,7 @@ extension MLClassifierManager {
         return mutex.sync { sampleClassifier } != nil
     }
 
-    public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults? {
+    public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults? = nil) -> ClassifierResults? {
         return mutex.sync {
             // make sure we're capable of returning sensible results
             guard canClassify(classifiable.location?.coordinate) else { return nil }
