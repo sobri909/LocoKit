@@ -7,7 +7,7 @@
 
 import os.log
 
-class Jobs {
+public class Jobs {
 
     public static var debugLogging = true
 
@@ -55,8 +55,8 @@ class Jobs {
 
     private func runJob(_ name: String, suspendParallelQueue: Bool = false, block: () -> Void) {
         if Jobs.debugLogging {
-            os_log("serialQueue.count:   %d", type: .debug, serialQueue.operationCount)
-            os_log("parallelQueue.count: %d", type: .debug, parallelQueue.operationCount)
+            os_log("serialQueue.count: %d, parallelQueue.count: %d", type: .debug,
+                   serialQueue.operationCount, parallelQueue.operationCount)
         }
 
         // suspend the parallel queue while serial queue is active
@@ -74,8 +74,8 @@ class Jobs {
         parallelQueue.isSuspended = false
 
         if Jobs.debugLogging {
-            os_log("serialQueue.count:   %d", type: .debug, serialQueue.operationCount)
-            os_log("parallelQueue.count: %d", type: .debug, parallelQueue.operationCount)
+            os_log("serialQueue.count: %2d, parallelQueue.count: %2d", type: .debug,
+                   serialQueue.operationCount, parallelQueue.operationCount)
         }
 
         // always insert a second pause between background jobs
@@ -85,10 +85,6 @@ class Jobs {
     // MARK: - Queue Management
 
     private func didEnterBackground() {
-        if Jobs.debugLogging {
-            os_log("serialQueue.count:   %d", type: .debug, serialQueue.operationCount)
-            os_log("parallelQueue.count: %d", type: .debug, parallelQueue.operationCount)
-        }
 
         // change all operations to .background priority
         serialQueue.operations.forEach {
@@ -112,8 +108,8 @@ class Jobs {
 
     private func didBecomeActive() {
         if Jobs.debugLogging {
-            os_log("serialQueue.count:   %d", type: .debug, serialQueue.operationCount)
-            os_log("parallelQueue.count: %d", type: .debug, parallelQueue.operationCount)
+            os_log("serialQueue.count: %2d, parallelQueue.count: %2d", type: .debug,
+                   serialQueue.operationCount, parallelQueue.operationCount)
         }
 
         // change parallel queue back to being a parallel queue
