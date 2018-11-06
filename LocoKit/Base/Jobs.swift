@@ -26,7 +26,7 @@ public class Jobs {
         highlander.serialQueue.addOperation(job)
 
         // suspend the parallel queue while serial queue is non empty
-        highlander.parallelQueue.isSuspended = true
+        if !highlander.parallelQueue.isSuspended { highlander.parallelQueue.isSuspended = true }
     }
 
     public static func addParallelJob(_ name: String, qos: QualityOfService = .background, block: @escaping () -> Void) {
