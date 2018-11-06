@@ -497,7 +497,7 @@ import LocoKitCore
         stopCoreMotion()
 
         // set the location manager to ask for nothing and ignore everything
-        locationManager.desiredAccuracy = Double.greatestFiniteMagnitude
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
         locationManager.distanceFilter = CLLocationDistanceMax
 
         // no fallback updates while sleeping
