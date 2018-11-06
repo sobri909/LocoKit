@@ -108,7 +108,7 @@ public class Jobs {
         if Jobs.debugLogging { os_log("FINISHED JOB: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
 
         // always pause between background jobs
-        if applicationState == .background { pauseQueues(for: LocomotionManager.highlander.sleepCycleDuration) }
+        if applicationState == .background { pauseParallelQueue(for: 60) }
     }
 
     // MARK: - Queue State Management
@@ -121,14 +121,14 @@ public class Jobs {
         // change all operations to .background priority
         for operation in serialQueue.operations where operation.qualityOfService != .background {
             if Jobs.debugLogging {
-                os_log("Demoting: %@ (from %d to %d)", type: .debug, operation.name!,
+                os_log("DEMOTING: %@ (from %d to %d)", type: .debug, operation.name!,
                        operation.qualityOfService.rawValue, QualityOfService.background.rawValue)
             }
             operation.qualityOfService = .background
         }
         for operation in parallelQueue.operations where operation.qualityOfService != .background {
             if Jobs.debugLogging {
-                os_log("Demoting: %@ (from %d to %d)", type: .debug, operation.name!,
+                os_log("DEMOTING: %@ (from %d to %d)", type: .debug, operation.name!,
                        operation.qualityOfService.rawValue, QualityOfService.background.rawValue)
             }
             operation.qualityOfService = .background
@@ -141,22 +141,18 @@ public class Jobs {
         parallelQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
 
         // resume paused queues
-        resumeQueues()
+        resumeParallelQueue()
     }
 
     private var resumeWorkItem: DispatchWorkItem?
 
-    private func pauseQueues(for duration: TimeInterval) {
+    private func pauseParallelQueue(for duration: TimeInterval) {
 
         // cancel any previous resume task
         resumeWorkItem?.cancel()
         resumeWorkItem = nil
 
-        // pause the queues
-        if canPauseSerialQueue && !serialQueue.isSuspended {
-            if Jobs.debugLogging { os_log("PAUSING SERIAL QUEUE") }
-            serialQueue.isSuspended = true
-        }
+        // pause the parallel queue
         if !parallelQueue.isSuspended {
             if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE") }
             parallelQueue.isSuspended = true
@@ -164,13 +160,13 @@ public class Jobs {
 
         // queue up a task for resuming the queues
         let workItem = DispatchWorkItem {
-            self.resumeQueues()
+            self.resumeParallelQueue()
         }
         resumeWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
     }
 
-    private func resumeQueues() {
+    private func resumeParallelQueue() {
         resumeWorkItem?.cancel()
         resumeWorkItem = nil
 
@@ -178,14 +174,6 @@ public class Jobs {
             if Jobs.debugLogging { os_log("RESUMING PARALLEL QUEUE") }
             parallelQueue.isSuspended = false
         }
-        if serialQueue.isSuspended {
-            if Jobs.debugLogging { os_log("RESUMING SERIAL QUEUE") }
-            serialQueue.isSuspended = false
-        }
-    }
-
-    private var canPauseSerialQueue: Bool {
-        return LocomotionManager.highlander.recordingState != .recording
     }
 
     // MARK: - Queues
