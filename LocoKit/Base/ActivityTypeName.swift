@@ -33,6 +33,7 @@ public enum ActivityTypeName: String, Codable {
     case tuktuk
     case songthaew
     case scooter
+    case metro
 
     // active types
     case skateboarding
@@ -63,7 +64,7 @@ public enum ActivityTypeName: String, Codable {
     /// A convenience array containing the extended transport types.
     public static let extendedTypes = [
         car, train, bus, motorcycle, airplane, boat, tram, tractor, tuktuk, songthaew,
-        skateboarding, inlineSkating, snowboarding, skiing, horseback, scooter
+        skateboarding, inlineSkating, snowboarding, skiing, horseback, scooter, metro
     ]
 
     /// A convenience array containing all activity types.
