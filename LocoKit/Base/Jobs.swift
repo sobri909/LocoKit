@@ -79,7 +79,7 @@ class Jobs {
         }
 
         // always insert a second pause between background jobs
-        if applicationState == .background { pauseQueues(for: 1) }
+        if applicationState == .background { pauseQueues(for: 60) }
     }
 
     // MARK: - Queue Management
@@ -125,10 +125,13 @@ class Jobs {
     }
 
     private func pauseQueues(for duration: TimeInterval) {
-        if serialQueue.isSuspended { return } // don't bother pausing if already paused
+        if parallelQueue.isSuspended { return } // don't bother pausing if already paused
 
-        if Jobs.debugLogging { os_log("PAUSING QUEUES") }
-        serialQueue.isSuspended = true
+        if canPauseSerialQueue {
+            if Jobs.debugLogging { os_log("PAUSING SERIAL QUEUE") }
+            serialQueue.isSuspended = true
+        }
+        if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE") }
         parallelQueue.isSuspended = true
 
         delay(duration) {
@@ -136,6 +139,10 @@ class Jobs {
             self.serialQueue.isSuspended = false
             if Jobs.debugLogging { os_log("RESUMING QUEUES") }
         }
+    }
+
+    private var canPauseSerialQueue: Bool {
+        return LocomotionManager.highlander.recordingState != .recording
     }
 
     // MARK: - Queues
