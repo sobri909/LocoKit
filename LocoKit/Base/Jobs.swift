@@ -92,8 +92,8 @@ public class Jobs {
     }
 
     private func logParallelQueueState() {
-        os_log("parallelQueue.count: %2d, suspended: %@", type: .debug, parallelQueue.operationCount,
-               String(describing: parallelQueue.isSuspended))
+        os_log("parallelQueue.count: %2d, suspended: %@, maxConcurrent: %d", type: .debug, parallelQueue.operationCount,
+               String(describing: parallelQueue.isSuspended), parallelQueue.maxConcurrentOperationCount)
     }
 
     // MARK: - Running Operations
