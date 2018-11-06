@@ -17,24 +17,24 @@ public class Jobs {
 
     // MARK: - Adding Operations
 
-    public static func addSerialJob(_ name: String, qos: QualityOfService = .background, block: @escaping () -> Void) {
+    public static func addSerialJob(_ name: String, block: @escaping () -> Void) {
         let job = BlockOperation() {
             highlander.runJob(name) { block() }
         }
         job.name = name
-        job.qualityOfService = qos
+        job.qualityOfService = highlander.applicationState == .active ? .utility : .background
         highlander.serialQueue.addOperation(job)
 
         // suspend the parallel queue while serial queue is non empty
         if !highlander.parallelQueue.isSuspended { highlander.parallelQueue.isSuspended = true }
     }
 
-    public static func addParallelJob(_ name: String, qos: QualityOfService = .background, block: @escaping () -> Void) {
+    public static func addParallelJob(_ name: String, block: @escaping () -> Void) {
         let job = BlockOperation() {
             highlander.runJob(name) { block() }
         }
         job.name = name
-        job.qualityOfService = qos
+        job.qualityOfService = .background
         highlander.parallelQueue.addOperation(job)
     }
 
