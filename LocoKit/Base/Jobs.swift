@@ -15,11 +15,14 @@ public class Jobs {
 
     public static func addSerialJob(_ name: String, qos: QualityOfService = .background, block: @escaping () -> Void) {
         let job = BlockOperation() {
-            highlander.runJob(name, suspendParallelQueue: true) { block() }
+            highlander.runJob(name) { block() }
         }
         job.name = name
         job.qualityOfService = qos
         highlander.serialQueue.addOperation(job)
+
+        // suspend the parallel queue while serial queue is non empty
+        highlander.parallelQueue.isSuspended = true
     }
 
     public static func addParallelJob(_ name: String, qos: QualityOfService = .background, block: @escaping () -> Void) {
@@ -35,11 +38,13 @@ public class Jobs {
 
     public static let highlander = Jobs()
 
+    private var observers: [Any] = []
     private var applicationState: UIApplication.State
 
     private init() {
         self.applicationState = UIApplication.shared.applicationState
 
+        // background / foreground observers
         let notes =  NotificationCenter.default
         notes.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { _ in
             self.applicationState = .background
@@ -49,36 +54,51 @@ public class Jobs {
             self.applicationState = .active
             self.didBecomeActive()
         }
+
+        // if serial queue complete, open up the parallel queue again
+        observers.append(serialQueue.observe(\.operationCount) { _, _ in
+            if self.parallelQueue.isSuspended, self.serialQueue.operationCount == 0, self.resumeWorkItem == nil {
+                if Jobs.debugLogging { os_log("RESUMING PARALLEL QUEUE (serialQueue.operationCount == 0)") }
+                self.parallelQueue.isSuspended = false
+            }
+        })
+
+        // debug observers
+        if Jobs.debugLogging {
+            observers.append(serialQueue.observe(\.operationCount) { _, _ in
+                self.logQueueStates()
+            })
+            observers.append(parallelQueue.observe(\.operationCount) { _, _ in
+                self.logQueueStates()
+            })
+            observers.append(serialQueue.observe(\.isSuspended) { _, _ in
+                self.logQueueStates()
+            })
+            observers.append(parallelQueue.observe(\.isSuspended) { _, _ in
+                self.logQueueStates()
+            })
+        }
+    }
+
+    private func logQueueStates() {
+        os_log("  serialQueue.count: %2d, suspended: %@", type: .debug, serialQueue.operationCount,
+               String(describing: serialQueue.isSuspended))
+        os_log("parallelQueue.count: %2d, suspended: %@", type: .debug, parallelQueue.operationCount,
+               String(describing: parallelQueue.isSuspended))
     }
 
     // MARK: - Operation Management
 
-    private func runJob(_ name: String, suspendParallelQueue: Bool = false, block: () -> Void) {
-        if Jobs.debugLogging {
-            os_log("serialQueue.count: %d, parallelQueue.count: %d", type: .debug,
-                   serialQueue.operationCount, parallelQueue.operationCount)
-        }
-
-        // suspend the parallel queue while serial queue is active
-        if suspendParallelQueue { parallelQueue.isSuspended = true }
-
+    private func runJob(_ name: String, work: () -> Void) {
         let start = Date()
         if Jobs.debugLogging { os_log("Starting job: %@", type: .debug, name) }
 
         // do the job
-        block()
+        work()
 
         if Jobs.debugLogging { os_log("Finished job: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
 
-        // open up the parallel queue again
-        parallelQueue.isSuspended = false
-
-        if Jobs.debugLogging {
-            os_log("serialQueue.count: %2d, parallelQueue.count: %2d", type: .debug,
-                   serialQueue.operationCount, parallelQueue.operationCount)
-        }
-
-        // always insert a second pause between background jobs
+        // always pause between background jobs
         if applicationState == .background { pauseQueues(for: 60) }
     }
 
@@ -86,54 +106,73 @@ public class Jobs {
 
     private func didEnterBackground() {
 
-        // change all operations to .background priority
-        serialQueue.operations.forEach {
-            if Jobs.debugLogging {
-                os_log("Demoting: %@ (from %d to %d)", type: .debug, $0.name!, $0.qualityOfService.rawValue,
-                       QualityOfService.background.rawValue)
-            }
-            $0.qualityOfService = .background
-        }
-        parallelQueue.operations.forEach {
-            if Jobs.debugLogging {
-                os_log("Demoting: %@ (from %d to %d)", type: .debug, $0.name!, $0.qualityOfService.rawValue,
-                       QualityOfService.background.rawValue)
-            }
-            $0.qualityOfService = .background
-        }
-
         // change parallel queue to be a serial queue
         parallelQueue.maxConcurrentOperationCount = 1
+
+        // change all operations to .background priority
+        for operation in serialQueue.operations where operation.qualityOfService != .background {
+            if Jobs.debugLogging {
+                os_log("Demoting: %@ (from %d to %d)", type: .debug, operation.name!,
+                       operation.qualityOfService.rawValue, QualityOfService.background.rawValue)
+            }
+            operation.qualityOfService = .background
+        }
+        for operation in parallelQueue.operations where operation.qualityOfService != .background {
+            if Jobs.debugLogging {
+                os_log("Demoting: %@ (from %d to %d)", type: .debug, operation.name!,
+                       operation.qualityOfService.rawValue, QualityOfService.background.rawValue)
+            }
+            operation.qualityOfService = .background
+        }
     }
 
     private func didBecomeActive() {
-        if Jobs.debugLogging {
-            os_log("serialQueue.count: %2d, parallelQueue.count: %2d", type: .debug,
-                   serialQueue.operationCount, parallelQueue.operationCount)
-        }
 
         // change parallel queue back to being a parallel queue
         parallelQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
 
         // resume paused queues
-        parallelQueue.isSuspended = false
-        serialQueue.isSuspended = false
+        resumeQueues()
     }
 
-    private func pauseQueues(for duration: TimeInterval) {
-        if parallelQueue.isSuspended { return } // don't bother pausing if already paused
+    private var resumeWorkItem: DispatchWorkItem?
 
-        if canPauseSerialQueue {
+    private func pauseQueues(for duration: TimeInterval) {
+        print("resumeWorkItem: \(resumeWorkItem)")
+
+        // cancel any previous resume task
+        resumeWorkItem?.cancel()
+        resumeWorkItem = nil
+
+        // pause the queues
+        if canPauseSerialQueue && !serialQueue.isSuspended {
             if Jobs.debugLogging { os_log("PAUSING SERIAL QUEUE") }
             serialQueue.isSuspended = true
         }
-        if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE") }
-        parallelQueue.isSuspended = true
+        if !parallelQueue.isSuspended {
+            if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE") }
+            parallelQueue.isSuspended = true
+        }
 
-        delay(duration) {
-            self.parallelQueue.isSuspended = false
-            self.serialQueue.isSuspended = false
-            if Jobs.debugLogging { os_log("RESUMING QUEUES") }
+        // queue up a task for resuming the queues
+        let workItem = DispatchWorkItem {
+            self.resumeQueues()
+        }
+        resumeWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration, execute: workItem)
+    }
+
+    private func resumeQueues() {
+        resumeWorkItem?.cancel()
+        resumeWorkItem = nil
+
+        if parallelQueue.isSuspended {
+            if Jobs.debugLogging { os_log("RESUMING PARALLEL QUEUE") }
+            parallelQueue.isSuspended = false
+        }
+        if serialQueue.isSuspended {
+            if Jobs.debugLogging { os_log("RESUMING SERIAL QUEUE") }
+            serialQueue.isSuspended = false
         }
     }
 
