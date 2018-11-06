@@ -108,7 +108,7 @@ public class Jobs {
         if Jobs.debugLogging { os_log("FINISHED JOB: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
 
         // always pause between background jobs
-        if applicationState == .background { pauseQueues(for: 60) }
+        if applicationState == .background { pauseQueues(for: LocomotionManager.highlander.sleepCycleDuration) }
     }
 
     // MARK: - Queue State Management
