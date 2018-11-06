@@ -9,6 +9,10 @@ import os.log
 
 public class Jobs {
 
+    // MARK: - PUBLIC
+
+    // MARK: - Settings
+
     public static var debugLogging = true
 
     // MARK: - Adding Operations
@@ -33,6 +37,8 @@ public class Jobs {
         job.qualityOfService = qos
         highlander.parallelQueue.addOperation(job)
     }
+
+    // MARK: - PRIVATE
 
     // MARK: - Singleton
 
@@ -66,43 +72,46 @@ public class Jobs {
         // debug observers
         if Jobs.debugLogging {
             observers.append(serialQueue.observe(\.operationCount) { _, _ in
-                self.logQueueStates()
-            })
-            observers.append(parallelQueue.observe(\.operationCount) { _, _ in
-                self.logQueueStates()
+                self.logSerialQueueState()
             })
             observers.append(serialQueue.observe(\.isSuspended) { _, _ in
-                self.logQueueStates()
+                self.logSerialQueueState()
+            })
+            observers.append(parallelQueue.observe(\.operationCount) { _, _ in
+                self.logParallelQueueState()
             })
             observers.append(parallelQueue.observe(\.isSuspended) { _, _ in
-                self.logQueueStates()
+                self.logParallelQueueState()
             })
         }
     }
 
-    private func logQueueStates() {
+    private func logSerialQueueState() {
         os_log("  serialQueue.count: %2d, suspended: %@", type: .debug, serialQueue.operationCount,
                String(describing: serialQueue.isSuspended))
+    }
+
+    private func logParallelQueueState() {
         os_log("parallelQueue.count: %2d, suspended: %@", type: .debug, parallelQueue.operationCount,
                String(describing: parallelQueue.isSuspended))
     }
 
-    // MARK: - Operation Management
+    // MARK: - Running Operations
 
     private func runJob(_ name: String, work: () -> Void) {
         let start = Date()
-        if Jobs.debugLogging { os_log("Starting job: %@", type: .debug, name) }
+        if Jobs.debugLogging { os_log("STARTING JOB: %@", type: .debug, name) }
 
         // do the job
         work()
 
-        if Jobs.debugLogging { os_log("Finished job: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
+        if Jobs.debugLogging { os_log("FINISHED JOB: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
 
         // always pause between background jobs
         if applicationState == .background { pauseQueues(for: 60) }
     }
 
-    // MARK: - Queue Management
+    // MARK: - Queue State Management
 
     private func didEnterBackground() {
 
@@ -138,7 +147,6 @@ public class Jobs {
     private var resumeWorkItem: DispatchWorkItem?
 
     private func pauseQueues(for duration: TimeInterval) {
-        print("resumeWorkItem: \(resumeWorkItem)")
 
         // cancel any previous resume task
         resumeWorkItem?.cancel()
@@ -196,6 +204,8 @@ public class Jobs {
     }()
 
 }
+
+// MARK: -
 
 func delay(_ delay: Double, closure: @escaping () -> ()) {
     DispatchQueue.main.asyncAfter(
