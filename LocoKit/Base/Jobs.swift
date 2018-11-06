@@ -11,6 +11,8 @@ public class Jobs {
 
     // MARK: - PUBLIC
 
+    public static let highlander = Jobs()
+
     // MARK: - Settings
 
     public static var debugLogging = true
@@ -26,7 +28,10 @@ public class Jobs {
         highlander.serialQueue.addOperation(job)
 
         // suspend the parallel queue while serial queue is non empty
-        if !highlander.parallelQueue.isSuspended { highlander.parallelQueue.isSuspended = true }
+        if !highlander.parallelQueue.isSuspended {
+            if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE (serialQueue.operationCount > 0)") }
+            highlander.parallelQueue.isSuspended = true
+        }
     }
 
     public static func addParallelJob(_ name: String, block: @escaping () -> Void) {
@@ -39,10 +44,6 @@ public class Jobs {
     }
 
     // MARK: - PRIVATE
-
-    // MARK: - Singleton
-
-    public static let highlander = Jobs()
 
     private var observers: [Any] = []
     private var applicationState: UIApplication.State
@@ -64,8 +65,7 @@ public class Jobs {
         // if serial queue complete, open up the parallel queue again
         observers.append(serialQueue.observe(\.operationCount) { _, _ in
             if self.parallelQueue.isSuspended, self.serialQueue.operationCount == 0, self.resumeWorkItem == nil {
-                if Jobs.debugLogging { os_log("RESUMING PARALLEL QUEUE (serialQueue.operationCount == 0)") }
-                self.parallelQueue.isSuspended = false
+                self.resumeParallelQueue()
             }
         })
 
@@ -137,26 +137,25 @@ public class Jobs {
 
     private func didBecomeActive() {
 
-        // change parallel queue back to being a parallel queue
+        // change parallel queue back to being a parallel queue in foreground
         parallelQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
 
-        // resume paused queues
+        // resume the parallel queue in foreground
         resumeParallelQueue()
     }
 
     private var resumeWorkItem: DispatchWorkItem?
 
     private func pauseParallelQueue(for duration: TimeInterval) {
-
-        // cancel any previous resume task
         resumeWorkItem?.cancel()
         resumeWorkItem = nil
 
+        // already paused? then nothing to do here
+        if parallelQueue.isSuspended { return }
+
         // pause the parallel queue
-        if !parallelQueue.isSuspended {
-            if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE") }
-            parallelQueue.isSuspended = true
-        }
+        if Jobs.debugLogging { os_log("PAUSING PARALLEL QUEUE (duration: %d)", duration) }
+        parallelQueue.isSuspended = true
 
         // queue up a task for resuming the queues
         let workItem = DispatchWorkItem {
@@ -169,6 +168,8 @@ public class Jobs {
     private func resumeParallelQueue() {
         resumeWorkItem?.cancel()
         resumeWorkItem = nil
+
+        guard serialQueue.operationCount == 0 else { return }
 
         if parallelQueue.isSuspended {
             if Jobs.debugLogging { os_log("RESUMING PARALLEL QUEUE") }
