@@ -15,7 +15,7 @@ public class Jobs {
 
     // MARK: - Settings
 
-    public static var debugLogging = true
+    public static var debugLogging = false
 
     // MARK: - Adding Operations
 
