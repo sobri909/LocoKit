@@ -326,9 +326,6 @@ import LocoKitCore
         // make sure we update even if not getting locations
         restartTheUpdateTimer()
 
-        // don't need background fetches for deep sleep while recording
-        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalNever) }
-
         let previousState = recordingState
         recordingState = .recording
 
