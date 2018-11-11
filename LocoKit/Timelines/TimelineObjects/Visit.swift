@@ -153,6 +153,7 @@ open class Visit: TimelineItem {
         /** GET ALL THE REQUIRED VARS **/
 
         guard let visitEdge = self.edgeSample(with: path), visitEdge.hasUsableCoordinate else { return nil }
+        guard let visitEdgeNext = self.secondToEdgeSample(with: path), visitEdgeNext.hasUsableCoordinate else { return nil }
         guard let pathEdge = path.edgeSample(with: self), pathEdge.hasUsableCoordinate else { return nil }
         guard let pathEdgeNext = path.secondToEdgeSample(with: self), pathEdgeNext.hasUsableCoordinate else { return nil }
 
@@ -173,6 +174,12 @@ open class Visit: TimelineItem {
         }
 
         /** ATTEMPT TO MOVE A VISIT EDGE TO THE PATH **/
+
+        // not allowed to move visit edge if too much duration between edge and edge next
+        let edgeNextDuration = abs(visitEdge.date.timeIntervalSince(visitEdgeNext.date))
+        if edgeNextDuration > .oneMinute * 2 {
+            return nil
+        }
 
         // path edge is outside and visit edge is outside: move visit edge to the path
         if !pathEdgeIsInside && !visitEdgeIsInside {
