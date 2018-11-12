@@ -19,17 +19,15 @@ import CoreLocation
 
  #### Base Types
 
-     stationary, transport, walking, running, cycling
+     stationary, walking, running, cycling
 
  Base types match one-to-one with [Core Motion activity types](https://developer.apple.com/documentation/coremotion/cmmotionactivity),
- with the exception of Core Motion's "automotive" being renamed to "transport" in LocoKit.
+ with the exception of Core Motion's "automotive" type, which is instead handled by extended types in LocoKit.
 
  #### Extended Types
 
-     car, train, bus, motorcycle, airplane, boat
-
- Extended types are a subset of the base "transport" type, allowing for more specific classification when enough
- local data is available.
+    car, train, bus, motorcycle, boat, airplane, tram, horseback, scooter, skateboarding, tractor, skiing,
+    inline skating, metro, tuk-tuk, songthaew
 
  ## Region Specific Classifiers
 
@@ -51,28 +49,25 @@ import CoreLocation
  - [LocoKit transport coverage maps](https://www.bigpaua.com/locokit/coverage/transport)
  - [LocoKit cycling coverage maps](https://www.bigpaua.com/locokit/coverage/cycling)
 
- #### Stationary, Transport, Walking, Running
+ #### Stationary, Walking, Running, Cycling
 
- The base activity types of stationary, transport, walking, and running do not significantly differ by geographical
- region, thus should achieve high detection accuracy everywhere in the world, regardless of local data availability.
+ The base activity types of stationary, walking, running, and should achieve high detection accuracy everywhere in
+ the world, regardless of local data availability.
 
  These types can be considered to have global coverage.
 
- #### Cycling
+ #### Car, Train, Bus, Motorcycle, Airplane, Boat, etc
 
- Cycling has enough regional variance in locomotive characteristics that detection accuracy can range from excellent
- to average depending on the availability of local model data.
+ Determining the specific mode of transport requires local knowledge. If knowing the specific mode of transport is
+ important to your application, you should check the coverage maps for your required regions.
 
- If very high accuracy cycling detection is important to your application, you should check the cycling coverage map
- for the regions you require. However if cycling detection is not a core function of your app, then the results from
- even low coverage classifiers should achieve adequate accuracy, and will certainly exceed the accuracy of Core
- Motion's detection.
+ When local data coverage is not high enough to distinguish specific modes of transport, a threshold probability
+ score should be used on the "best match" classifier result, to determine when to fall back to presenting a generic
+ "transport" classification to the user.
 
- #### Car, Train, Bus, Motorcycle, Airplane, Boat
-
- While the base "transport" type can be detected anywhere in the world with high accuracy, determining the specific
- mode of transport requires local knowledge. If knowing the specific mode of transport is important to your
- application, you should check the coverage maps for your required regions.
+ For example if the highest scoring type is "cycling", but its probability score is only 0.001, that identifies it as
+ a terrible match, thus the real type is most likely some other mode of transport. Your UI should then avoid claiming
+ "cycling", and instead report a generic type name to the user, such as "transport", "automotive", or "unknown".
  */
 public class ActivityTypeClassifier: MLClassifier {
 

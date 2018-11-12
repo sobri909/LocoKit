@@ -109,6 +109,11 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
     public var count: Int {
         return results.count
     }
+
+    public var best: ClassifierResultItem? {
+        if let first = first, first.score > 0 { return first }
+        return ClassifierResultItem(name: .unknown, score: 0)
+    }
     
     public var first: ClassifierResultItem? {
         return self.results.first

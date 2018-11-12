@@ -14,6 +14,7 @@
    the device is in the user's hand or pocket but the user is otherwise stationary.
 */
 public enum ActivityTypeName: String, Codable {
+    case unknown
 
     // base types
     case stationary
@@ -41,9 +42,6 @@ public enum ActivityTypeName: String, Codable {
     case snowboarding
     case skiing
     case horseback
-
-    @available(*, deprecated: 7.0.0)
-    case transport
 
     public var displayName: String {
         switch self {

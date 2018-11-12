@@ -121,8 +121,8 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     public var previousSampleConfirmedType: ActivityTypeName?
 
     public var classifiedType: ActivityTypeName? {
-        guard let first = classifierResults?.first else { return nil }
-        return first.score > 0 ? first.name : nil
+        guard let best = classifierResults?.best else { return nil }
+        return best.score > 0 ? best.name : nil
     }
 
     public var locationIsBogus: Bool = false
