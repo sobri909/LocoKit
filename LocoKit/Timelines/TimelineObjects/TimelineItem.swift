@@ -463,29 +463,38 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         fatalError("Shouldn't be here.")
     }
 
-    internal func sanitiseEdges() {
-        var lastPreviousChanged: LocomotionSample?
-        var lastNextChanged: LocomotionSample?
+    @discardableResult
+    internal func sanitiseEdges(excluding: Set<LocomotionSample> = []) -> Set<LocomotionSample> {
+        var allMoved: Set<LocomotionSample> = []
 
         while true {
-            var previousChanged: LocomotionSample?
-            var nextChanged: LocomotionSample?
+            var movedThisLoop: Set<LocomotionSample> = []
 
-            if let previousPath = self.previousItem as? Path { previousChanged = self.cleanseEdge(with: previousPath) }
-            if let nextPath = self.nextItem as? Path { nextChanged = self.cleanseEdge(with: nextPath) }
+            if let previousPath = self.previousItem as? Path {
+                if let moved = self.cleanseEdge(with: previousPath, excluding: excluding.union(allMoved)) {
+                    movedThisLoop.insert(moved)
+                }
+            }
+            if let nextPath = self.nextItem as? Path {
+                if let moved = self.cleanseEdge(with: nextPath, excluding: excluding.union(allMoved)) {
+                    movedThisLoop.insert(moved)
+                }
+            }
 
             // no changes, so we're done
-            if previousChanged == nil && nextChanged == nil { break }
+            if movedThisLoop.isEmpty { break }
 
             // break from an infinite loop
-            if previousChanged == lastPreviousChanged || nextChanged == lastNextChanged { break }
+            guard movedThisLoop.intersection(allMoved).isEmpty else { break }
 
-            lastPreviousChanged = previousChanged
-            lastNextChanged = nextChanged
+            // keep track of changes
+            allMoved.formUnion(movedThisLoop)
         }
+
+        return allMoved
     }
 
-    internal func cleanseEdge(with path: Path) -> LocomotionSample? {
+    internal func cleanseEdge(with path: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {
         fatalError("Shouldn't be here.")
     }
 

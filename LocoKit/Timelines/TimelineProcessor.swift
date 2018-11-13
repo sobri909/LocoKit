@@ -50,19 +50,21 @@ public class TimelineProcessor {
         }
     }
 
+    private static var lastCleansedSamples: Set<LocomotionSample> = []
+
     public static func process(_ items: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
         guard let store = items.first?.store else { return }
         store.process {
+            var merges: Set<Merge> = []
+            var itemsToSanitise = Set(items)
 
             /** collate all the potential merges **/
 
-            var merges: Set<Merge> = []
             for workingItem in items {
-                workingItem.sanitiseEdges()
 
                 // add in the merges for one step forward
                 if let next = workingItem.nextItem {
-                    next.sanitiseEdges()
+                    itemsToSanitise.insert(next)
 
                     merges.insert(Merge(keeper: workingItem, deadman: next))
                     merges.insert(Merge(keeper: next, deadman: workingItem))
@@ -70,7 +72,7 @@ public class TimelineProcessor {
                     // if next has a lesser keepness, look at doing a merge against next-next
                     if !workingItem.isDataGap, next.keepnessScore < workingItem.keepnessScore {
                         if let nextNext = next.nextItem, !nextNext.isDataGap, nextNext.keepnessScore > next.keepnessScore {
-                            nextNext.sanitiseEdges()
+                            itemsToSanitise.insert(nextNext)
 
                             merges.insert(Merge(keeper: workingItem, betweener: next, deadman: nextNext))
                             merges.insert(Merge(keeper: nextNext, betweener: next, deadman: workingItem))
@@ -80,7 +82,7 @@ public class TimelineProcessor {
 
                 // add in the merges for one step backward
                 if let previous = workingItem.previousItem {
-                    previous.sanitiseEdges()
+                    itemsToSanitise.insert(previous)
 
                     merges.insert(Merge(keeper: workingItem, deadman: previous))
                     merges.insert(Merge(keeper: previous, deadman: workingItem))
@@ -88,7 +90,7 @@ public class TimelineProcessor {
                     // if previous has a lesser keepness, look at doing a merge against previous-previous
                     if !workingItem.isDataGap, previous.keepnessScore < workingItem.keepnessScore {
                         if let prevPrev = previous.previousItem, !prevPrev.isDataGap, prevPrev.keepnessScore > previous.keepnessScore {
-                            prevPrev.sanitiseEdges()
+                            itemsToSanitise.insert(prevPrev)
 
                             merges.insert(Merge(keeper: workingItem, betweener: previous, deadman: prevPrev))
                             merges.insert(Merge(keeper: prevPrev, betweener: previous, deadman: workingItem))
@@ -105,6 +107,16 @@ public class TimelineProcessor {
                     merges.insert(Merge(keeper: next, betweener: workingItem, deadman: previous))
                 }
             }
+
+            /** sanitise the edges **/
+            var allMoved: Set<LocomotionSample> = []
+            itemsToSanitise.forEach {
+                let moved = $0.sanitiseEdges(excluding: lastCleansedSamples)
+                allMoved.formUnion(moved)
+            }
+
+            // infinite loop breakers, for the next processing cycle
+            lastCleansedSamples = allMoved
 
             /** sort the merges by highest to lowest score **/
 
@@ -126,6 +138,9 @@ public class TimelineProcessor {
             /** do it **/
 
             let results = winningMerge.doIt()
+
+            // don't need infinite loop breakers now, because the merge broke the loop
+            lastCleansedSamples = []
 
             completion?(results)
         }

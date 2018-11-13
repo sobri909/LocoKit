@@ -230,7 +230,7 @@ open class Path: TimelineItem, CustomStringConvertible {
         return CLLocationDistance(mean(speeds) * timeSeparation * 4)
     }
 
-    internal override func cleanseEdge(with otherPath: Path) -> LocomotionSample? {
+    internal override func cleanseEdge(with otherPath: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {
         if self.isMergeLocked || otherPath.isMergeLocked { return nil }
         if self.isDataGap || otherPath.isDataGap { return nil }
         if self.deleted || otherPath.deleted { return nil }
@@ -262,7 +262,8 @@ open class Path: TimelineItem, CustomStringConvertible {
         if mySpeedIsSlow != theirSpeedIsSlow { return nil }
         
         // is their edge my activity type?
-        if theirEdge.activityType == myActivityType {
+        if !excluding.contains(theirEdge), theirEdge.activityType == myActivityType {
+            print("stealing otherPath edge")
             self.add(theirEdge)
             return theirEdge
         }

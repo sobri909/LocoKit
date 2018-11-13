@@ -136,13 +136,13 @@ open class Visit: TimelineItem {
         return CLLocationDistanceMax
     }
 
-    internal override func cleanseEdge(with path: Path) -> PersistentSample? {
+    internal override func cleanseEdge(with path: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {
         if self.isMergeLocked || path.isMergeLocked { return nil }
         if self.isDataGap || path.isDataGap { return nil }
         if self.deleted || path.deleted { return nil }
 
         // edge cleansing isn't allowed to push a path into invalid state
-        if path.samples.count <= Path.minimumValidSamples { return nil }
+        guard path.samples.count > Path.minimumValidSamples else { return nil }
 
         // fail out if separation distance is too much
         guard withinMergeableDistance(from: path) else { return nil }
@@ -157,23 +157,21 @@ open class Visit: TimelineItem {
         guard let pathEdge = path.edgeSample(with: self), pathEdge.hasUsableCoordinate else { return nil }
         guard let pathEdgeNext = path.secondToEdgeSample(with: self), pathEdgeNext.hasUsableCoordinate else { return nil }
 
-        guard let visitEdgeLocation = visitEdge.location else { return nil }
         guard let pathEdgeLocation = pathEdge.location else { return nil }
         guard let pathEdgeNextLocation = pathEdgeNext.location else { return nil }
 
-        let visitEdgeIsInside = self.contains(visitEdgeLocation, sd: 1)
         let pathEdgeIsInside = self.contains(pathEdgeLocation, sd: 1)
         let pathEdgeNextIsInside = self.contains(pathEdgeNextLocation, sd: 1)
 
-        /** ATTEMPT TO MOVE A PATH EDGE TO THE VISIT **/
+        /** ATTEMPT TO MOVE PATH EDGE TO THE VISIT **/
 
         // path edge is inside and path edge next is inside: move path edge to the visit
-        if pathEdgeIsInside && pathEdgeNextIsInside {
+        if !excluding.contains(pathEdge), pathEdgeIsInside && pathEdgeNextIsInside {
             self.add(pathEdge)
             return pathEdge
         }
 
-        /** ATTEMPT TO MOVE A VISIT EDGE TO THE PATH **/
+        /** ATTEMPT TO MOVE VISIT EDGE TO THE PATH **/
 
         // not allowed to move visit edge if too much duration between edge and edge next
         let edgeNextDuration = abs(visitEdge.date.timeIntervalSince(visitEdgeNext.date))
@@ -181,17 +179,8 @@ open class Visit: TimelineItem {
             return nil
         }
 
-        // path edge is outside and visit edge is outside: move visit edge to the path
-        if !pathEdgeIsInside && !visitEdgeIsInside {
-            path.add(visitEdge)
-            return visitEdge
-        }
-
-        // path edge is outside and visit edge type matches path edge type: move visit edge to the path
-        if
-            !pathEdgeIsInside, let visitEdgeType = visitEdge.activityType, visitEdgeType != .stationary,
-            visitEdgeType == pathEdge.activityType
-        {
+        // path edge is outside: move visit edge to the path
+        if !excluding.contains(visitEdge), !pathEdgeIsInside {
             path.add(visitEdge)
             return visitEdge
         }
