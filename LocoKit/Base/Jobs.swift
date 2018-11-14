@@ -19,48 +19,49 @@ public class Jobs {
 
     // MARK: - Queues
 
-    private(set) public var serialQueue: OperationQueue = {
+    private(set) public var primaryQueue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "LocoKit.serialQueue"
+        queue.name = "LocoKit.primaryQueue"
         queue.qualityOfService = .utility
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
 
-    // will be converted to serial while in the background
-    private(set) public var parallelQueue: OperationQueue = {
+    // will be converted to primary while in the background
+    private(set) public var secondaryQueue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "LocoKit.parallelQueue"
+        queue.name = "LocoKit.secondaryQueue"
         queue.qualityOfService = .background
+        queue.maxConcurrentOperationCount = 1
         return queue
     }()
 
-    // will be suspended while serialQueue is busy
+    // will be suspended while primaryQueue is busy
     public lazy var managedQueues: [OperationQueue] = {
-        return [self.parallelQueue]
+        return [self.secondaryQueue]
     }()
 
     // MARK: - Adding Operations
 
-    public static func addSerialJob(_ name: String, block: @escaping () -> Void) {
+    public static func addPrimaryJob(_ name: String, block: @escaping () -> Void) {
         let job = BlockOperation() {
-            highlander.runJob(name) { block() }
+            highlander.runJob(name, work: block)
         }
         job.name = name
         job.qualityOfService = highlander.applicationState == .active ? .utility : .background
-        highlander.serialQueue.addOperation(job)
+        highlander.primaryQueue.addOperation(job)
 
-        // suspend the parallel queue while serial queue is non empty
+        // suspend the secondary queues while primary queue is non empty
         highlander.pauseManagedQueues()
     }
 
-    public static func addParallelJob(_ name: String, block: @escaping () -> Void) {
+    public static func addSecondaryJob(_ name: String, block: @escaping () -> Void) {
         let job = BlockOperation() {
-            highlander.runJob(name) { block() }
+            highlander.runJob(name, work: block)
         }
         job.name = name
         job.qualityOfService = .background
-        highlander.parallelQueue.addOperation(job)
+        highlander.secondaryQueue.addOperation(job)
     }
 
     // MARK: - PRIVATE
@@ -82,38 +83,38 @@ public class Jobs {
             self.didBecomeActive()
         }
 
-        // if serial queue complete, open up the parallel queue again
-        observers.append(serialQueue.observe(\.operationCount) { _, _ in
-            if self.serialQueue.operationCount == 0, self.resumeWorkItem == nil {
+        // if primary queue complete, open up the secondary queue again
+        observers.append(primaryQueue.observe(\.operationCount) { _, _ in
+            if self.primaryQueue.operationCount == 0, self.resumeWorkItem == nil {
                 self.resumeManagedQueues()
             }
         })
 
         // debug observers
         if Jobs.debugLogging {
-            observers.append(serialQueue.observe(\.operationCount) { _, _ in
+            observers.append(primaryQueue.observe(\.operationCount) { _, _ in
                 self.logSerialQueueState()
             })
-            observers.append(serialQueue.observe(\.isSuspended) { _, _ in
+            observers.append(primaryQueue.observe(\.isSuspended) { _, _ in
                 self.logSerialQueueState()
             })
-            observers.append(parallelQueue.observe(\.operationCount) { _, _ in
+            observers.append(secondaryQueue.observe(\.operationCount) { _, _ in
                 self.logParallelQueueState()
             })
-            observers.append(parallelQueue.observe(\.isSuspended) { _, _ in
+            observers.append(secondaryQueue.observe(\.isSuspended) { _, _ in
                 self.logParallelQueueState()
             })
         }
     }
 
     private func logSerialQueueState() {
-        os_log("  serialQueue.count: %2d, suspended: %@", type: .debug, serialQueue.operationCount,
-               String(describing: serialQueue.isSuspended))
+        os_log("  primaryQueue.count: %2d, suspended: %@", type: .debug, primaryQueue.operationCount,
+               String(describing: primaryQueue.isSuspended))
     }
 
     private func logParallelQueueState() {
-        os_log("parallelQueue.count: %2d, suspended: %@, maxConcurrent: %d", type: .debug, parallelQueue.operationCount,
-               String(describing: parallelQueue.isSuspended), parallelQueue.maxConcurrentOperationCount)
+        os_log("secondaryQueue.count: %2d, suspended: %@", type: .debug, secondaryQueue.operationCount,
+               String(describing: secondaryQueue.isSuspended))
     }
 
     // MARK: - Running Operations
@@ -134,11 +135,7 @@ public class Jobs {
     // MARK: - Queue State Management
 
     private func didEnterBackground() {
-
-        // change parallel queue to be a serial queue
-        parallelQueue.maxConcurrentOperationCount = 1
-
-        let queues = managedQueues + [serialQueue]
+        let queues = managedQueues + [primaryQueue]
 
         // demote all operations on all queues to .background priority
         for queue in queues {
@@ -153,24 +150,20 @@ public class Jobs {
     }
 
     private func didBecomeActive() {
-
-        // change parallel queue back to being a parallel queue in foreground
-        parallelQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
-
-        // resume the parallel queue in foreground
         resumeManagedQueues()
     }
 
     private var resumeWorkItem: DispatchWorkItem?
 
     private func pauseManagedQueues(for duration: TimeInterval? = nil) {
-        resumeWorkItem?.cancel()
-        resumeWorkItem = nil
 
+        // don't pause again if already paused and waiting for resume
+        guard resumeWorkItem == nil else { return }
+
+        // pause all the secondary queues
         for queue in managedQueues where !queue.isSuspended {
-            if Jobs.debugLogging { os_log("PAUSING QUEUE: %@ (duration: %d)", queue.name ?? "Unnamed",
-                                          duration ?? -1) }
-            parallelQueue.isSuspended = true
+            if Jobs.debugLogging { os_log("PAUSING QUEUE: %@ (duration: %d)", queue.name ?? "Unnamed", duration ?? -1) }
+            queue.isSuspended = true
         }
 
         // queue up a task for resuming the queues
@@ -187,8 +180,8 @@ public class Jobs {
         resumeWorkItem?.cancel()
         resumeWorkItem = nil
 
-        // not allowed to resume when serial queue is still busy
-        guard serialQueue.operationCount == 0 else { return }
+        // not allowed to resume when primary queue is still busy
+        guard primaryQueue.operationCount == 0 else { return }
 
         for queue in managedQueues {
             if queue.isSuspended {

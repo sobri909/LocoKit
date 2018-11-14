@@ -75,7 +75,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
     private func update() {
         guard updatingEnabled else { return }
         
-        Jobs.addParallelJob("TimelineSegment.update") {
+        Jobs.addSecondaryJob("TimelineSegment.update") {
             guard self.updatingEnabled else { return }
             guard self.hasChanged else { return }
 

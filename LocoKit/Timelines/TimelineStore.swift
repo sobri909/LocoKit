@@ -352,7 +352,7 @@ open class TimelineStore {
     // MARK: - Processing
 
     public func process(changes: @escaping () -> Void) {
-        Jobs.addSerialJob("TimelineStore.process") {
+        Jobs.addPrimaryJob("TimelineStore.process") {
             self.processing = true
             changes()
             self.save()
