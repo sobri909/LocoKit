@@ -60,7 +60,7 @@ public class Jobs {
             highlander.runJob(name, work: block)
         }
         job.name = name
-        job.qualityOfService = .background
+        job.qualityOfService = highlander.applicationState == .active ? .utility : .background
         highlander.secondaryQueue.addOperation(job)
     }
 
@@ -150,6 +150,19 @@ public class Jobs {
     }
 
     private func didBecomeActive() {
+        let queues = [primaryQueue] + managedQueues
+
+        // promote all operations on all queues to .utility priority
+        for queue in queues {
+            for operation in queue.operations where operation.qualityOfService == .background {
+                if Jobs.debugLogging {
+                    os_log("PROMOTING: %@ (from %d to %d)", type: .debug, operation.name!,
+                           operation.qualityOfService.rawValue, QualityOfService.utility.rawValue)
+                }
+                operation.qualityOfService = .utility
+            }
+        }
+
         resumeManagedQueues()
     }
 
