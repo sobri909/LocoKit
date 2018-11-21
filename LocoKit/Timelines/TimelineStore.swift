@@ -274,6 +274,12 @@ open class TimelineStore {
         }
     }
 
+    public func countModels(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
+        return try! pool.read { db in
+            return try Int.fetchOne(db, "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
+        }
+    }
+
     // MARK: - Saving
 
     public func save(_ object: TimelineObject, immediate: Bool) {
