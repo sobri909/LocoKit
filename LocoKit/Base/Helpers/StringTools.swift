@@ -49,19 +49,25 @@ public extension String {
         self.init(format: formatter.string(from: metres.measurement))
     }
 
-    init(speed: CLLocationSpeed) {
+    public init(speed: CLLocationSpeed) {
         self.init(metresPerSecond: speed)
     }
     
-    public init(metresPerSecond mps: Double) {
-        let kmh = mps * 3.6
-
+    public init(metresPerSecond mps: CLLocationSpeed) {
         if Locale.current.usesMetricSystem {
-            self.init(format: "%.1f km/h", kmh)
+            if mps.kmh < 10 {
+                self.init(format: "%.1f km/h", mps.kmh)
+            } else {
+                self.init(format: "%.0f km/h", mps.kmh)
+            }
 
         } else {
-            let mph = kmh / 1.609344
-            self.init(format: "%.1f mph", mph)
+            let mph = mps.kmh / 1.609344
+            if mph < 10 {
+                self.init(format: "%.1f mph", mph)
+            } else {
+                self.init(format: "%.0f mph", mph)
+            }
         }
     }
 
