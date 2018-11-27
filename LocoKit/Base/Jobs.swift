@@ -19,19 +19,19 @@ public class Jobs {
 
     // MARK: - Queues
 
-    private(set) public var primaryQueue: OperationQueue = {
+    private(set) public lazy var primaryQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "LocoKit.primaryQueue"
-        queue.qualityOfService = .utility
+        queue.qualityOfService = applicationState == .active ? .userInitiated : .background
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
 
     // will be converted to primary while in the background
-    private(set) public var secondaryQueue: OperationQueue = {
+    private(set) public lazy var secondaryQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
-        queue.qualityOfService = .background
+        queue.qualityOfService = applicationState == .active ? .utility : .background
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
@@ -48,14 +48,23 @@ public class Jobs {
             highlander.runJob(name, work: block)
         }
         job.name = name
-        job.qualityOfService = highlander.applicationState == .active ? .utility : .background
+        job.qualityOfService = highlander.applicationState == .active ? .userInitiated : .background
         highlander.primaryQueue.addOperation(job)
 
         // suspend the secondary queues while primary queue is non empty
         highlander.pauseManagedQueues()
     }
 
-    public static func addSecondaryJob(_ name: String, block: @escaping () -> Void) {
+    public static func addSecondaryJob(_ name: String, dontDupe: Bool = false, block: @escaping () -> Void) {
+        if dontDupe {
+            for operation in highlander.secondaryQueue.operations {
+                if operation.name == name {
+                    if Jobs.debugLogging { os_log("Not adding duplicate job: %@", type: .debug, name) }
+                    return
+                }
+            }
+        }
+
         let job = BlockOperation() {
             highlander.runJob(name, work: block)
         }
@@ -137,12 +146,12 @@ public class Jobs {
     private func didEnterBackground() {
         let queues = managedQueues + [primaryQueue]
 
-        // demote all operations on all queues to .background priority
+        // demote queues and operations to .background priority
         for queue in queues {
+            if queue != primaryQueue { queue.qualityOfService = .background }
             for operation in queue.operations where operation.qualityOfService != .background {
                 if Jobs.debugLogging {
-                    os_log("DEMOTING: %@ (from %d to %d)", type: .debug, operation.name!,
-                           operation.qualityOfService.rawValue, QualityOfService.background.rawValue)
+                    os_log("DEMOTING: %@:%@", type: .debug, queue.name ?? "Unnamed", operation.name ?? "Unnamed")
                 }
                 operation.qualityOfService = .background
             }
@@ -152,14 +161,14 @@ public class Jobs {
     private func didBecomeActive() {
         let queues = [primaryQueue] + managedQueues
 
-        // promote all operations on all queues to .utility priority
+        // promote queues and operations to .utility priority
         for queue in queues {
+            queue.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
             for operation in queue.operations where operation.qualityOfService == .background {
                 if Jobs.debugLogging {
-                    os_log("PROMOTING: %@ (from %d to %d)", type: .debug, operation.name!,
-                           operation.qualityOfService.rawValue, QualityOfService.utility.rawValue)
+                    os_log("PROMOTING: %@:%@", type: .debug, queue.name ?? "Unnamed", operation.name ?? "Unnamed")
                 }
-                operation.qualityOfService = .utility
+                operation.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
             }
         }
 
