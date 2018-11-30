@@ -14,7 +14,10 @@
    the device is in the user's hand or pocket but the user is otherwise stationary.
 */
 public enum ActivityTypeName: String, Codable {
+
+    // special types
     case unknown
+    case bogus
 
     // base types
     case stationary
@@ -62,7 +65,7 @@ public enum ActivityTypeName: String, Codable {
     /// A convenience array containing the extended transport types.
     public static let extendedTypes = [
         car, train, bus, motorcycle, airplane, boat, tram, tractor, tuktuk, songthaew,
-        skateboarding, inlineSkating, snowboarding, skiing, horseback, scooter, metro
+        skateboarding, inlineSkating, snowboarding, skiing, horseback, scooter, metro, bogus
     ]
 
     /// A convenience array containing all activity types.
