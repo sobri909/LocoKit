@@ -353,7 +353,9 @@ public extension Array where Element: LocomotionSample {
         guard let accuracyRange = self.horizontalAccuracyRange else { return nil }
 
         // only one sample? that's the centre then
-        if self.count == 1 { return self.first?.location }
+        if self.count == 1, let first = self.first {
+            return first.hasUsableCoordinate ? first.location : nil
+        }
 
         var sumx: Double = 0, sumy: Double = 0, sumz: Double = 0, totalWeight: Double = 0
 
