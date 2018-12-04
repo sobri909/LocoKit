@@ -230,6 +230,11 @@ internal extension TimelineStore {
                 table.add(column: "previousSampleActivityTypeScores", .text)
             }
         }
+
+        migrator.registerMigration("7.0.3") { db in
+            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
+                          columns: ["confirmedType", "latitude", "longitude"])
+        }
     }
 
 }
