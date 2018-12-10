@@ -25,7 +25,7 @@ open class Path: TimelineItem, CustomStringConvertible {
     public static var minimumValidDataGapDuration: TimeInterval = 60
     public static var minimumKeeperDataGapDuration: TimeInterval = 60 * 60 * 24
 
-    public static var maximumModeShiftSpeed = CLLocationSpeed(kmh: 4.5)
+    public static var maximumModeShiftSpeed = CLLocationSpeed(kmh: 4)
 
     public private(set) var _distance: CLLocationDistance?
 
