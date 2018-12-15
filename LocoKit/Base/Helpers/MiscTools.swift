@@ -54,6 +54,6 @@ public extension TimeInterval {
     public static var oneDay: TimeInterval { return oneHour * 24 }
     public static var oneWeek: TimeInterval { return oneDay * 7 }
     public static var oneMonth: TimeInterval { return oneDay * 30 }
-    public static var oneYear: TimeInterval { return oneMonth * 12 }
+    public static var oneYear: TimeInterval { return oneDay * 365 }
 }
 
