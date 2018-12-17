@@ -78,8 +78,8 @@ extension ActivityType {
         
         /** context scores **/
 
-        if let previousType = previousResults?.first?.name, !previousSampleActivityTypeScores.isEmpty {
-            scores.append(previousTypeScore(for: previousType) * markovWeight)
+        if name != .bogus, let previous = previousResults?.first?.name, !previousSampleActivityTypeScores.isEmpty {
+            scores.append(previousTypeScore(for: previous) * markovWeight)
         }
 
         if let altitude = scorable.location?.altitude, altitude != LocomotionMagicValue.nilAltitude {
@@ -191,10 +191,9 @@ extension ActivityType {
     func latLongScore(for coordinate: CLLocationCoordinate2D) -> Double {
         return coordinatesMatrix?.probabilityFor(coordinate, maxThreshold: bucketMax) ?? 0
     }
-}
 
-extension ActivityType {
-    
+    // MARK: -
+
     var coreMotionTypeScoresString: String {
         var scores = coreMotionTypeScores.map { name, score in (name: name, score: score) }
         
