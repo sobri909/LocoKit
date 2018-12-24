@@ -66,7 +66,7 @@ extension ActivityType {
             scores.append(courseVarianceScore(for: courseVariance) * varianceWeight)
         }
         
-        if name != .stationary { // stationary is allowed any kinds of wiggles
+        if name != .stationary && name != .bogus { // stationary and bogus are allowed any kinds of wiggles
             if let xyAcceleration = scorable.xyAcceleration {
                 scores.append(xyScore(for: xyAcceleration) * xyWeight)
             }
