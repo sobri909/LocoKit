@@ -125,6 +125,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         return best.score > 0 ? best.name : nil
     }
 
+    @available(*, deprecated, message: "Set confirmedType to .bogus instead.")
     public var locationIsBogus: Bool = false
 
     // MARK: - Convenience Getters
@@ -204,8 +205,9 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             locationDict["timestamp"] = dict["date"]
             self.location = CLLocation(from: locationDict)
         }
-        self.locationIsBogus = dict["locationIsBogus"] as? Bool ?? false
-        if let rawValue = dict["confirmedType"] as? String {
+        if let locationIsBogus = dict["locationIsBogus"] as? Bool, locationIsBogus {
+            self.confirmedType = .bogus
+        } else if let rawValue = dict["confirmedType"] as? String {
             self.confirmedType = ActivityTypeName(rawValue: rawValue)
         } else {
             self.confirmedType = nil
@@ -254,9 +256,13 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.xyAcceleration = try? container.decode(Double.self, forKey: .xyAcceleration)
         self.zAcceleration = try? container.decode(Double.self, forKey: .zAcceleration)
         self.coreMotionActivityType = try? container.decode(CoreMotionActivityTypeName.self, forKey: .coreMotionActivityType)
-        self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
 
-        if let bogus = try? container.decode(Bool.self, forKey: .locationIsBogus) { self.locationIsBogus = bogus }
+        if let locationIsBogus = try? container.decode(Bool.self, forKey: .locationIsBogus), locationIsBogus {
+            self.confirmedType = .bogus
+        } else {
+            self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
+        }
+        
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .location) {
             self.location = CLLocation(from: codableLocation)
         } else {
@@ -272,7 +278,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         try container.encode(sampleId, forKey: .sampleId)
         try container.encode(date, forKey: .date)
         try container.encode(location?.codable, forKey: .location)
-        if locationIsBogus { try container.encode(locationIsBogus, forKey: .locationIsBogus) }
         try container.encode(movingState, forKey: .movingState)
         try container.encode(recordingState, forKey: .recordingState)
         if stepHz != nil { try container.encode(stepHz, forKey: .stepHz) }

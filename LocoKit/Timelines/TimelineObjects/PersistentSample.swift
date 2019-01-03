@@ -32,12 +32,13 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         didSet { if oldValue != previousSampleConfirmedType { hasChanges = true; save() } }
     }
 
+    @available(*, deprecated, message: "Set confirmedType to .bogus instead.")
     public override var locationIsBogus: Bool {
         didSet { hasChanges = true; save() }
     }
 
     public override var hasUsableCoordinate: Bool {
-        if locationIsBogus { return false }
+        if confirmedType == .bogus { return false }
         return super.hasUsableCoordinate
     }
 
@@ -179,7 +180,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["verticalAccuracy"] = location?.verticalAccuracy
         container["speed"] = location?.speed
         container["course"] = location?.course
-        container["locationIsBogus"] = locationIsBogus
     }
     
     // MARK: - PersistentObject

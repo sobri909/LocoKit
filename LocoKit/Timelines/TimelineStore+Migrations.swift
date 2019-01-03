@@ -235,6 +235,8 @@ internal extension TimelineStore {
             try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
                           columns: ["confirmedType", "latitude", "longitude"])
         }
+
+        // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
     }
 
 }
