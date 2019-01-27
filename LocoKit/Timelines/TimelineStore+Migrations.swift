@@ -236,6 +236,12 @@ internal extension TimelineStore {
                           columns: ["confirmedType", "latitude", "longitude"])
         }
 
+        migrator.registerMigration("7.0.4 timezones") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "secondsFromGMT", .integer)
+            }
+        }
+
         // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
     }
 

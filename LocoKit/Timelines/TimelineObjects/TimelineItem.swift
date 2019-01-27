@@ -214,12 +214,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var endDate: Date? { return dateRange?.end }
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
 
-    open var startTimeZone: TimeZone? {
-        fatalError("Shouldn't be here.")
+    public var startTimeZone: TimeZone? {
+        return samples.first?.localTimeZone
     }
 
-    open var endTimeZone: TimeZone? {
-        fatalError("Shouldn't be here.")
+    public var endTimeZone: TimeZone? {
+        return samples.last?.localTimeZone
     }
 
     // MARK: - Item validity

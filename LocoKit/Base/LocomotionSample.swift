@@ -30,6 +30,8 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
     public let date: Date
+
+    public let secondsFromGMT: Int?
     
     // MARK: Location Properties
 
@@ -140,9 +142,16 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     public var localTimeZone: TimeZone? {
         if let cached = _localTimeZone { return cached }
 
+        // create one from utc offset
+        if let secondsFromGMT = secondsFromGMT {
+            _localTimeZone = TimeZone(secondsFromGMT: secondsFromGMT)
+            return _localTimeZone
+        }
+
         guard let location = location else { return nil }
         guard location.hasUsableCoordinate else { return nil }
 
+        // try to fetch one from remote, hopefully available on next access
         CLPlacemarkCache.fetchPlacemark(for: location) { [weak self] placemark in
             self?._localTimeZone = placemark?.timeZone
         }
@@ -161,6 +170,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.sampleId = UUID()
 
         self.date = sample.date
+        self.secondsFromGMT = TimeZone.current.secondsFromGMT()
         self.recordingState = LocomotionManager.highlander.recordingState
         self.movingState = sample.movingState
         self.location = sample.location
@@ -187,6 +197,9 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             self.sampleId = UUID()
         }
         self.date = dict["date"] as! Date
+        if let secondsFromGMT = dict["secondsFromGMT"] as? Int { self.secondsFromGMT = secondsFromGMT }
+        else if let secondsFromGMT = dict["secondsFromGMT"] as? Int64 { self.secondsFromGMT = Int(secondsFromGMT) }
+        else { self.secondsFromGMT = nil }
         self.movingState = MovingState(rawValue: dict["movingState"] as! String)!
         self.recordingState = RecordingState(rawValue: dict["recordingState"] as! String)!
         self.stepHz = dict["stepHz"] as? Double
@@ -230,6 +243,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.recordingState = recordingState
         self.movingState = movingState
         self.date = date
+        self.secondsFromGMT = TimeZone.current.secondsFromGMT()
 
         self.filteredLocations = []
         self.rawLocations = []
@@ -249,6 +263,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
         self.sampleId = (try? container.decode(UUID.self, forKey: .sampleId)) ?? UUID()
         self.date = try container.decode(Date.self, forKey: .date)
+        self.secondsFromGMT = try? container.decode(Int.self, forKey: .secondsFromGMT)
         self.movingState = try container.decode(MovingState.self, forKey: .movingState)
         self.recordingState = try container.decode(RecordingState.self, forKey: .recordingState)
         self.stepHz = try? container.decode(Double.self, forKey: .stepHz)
@@ -277,6 +292,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sampleId, forKey: .sampleId)
         try container.encode(date, forKey: .date)
+        if secondsFromGMT != nil { try container.encode(secondsFromGMT, forKey: .secondsFromGMT) }
         try container.encode(location?.codable, forKey: .location)
         try container.encode(movingState, forKey: .movingState)
         try container.encode(recordingState, forKey: .recordingState)
@@ -291,6 +307,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     private enum CodingKeys: String, CodingKey {
         case sampleId
         case date
+        case secondsFromGMT
         case location
         case locationIsBogus
         case movingState

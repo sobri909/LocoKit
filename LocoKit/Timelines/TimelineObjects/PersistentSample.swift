@@ -159,6 +159,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["sampleId"] = sampleId.uuidString
         container["source"] = source
         container["date"] = date
+        container["secondsFromGMT"] = secondsFromGMT
         container["deleted"] = deleted
         container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
         container["movingState"] = movingState.rawValue

@@ -42,16 +42,6 @@ open class Path: TimelineItem, CustomStringConvertible {
         super.init(in: store)
     }
 
-    // MARK: - Dates, times, durations
-
-    open override var startTimeZone: TimeZone? {
-        return samples.first?.localTimeZone
-    }
-
-    open override var endTimeZone: TimeZone? {
-        return samples.last?.localTimeZone
-    }
-
     // MARK: - Item validity
 
     open override var isValid: Bool {
