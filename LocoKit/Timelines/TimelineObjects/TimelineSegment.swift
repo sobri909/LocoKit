@@ -15,6 +15,7 @@ public class TimelineSegment: TransactionObserver, Encodable {
     public let store: TimelineStore
     public var onUpdate: (() -> Void)?
     public var debugLogging = false
+    public var shouldReprocessOnUpdate = true
     public var shouldUpdateMarkovValues = true
 
     private var _timelineItems: [TimelineItem]?
@@ -78,10 +79,17 @@ public class TimelineSegment: TransactionObserver, Encodable {
             guard self.updatingEnabled else { return }
             guard self.hasChanged else { return }
 
-            self.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
+            if self.shouldReprocessOnUpdate {
+                self.timelineItems.forEach { TimelineProcessor.healEdges(of: $0) }
+            }
+            
             self.reclassifySamples()
             self.updateMarkovValues()
-            self.process()
+
+            if self.shouldReprocessOnUpdate {
+                self.process()
+            }
+
             self.onUpdate?()
         }
     }
