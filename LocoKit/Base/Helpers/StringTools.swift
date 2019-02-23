@@ -26,8 +26,13 @@ public extension String {
         self.init(format: formatter.string(from: duration)!)
     }
 
-    public init(metres: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .long, isAltitude: Bool = false) {
+    public init(distance: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
+        self.init(metres: distance, style: style, isAltitude: isAltitude)
+    }
+
+    public init(metres: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
         let formatter = MeasurementFormatter()
+        formatter.unitStyle = style
 
         if isAltitude {
             formatter.unitOptions = .providedUnit
