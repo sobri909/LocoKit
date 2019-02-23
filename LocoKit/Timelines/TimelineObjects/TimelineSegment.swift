@@ -8,7 +8,7 @@
 import os.log
 import GRDB
 
-public class TimelineSegment: TransactionObserver, Encodable {
+public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     public static var reclassifySamples = true
 
@@ -230,6 +230,12 @@ public class TimelineSegment: TransactionObserver, Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(timelineItems, forKey: .timelineItems)
+    }
+
+    // MARK: - Equatable
+
+    public static func == (lhs: TimelineSegment, rhs: TimelineSegment) -> Bool {
+        return lhs.query == rhs.query && lhs.arguments == rhs.arguments
     }
 
 }
