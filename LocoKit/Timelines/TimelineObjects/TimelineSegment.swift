@@ -12,11 +12,18 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     public static var reclassifySamples = true
 
-    public let store: TimelineStore
-    public var onUpdate: (() -> Void)?
+    // MARK: -
+
     public var debugLogging = false
     public var shouldReprocessOnUpdate = true
     public var shouldUpdateMarkovValues = true
+
+    // MARK: -
+
+    public let store: TimelineStore
+    public var onUpdate: (() -> Void)?
+
+    // MARK: -
 
     private var _timelineItems: [TimelineItem]?
     public var timelineItems: [TimelineItem] {
@@ -29,15 +36,22 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     private let query: String
     private let arguments: StatementArguments?
+    public var dateRange: DateInterval?
+
+    // MARK: -
+
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
     private var pendingChanges = false
     private var updatingEnabled = true
 
+    // MARK: -
+
     public convenience init(for dateRange: DateInterval, in store: TimelineStore, onUpdate: (() -> Void)? = nil) {
-        self.init(for: "endDate > ? AND startDate < ? AND deleted = 0 ORDER BY startDate",
-                  arguments: [dateRange.start, dateRange.end], in: store)
+        self.init(for: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
+                  arguments: ["startDate": dateRange.start, "endDate": dateRange.end], in: store)
+        self.dateRange = dateRange
     }
 
     public init(for query: String, arguments: StatementArguments? = nil, in store: TimelineStore,
