@@ -98,9 +98,9 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
             }
             
             self.reclassifySamples()
-            self.updateMarkovValues()
 
             if self.shouldReprocessOnUpdate {
+                self.updateMarkovValues()
                 self.process()
             }
 
