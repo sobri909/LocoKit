@@ -81,4 +81,7 @@ public enum ActivityTypeName: String, Codable {
     /// A convenience array containing all activity types.
     public static let allTypes = baseTypes + extendedTypes
 
+    /// Activity types that can sensibly have related step counts 
+    public static let stepsTypes = [walking, running, cycling]
+
 }
