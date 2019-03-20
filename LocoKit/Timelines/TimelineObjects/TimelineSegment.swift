@@ -212,27 +212,51 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
     // MARK: - Export helpers
 
     public var filename: String? {
+        if timelineItems.count == 1 {
+            return singleItemFilename
+        }
+
+        guard let dateRange = dateRange else { return nil }
+
+        if dateRange.start.isSameDayAs(dateRange.end) {
+            return dayFilename
+        }
+
+        if dateRange.start.isSameMonthAs(dateRange.end) {
+            return monthFilename
+        }
+
+        return yearFilename
+    }
+
+    public var singleItemFilename: String? {
         guard let firstRange = timelineItems.first?.dateRange else { return nil }
-        guard let lastRange = timelineItems.last?.dateRange else { return nil }
+        guard timelineItems.count == 1 else { return nil }
 
         let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HHmm"
+        return formatter.string(from: firstRange.start)
+    }
 
-        // single item?
-        if timelineItems.count == 1 {
-            formatter.dateFormat = "yyyy-MM-dd HHmm"
-            return formatter.string(from: firstRange.start)
+    public var dayFilename: String? {
+        guard let dateRange = dateRange else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: dateRange.middle)
+    }
 
-        }
+    public var monthFilename: String? {
+        guard let dateRange = dateRange else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter.string(from: dateRange.middle)
+    }
 
-        // single day?
-        if firstRange.start.isSameDayAs(lastRange.end) || firstRange.end.isSameDayAs(lastRange.start) {
-            formatter.dateFormat = "yyyy-MM-dd"
-
-        } else { // multiple days
-            formatter.dateFormat = "yyyy-MM"
-        }
-
-        return formatter.string(from: lastRange.start)
+    public var yearFilename: String? {
+        guard let dateRange = dateRange else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy"
+        return formatter.string(from: dateRange.middle)
     }
 
     // MARK: - Encodable

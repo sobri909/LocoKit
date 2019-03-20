@@ -36,6 +36,10 @@ public extension UUID {
 }
 
 public extension DateInterval {
+    var middle: Date {
+        return start + duration * 0.5
+    }
+
     public func contains(_ other: DateInterval) -> Bool {
         if let overlap = intersection(with: other), overlap == other {
             return true
@@ -44,8 +48,9 @@ public extension DateInterval {
     }
 }
 
-extension Date {
-    func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
+public extension Date {
+    public func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
+    public func isSameMonthAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, equalTo: self, toGranularity: .month) }
 }
 
 public extension TimeInterval {
