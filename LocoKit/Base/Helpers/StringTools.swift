@@ -7,9 +7,24 @@ import CoreLocation
 
 public extension String {
 
-    public init(duration: TimeInterval, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
+    public init(duration: TimeInterval, fractionalUnit: Bool = false, style: DateComponentsFormatter.UnitsStyle = .full,
+                maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
         if duration.isNaN {
             self.init(format: "NaN")
+            return
+        }
+
+        if fractionalUnit {
+            let unitStyle: Formatter.UnitStyle
+            switch style {
+            case .positional: unitStyle = .short
+            case .abbreviated: unitStyle = .short
+            case .short: unitStyle = .medium
+            case .brief: unitStyle = .medium
+            case .full: unitStyle = .long
+            case .spellOut: unitStyle = .long
+            }
+            self.init(String(duration: Measurement(value: duration, unit: UnitDuration.seconds), style: unitStyle))
             return
         }
 
@@ -24,6 +39,14 @@ public extension String {
         }
 
         self.init(format: formatter.string(from: duration)!)
+    }
+
+    public init(duration: Measurement<UnitDuration>, style: Formatter.UnitStyle = .medium) {
+        let formatter = MeasurementFormatter()
+        formatter.unitStyle = style
+        formatter.unitOptions = .naturalScale
+        formatter.numberFormatter.maximumFractionDigits = 1
+        self.init(format: formatter.string(from: duration))
     }
 
     public init(distance: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
