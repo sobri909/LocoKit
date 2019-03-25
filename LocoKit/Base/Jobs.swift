@@ -17,6 +17,8 @@ public class Jobs {
 
     public static var debugLogging = false
 
+    public static var maximumSecondaryConcurrents = 4
+
     // MARK: - Queues
 
     private(set) public lazy var primaryQueue: OperationQueue = {
@@ -32,7 +34,7 @@ public class Jobs {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
         queue.qualityOfService = applicationState == .active ? .utility : .background
-        queue.maxConcurrentOperationCount = applicationState == .active ? 3 : 1
+        queue.maxConcurrentOperationCount = applicationState == .active ? Jobs.maximumSecondaryConcurrents : 1
         return queue
     }()
 
@@ -165,7 +167,7 @@ public class Jobs {
         let queues = [primaryQueue] + managedQueues
 
         // secondary queue goes mildly parallel in foreground
-        secondaryQueue.maxConcurrentOperationCount = 3
+        secondaryQueue.maxConcurrentOperationCount = Jobs.maximumSecondaryConcurrents
 
         // promote queues and operations to .utility priority
         for queue in queues {
