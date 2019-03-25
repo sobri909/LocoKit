@@ -32,7 +32,7 @@ public class Jobs {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
         queue.qualityOfService = applicationState == .active ? .utility : .background
-        queue.maxConcurrentOperationCount = 1
+        queue.maxConcurrentOperationCount = applicationState == .active ? 3 : 1
         return queue
     }()
 
@@ -146,6 +146,9 @@ public class Jobs {
     private func didEnterBackground() {
         let queues = managedQueues + [primaryQueue]
 
+        // secondary queue goes serial in background
+        secondaryQueue.maxConcurrentOperationCount = 1
+
         // demote queues and operations to .background priority
         for queue in queues {
             if queue != primaryQueue { queue.qualityOfService = .background }
@@ -160,6 +163,9 @@ public class Jobs {
 
     private func didBecomeActive() {
         let queues = [primaryQueue] + managedQueues
+
+        // secondary queue goes mildly parallel in foreground
+        secondaryQueue.maxConcurrentOperationCount = 3
 
         // promote queues and operations to .utility priority
         for queue in queues {
