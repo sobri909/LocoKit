@@ -8,6 +8,10 @@
 import os.log
 import GRDB
 
+public extension NSNotification.Name {
+    public static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
+}
+
 public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     public static var reclassifySamples = true
@@ -105,6 +109,8 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
             }
 
             self.onUpdate?()
+
+            NotificationCenter.default.post(Notification(name: .timelineSegmentUpdated, object: self))
         }
     }
 
