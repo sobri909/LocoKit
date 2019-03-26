@@ -8,12 +8,12 @@
 
 public extension Array {
 
-    public var second: Element? {
+    var second: Element? {
         guard count > 1 else { return nil }
         return self[1]
     }
 
-    public var secondToLast: Element? {
+    var secondToLast: Element? {
         guard count > 1 else { return nil }
         return self[count - 2]
     }
@@ -22,10 +22,10 @@ public extension Array {
 
 public extension Array where Element: FloatingPoint {
 
-    public var sum: Element { return reduce(0, +) }
-    public var mean: Element { return isEmpty ? 0 : sum / Element(count) }
+    var sum: Element { return reduce(0, +) }
+    var mean: Element { return isEmpty ? 0 : sum / Element(count) }
     
-    public var variance: Element {
+    var variance: Element {
         let mean = self.mean
         let squareDiffs = self.map { value -> Element in
             let diff = value - mean
@@ -34,17 +34,17 @@ public extension Array where Element: FloatingPoint {
         return squareDiffs.mean
     }
     
-    public var standardDeviation: Element { return variance.squareRoot() }
+    var standardDeviation: Element { return variance.squareRoot() }
 
 }
 
 public extension Array where Element: Equatable {
-    public mutating func remove(_ object: Element) { if let index = index(of: object) { remove(at: index) } }
-    public mutating func removeObjects(_ array: [Element]) { for object in array { remove(object) } }
+    mutating func remove(_ object: Element) { if let index = index(of: object) { remove(at: index) } }
+    mutating func removeObjects(_ array: [Element]) { for object in array { remove(object) } }
 }
 
 public extension Array where Element: Comparable {
-    public var range: (min: Element, max: Element)? {
+    var range: (min: Element, max: Element)? {
         guard let min = self.min(), let max = self.max() else { return nil }
         return (min: min, max: max)
     }

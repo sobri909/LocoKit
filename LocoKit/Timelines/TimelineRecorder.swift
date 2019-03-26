@@ -9,8 +9,8 @@ import LocoKitCore
 import CoreLocation
 
 public extension NSNotification.Name {
-    public static let newTimelineItem = Notification.Name("newTimelineItem")
-    public static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
+    static let newTimelineItem = Notification.Name("newTimelineItem")
+    static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
 }
 
 public class TimelineRecorder {

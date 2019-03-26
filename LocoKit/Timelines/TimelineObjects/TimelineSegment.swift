@@ -9,7 +9,7 @@ import os.log
 import GRDB
 
 public extension NSNotification.Name {
-    public static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
+    static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
 }
 
 public class TimelineSegment: TransactionObserver, Encodable, Equatable {

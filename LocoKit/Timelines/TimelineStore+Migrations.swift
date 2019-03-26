@@ -9,7 +9,7 @@ import GRDB
 
 internal extension TimelineStore {
 
-     internal func registerMigrations() {
+    func registerMigrations() {
 
         // initial tables creation
         migrator.registerMigration("CreateTables") { db in

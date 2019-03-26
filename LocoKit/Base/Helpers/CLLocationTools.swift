@@ -47,7 +47,7 @@ public extension Radians {
 
 public extension CLLocationDistance {
     static let feetPerMetre = 3.2808399
-    public var measurement: Measurement<UnitLength> { return Measurement(value: self, unit: UnitLength.meters) }
+    var measurement: Measurement<UnitLength> { return Measurement(value: self, unit: UnitLength.meters) }
 }
 
 public extension CLLocationSpeed {
@@ -81,19 +81,19 @@ public struct CodableLocation: Codable {
 
 public extension CLLocationCoordinate2D {
 
-    public var isUsable: Bool {
+    var isUsable: Bool {
         return !isNull && isValid
     }
 
-    public var isNullIsland: Bool {
+    var isNullIsland: Bool {
         return isNull
     }
 
-    public var isNull: Bool {
+    var isNull: Bool {
         return latitude == 0 && longitude == 0
     }
 
-    public var isValid: Bool {
+    var isValid: Bool {
         return CLLocationCoordinate2DIsValid(self)
     }
 }
@@ -119,16 +119,16 @@ extension CLLocationCoordinate2D: Codable {
 
 public extension CLLocation {
 
-    public convenience init?(weightedCenterFor samples: [LocomotionSample]) {
+    convenience init?(weightedCenterFor samples: [LocomotionSample]) {
         self.init(weightedCenterFor: samples.compactMap { $0.hasUsableCoordinate ? $0.location : nil })
     }
 
-    public convenience init?(centerFor samples: [LocomotionSample]) {
+    convenience init?(centerFor samples: [LocomotionSample]) {
         self.init(centerFor: samples.compactMap { $0.hasUsableCoordinate ? $0.location : nil })
     }
 
     /// The weighted centre for an array of locations
-    public convenience init?(weightedCenterFor locations: [CLLocation]) {
+    convenience init?(weightedCenterFor locations: [CLLocation]) {
         if locations.isEmpty { return nil }
 
         guard let accuracyRange = locations.horizontalAccuracyRange else { return nil }
@@ -169,7 +169,7 @@ public extension CLLocation {
     }
 
     // The unweighted centre of an array of locations
-    public convenience init?(centerFor locations: [CLLocation]) {
+    convenience init?(centerFor locations: [CLLocation]) {
         if locations.isEmpty {
             return nil
         }
@@ -199,14 +199,14 @@ public extension CLLocation {
         self.init(x: meanx, y: meany, z: meanz)
     }
 
-    public convenience init(x: Radians, y: Radians, z: Radians) {
+    convenience init(x: Radians, y: Radians, z: Radians) {
         let lng: Radians = atan2(y, x)
         let hyp = (x * x + y * y).squareRoot()
         let lat: Radians = atan2(z, hyp)
         self.init(latitude: lat.degreesValue, longitude: lng.degreesValue)
     }
 
-    public convenience init?(from dict: [String: Any?]) {
+    convenience init?(from dict: [String: Any?]) {
         guard let latitude = dict["latitude"] as? Double else { return nil }
         guard let longitude = dict["longitude"] as? Double else { return nil }
 
@@ -234,28 +234,28 @@ public extension CLLocation {
 }
 
 public extension CLLocation {
-    public convenience init(from codable: CodableLocation) {
+    convenience init(from codable: CodableLocation) {
         self.init(coordinate: CLLocationCoordinate2D(latitude: codable.latitude, longitude: codable.longitude),
                   altitude: codable.altitude, horizontalAccuracy: codable.horizontalAccuracy,
                   verticalAccuracy: codable.verticalAccuracy, course: codable.course, speed: codable.speed,
                   timestamp: codable.timestamp)
     }
-    public var codable: CodableLocation {
+    var codable: CodableLocation {
         return CodableLocation(location: self)
     }
 }
 
 public extension CLLocation {
-    public var isNolo: Bool {
+    var isNolo: Bool {
         return !hasUsableCoordinate
     }
-    public var hasUsableCoordinate: Bool {
+    var hasUsableCoordinate: Bool {
         return horizontalAccuracy >= 0 && coordinate.isUsable
     }
 }
 
 public extension CLLocation {
-    public var localTimeZone: TimeZone? {
+    var localTimeZone: TimeZone? {
         return nil
     }
 }

@@ -20,7 +20,7 @@ public protocol MLModelSource {
 
 public extension Array where Element: MLModel {
 
-    public var completenessScore: Double {
+    var completenessScore: Double {
         if isEmpty {
             return 0
         }
@@ -31,7 +31,7 @@ public extension Array where Element: MLModel {
         return total / Double(count)
     }
 
-    public var accuracyScore: Double? {
+    var accuracyScore: Double? {
         var totalScore = 0.0, totalWeight = 0.0
         for model in self {
             if let score = model.accuracyScore, score >= 0 {
@@ -42,7 +42,7 @@ public extension Array where Element: MLModel {
         return totalWeight > 0 ? totalScore / totalWeight : nil
     }
 
-    public var lastUpdated: Date? {
+    var lastUpdated: Date? {
         var mostRecentUpdate: Date?
         for model in self {
             if let lastUpdated = model.lastUpdated, mostRecentUpdate == nil || lastUpdated > mostRecentUpdate! {
@@ -52,7 +52,7 @@ public extension Array where Element: MLModel {
         return mostRecentUpdate
     }
 
-    public var lastFetched: Date {
+    var lastFetched: Date {
         var mostRecentFetch = Date.distantPast
         for model in self {
             if model.lastFetched > mostRecentFetch {
@@ -62,12 +62,12 @@ public extension Array where Element: MLModel {
         return mostRecentFetch
     }
 
-    public var missingBaseTypes: [ActivityTypeName] {
+    var missingBaseTypes: [ActivityTypeName] {
         let haveTypes = self.map { $0.name }
         return ActivityTypeName.baseTypes.filter { !haveTypes.contains($0) }
     }
 
-    public var isStale: Bool {
+    var isStale: Bool {
         if isEmpty { return true }
 
         // missing a base model?

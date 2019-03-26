@@ -26,10 +26,10 @@ public protocol TimelineObject: class, PersistableRecord {
 }
 
 public extension TimelineObject {
-    public var unsaved: Bool { return lastSaved == nil }
-    public var needsSave: Bool { return unsaved || hasChanges }
-    public func save(immediate: Bool = false) { store?.save(self, immediate: immediate) }
-    public func save(in db: Database) throws {
+    var unsaved: Bool { return lastSaved == nil }
+    var needsSave: Bool { return unsaved || hasChanges }
+    func save(immediate: Bool = false) { store?.save(self, immediate: immediate) }
+    func save(in db: Database) throws {
         if unsaved { try insert(db) } else if hasChanges { try update(db) }
         hasChanges = false
     }

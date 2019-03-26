@@ -6,7 +6,7 @@
 import os.log
 
 public extension NSNotification.Name {
-    public static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
+    static let mergedTimelineItems = Notification.Name("mergedTimelineItems")
 }
 
 typealias MergeScore = ConsumptionScore

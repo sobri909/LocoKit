@@ -337,23 +337,23 @@ extension LocomotionSample: Hashable {
 }
 
 public extension Array where Element: LocomotionSample {
-    public var duration: TimeInterval {
+    var duration: TimeInterval {
         guard let firstDate = first?.date, let lastDate = last?.date else { return 0 }
         return lastDate.timeIntervalSince(firstDate)
     }
-    public var distance: CLLocationDistance {
+    var distance: CLLocationDistance {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.distance
     }
-    public var weightedMeanAltitude: CLLocationDistance? {
+    var weightedMeanAltitude: CLLocationDistance? {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.weightedMeanAltitude
     }
-    public var horizontalAccuracyRange: AccuracyRange? {
+    var horizontalAccuracyRange: AccuracyRange? {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.horizontalAccuracyRange
     }
-    public var verticalAccuracyRange: AccuracyRange? {
+    var verticalAccuracyRange: AccuracyRange? {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.verticalAccuracyRange
     }
-    public var haveAnyUsableLocations: Bool {
+    var haveAnyUsableLocations: Bool {
         for sample in self { if sample.hasUsableCoordinate { return true } }
         return false
     }
@@ -363,13 +363,13 @@ public extension Array where Element: LocomotionSample {
 
     // MARK: -
 
-    public var center: CLLocation? { return CLLocation(centerFor: self) }
+    var center: CLLocation? { return CLLocation(centerFor: self) }
 
     /**
      The weighted centre for an array of samples
      - Note: More weight will be given to samples classified with "stationary" type
      */
-    public var weightedCenter: CLLocation? {
+    var weightedCenter: CLLocation? {
         if self.isEmpty { return nil }
 
         guard let accuracyRange = self.horizontalAccuracyRange else { return nil }

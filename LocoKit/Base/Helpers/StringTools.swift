@@ -7,7 +7,7 @@ import CoreLocation
 
 public extension String {
 
-    public init(duration: TimeInterval, fractionalUnit: Bool = false, style: DateComponentsFormatter.UnitsStyle = .full,
+    init(duration: TimeInterval, fractionalUnit: Bool = false, style: DateComponentsFormatter.UnitsStyle = .full,
                 maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
         if duration.isNaN {
             self.init(format: "NaN")
@@ -41,7 +41,7 @@ public extension String {
         self.init(format: formatter.string(from: duration)!)
     }
 
-    public init(duration: Measurement<UnitDuration>, style: Formatter.UnitStyle = .medium) {
+    init(duration: Measurement<UnitDuration>, style: Formatter.UnitStyle = .medium) {
         let formatter = MeasurementFormatter()
         formatter.unitStyle = style
         formatter.unitOptions = .naturalScale
@@ -49,11 +49,11 @@ public extension String {
         self.init(format: formatter.string(from: duration))
     }
 
-    public init(distance: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
+    init(distance: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
         self.init(metres: distance, style: style, isAltitude: isAltitude)
     }
 
-    public init(metres: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
+    init(metres: CLLocationDistance, style: MeasurementFormatter.UnitStyle = .medium, isAltitude: Bool = false) {
         let formatter = MeasurementFormatter()
         formatter.unitStyle = style
 
@@ -77,11 +77,11 @@ public extension String {
         self.init(format: formatter.string(from: metres.measurement))
     }
 
-    public init(speed: CLLocationSpeed) {
+    init(speed: CLLocationSpeed) {
         self.init(metresPerSecond: speed)
     }
     
-    public init(metresPerSecond mps: CLLocationSpeed) {
+    init(metresPerSecond mps: CLLocationSpeed) {
         if Locale.current.usesMetricSystem {
             if mps.kmh < 10 {
                 self.init(format: "%.1f km/h", mps.kmh)

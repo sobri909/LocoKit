@@ -12,8 +12,8 @@ import CoreLocation
 import GRDB
 
 public extension NSNotification.Name {
-    public static let processingStarted = Notification.Name("processingStarted")
-    public static let processingStopped = Notification.Name("processingStopped")
+    static let processingStarted = Notification.Name("processingStarted")
+    static let processingStopped = Notification.Name("processingStopped")
 }
 
 /// An SQL database backed persistent timeline store.
