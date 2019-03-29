@@ -20,9 +20,6 @@ class Settings {
     static var showUserLocation = true
     static var autoZoomMap = true
 
-    static var enableTheClassifier = true
-    static var enableTransportClassifier = true
-
     static var showDebugTimelineDetails = false
 
     static var visibleTab: UIView?
