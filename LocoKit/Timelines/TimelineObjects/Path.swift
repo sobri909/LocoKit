@@ -272,9 +272,10 @@ open class Path: TimelineItem, CustomStringConvertible {
         super.encode(to: &container)
         container["isVisit"] = false
         container["distance"] = _distance
+        container["activityType"] = _modeMovingActivityType?.rawValue
     }
 
-    // MARK: CustomStringConvertible
+    // MARK: - CustomStringConvertible
 
     public var description: String {
         let itemType = isDataGap ? "datagap" : isNolo ? "nolo" : "path"

@@ -653,7 +653,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         container["stepCount"] = stepCount
         container["floorsAscended"] = floorsAscended
         container["floorsDescended"] = floorsDescended
-        container["activityType"] = _modeMovingActivityType?.rawValue
         container["latitude"] = _center?.coordinate.latitude
         container["longitude"] = _center?.coordinate.longitude
     }
