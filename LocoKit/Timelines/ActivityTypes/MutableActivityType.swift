@@ -11,7 +11,7 @@ import CoreLocation
 import GRDB
 
 public struct LocomotionMagicValue {
-    @available(*, deprecated: 5.1.0)
+    @available(*, deprecated)
     public static let nilCourse: Double = -360
     public static let nilAltitude: CLLocationDistance = -1000
 }

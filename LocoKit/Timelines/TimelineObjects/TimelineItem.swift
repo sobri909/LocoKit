@@ -660,7 +660,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: - Hashable, Comparable
 
-    public var hashValue: Int { return itemId.hashValue }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(itemId)
+    }
 
     public static func ==(lhs: TimelineItem, rhs: TimelineItem) -> Bool { return lhs.itemId == rhs.itemId }
 

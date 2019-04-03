@@ -332,7 +332,7 @@ extension LocomotionSample: CustomStringConvertible {
 }
 
 extension LocomotionSample: Hashable {
-    public var hashValue: Int { return sampleId.hashValue }
+    public func hash(into hasher: inout Hasher) { hasher.combine(sampleId) }
     public static func ==(lhs: LocomotionSample, rhs: LocomotionSample) -> Bool { return lhs.sampleId == rhs.sampleId }
 }
 

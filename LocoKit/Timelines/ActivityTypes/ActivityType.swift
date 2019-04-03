@@ -467,19 +467,11 @@ open class ActivityType: MLModel, PersistableRecord {
     }
     
     // MARK: - Equatable
-    
-    open var hashValue: Int {
-        if let cached = cachedHashValue { return cached }
-        
-        // cache if valid
-        if geoKey.count > 0 {
-            cachedHashValue = geoKey.hashValue
-            return cachedHashValue!
-        }
-        
-        return geoKey.hashValue
+
+    open func hash(into hasher: inout Hasher) {
+        hasher.combine(geoKey)
     }
-    
+
     public static func ==(lhs: ActivityType, rhs: ActivityType) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }

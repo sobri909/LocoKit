@@ -97,18 +97,16 @@ internal class Merge: Hashable, CustomStringConvertible {
 
     // MARK: - Hashable
 
-    lazy var hashValue: Int = {
-        let hash: Int
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(keeper)
+        hasher.combine(deadman)
         if let betweener = betweener {
-            hash = keeper.hashValue ^ betweener.hashValue ^ deadman.hashValue
-        } else {
-            hash = keeper.hashValue ^ deadman.hashValue
+            hasher.combine(betweener)
         }
         if let startDate = keeper.startDate {
-            return hash ^ startDate.hashValue
+            hasher.combine(startDate)
         }
-        return hash
-    }()
+    }
 
     static func == (lhs: Merge, rhs: Merge) -> Bool {
         return lhs.hashValue == rhs.hashValue
