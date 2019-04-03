@@ -159,7 +159,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
             }
 
             // item needs rebuild?
-            if typeChanged { item.samplesChanged() }
+            if typeChanged { item.sampleTypesChanged() }
 
             if debugLogging && count > 0 {
                 if typeChanged {

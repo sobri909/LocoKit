@@ -538,16 +538,21 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         if madeChanges { samplesChanged() }
     }
 
-    open func samplesChanged() {
-        _isNolo = nil
-        _center = nil
-        _radius = nil
-        _altitude = nil
+    open func sampleTypesChanged() {
         _segments = nil
         _segmentsByActivityType = nil
         _classifierResults = nil
         _modeMovingActivityType = nil
         _modeActivityType = nil
+    }
+
+    open func samplesChanged() {
+        sampleTypesChanged()
+        
+        _isNolo = nil
+        _center = nil
+        _radius = nil
+        _altitude = nil
 
         let oldDateRange = dateRange
         _dateRange = nil
