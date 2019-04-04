@@ -110,7 +110,7 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
         return results.count
     }
 
-    public var best: ClassifierResultItem? {
+    public var best: ClassifierResultItem {
         if let first = first, first.score > 0 { return first }
         return ClassifierResultItem(name: .unknown, score: 0)
     }

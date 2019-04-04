@@ -140,33 +140,22 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
         for item in timelineItems {
             var count = 0
-            var typeChanged = false
 
             for sample in item.samples where sample.confirmedType == nil {
 
-                // existing classifier results are already complete?
-                if let moreComing = sample.classifierResults?.moreComing, moreComing == false { continue }
+                // don't reclassify samples if they've been done within the past month
+                if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneMonth { continue }
 
-                // reclassify
-                let oldActivityType = sample.activityType
                 sample.classifierResults = classifier.classify(sample, previousResults: lastResults)
                 if sample.classifierResults != nil { count += 1 }
-
-                // activity type changed?
-                if sample.activityType != oldActivityType { typeChanged = true }
-
                 lastResults = sample.classifierResults
             }
 
             // item needs rebuild?
-            if typeChanged { item.sampleTypesChanged() }
+            if count > 0 { item.sampleTypesChanged() }
 
             if debugLogging && count > 0 {
-                if typeChanged {
-                    os_log("Reclassified samples: %d (typeChanged: true)", type: .debug, count)
-                } else {
-                    os_log("Reclassified samples: %d", type: .debug, count)
-                }
+                os_log("Reclassified samples: %d", type: .debug, count)
             }
         }
     }

@@ -122,9 +122,15 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     public var previousSampleConfirmedType: ActivityTypeName?
 
+    internal var _classifiedType: ActivityTypeName?
     public var classifiedType: ActivityTypeName? {
-        guard let best = classifierResults?.best else { return nil }
-        return best.score > 0 ? best.name : nil
+        if let cached = _classifiedType { return cached }
+        guard let results = classifierResults else { return nil }
+        guard results.best.score > 0 else { return nil }
+        if !results.moreComing {
+            _classifiedType = results.best.name
+        }
+        return results.best.name
     }
 
     @available(*, deprecated, message: "Set confirmedType to .bogus instead.")
@@ -224,6 +230,11 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             self.confirmedType = ActivityTypeName(rawValue: rawValue)
         } else {
             self.confirmedType = nil
+        }
+        if let rawValue = dict["classifiedType"] as? String {
+            self._classifiedType = ActivityTypeName(rawValue: rawValue)
+        } else {
+            self._classifiedType = nil
         }
         if let rawValue = dict["previousSampleConfirmedType"] as? String {
             self.previousSampleConfirmedType = ActivityTypeName(rawValue: rawValue)

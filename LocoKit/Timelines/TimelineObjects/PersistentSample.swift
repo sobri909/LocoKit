@@ -18,6 +18,10 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var source: String = "LocoKit"
 
+    internal override var _classifiedType: ActivityTypeName? {
+        didSet { if oldValue != _classifiedType { hasChanges = true; save() } }
+    }
+
     public override var confirmedType: ActivityTypeName? {
         didSet {
             if oldValue != confirmedType {
@@ -171,6 +175,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["zAcceleration"] = zAcceleration
         container["coreMotionActivityType"] = coreMotionActivityType?.rawValue
         container["confirmedType"] = confirmedType?.rawValue
+        container["classifiedType"] = _classifiedType?.rawValue
         container["previousSampleConfirmedType"] = previousSampleConfirmedType?.rawValue
 
         // location

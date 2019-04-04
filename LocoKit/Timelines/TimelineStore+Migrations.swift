@@ -242,6 +242,12 @@ internal extension TimelineStore {
             }
         }
 
+        migrator.registerMigration("7.0.5 cached activity types") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "classifiedType", .text)
+            }
+        }
+
         // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
     }
 
