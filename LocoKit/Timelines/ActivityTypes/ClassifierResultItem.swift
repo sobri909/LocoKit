@@ -20,13 +20,19 @@ public struct ClassifierResultItem: Equatable {
      The match probability score for the result, in the range of 0.0 to 1.0 (0% match to 100% match).
      */
     public let score: Double
-    
+
     public let modelAccuracyScore: Double?
 
     public init(name: ActivityTypeName, score: Double, modelAccuracyScore: Double? = nil) {
         self.name = name
         self.score = score
         self.modelAccuracyScore = modelAccuracyScore
+    }
+
+    public func normalisedScore(in results: ClassifierResults) -> Double {
+        let scoresTotal = results.scoresTotal
+        guard scoresTotal > 0 else { return 0 }
+        return score / scoresTotal
     }
 
     /**

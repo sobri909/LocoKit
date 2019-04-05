@@ -6,6 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import Upsurge
+
 /**
  The results of a call to `classify(_:types:)` on an `ActivityTypeClassifier`.
 
@@ -118,6 +120,12 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
     public var first: ClassifierResultItem? {
         return self.results.first
     }
+
+    public var scoresTotal: Double {
+        return sum(results.map { $0.score })
+    }
+
+    // MARK: -
 
     public subscript(index: Int) -> ClassifierResultItem {
         return results[index]
