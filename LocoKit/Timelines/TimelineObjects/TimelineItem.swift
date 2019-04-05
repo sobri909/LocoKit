@@ -368,9 +368,17 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return results
     }
 
+    public private(set) var _movingActivityType: ActivityTypeName? = nil
+
     public var movingActivityType: ActivityTypeName? {
-        guard let first = classifierResults?.first(where: { $0.name != .stationary }) else { return nil }
-        return first.score > 0 ? first.name : nil
+        if let cached = _movingActivityType { return cached }
+        guard let results = classifierResults else { return nil }
+        guard let first = results.first(where: { $0.name != .stationary }) else { return nil }
+        guard first.score > 0 else { return nil }
+        if !results.moreComing {
+            _movingActivityType = first.name
+        }
+        return first.name
     }
 
     public private(set) var _modeActivityType: ActivityTypeName? = nil
@@ -542,6 +550,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         _segments = nil
         _segmentsByActivityType = nil
         _classifierResults = nil
+        _movingActivityType = nil
         _modeMovingActivityType = nil
         _modeActivityType = nil
     }
@@ -717,7 +726,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
         if let rawValue = dict["activityType"] as? String, let activityType = ActivityTypeName(rawValue: rawValue) {
             if self is Path {
-                _modeMovingActivityType = activityType
+                _movingActivityType = activityType
             } else {
                 _modeActivityType = activityType
             }
@@ -769,16 +778,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         if altitude != nil { try container.encode(altitude, forKey: .altitude) }
         if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
         if self is Path {
-            if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
-        } else {
-            if modeActivityType != nil { try container.encode(modeActivityType, forKey: .activityType) }
+            if movingActivityType != nil { try container.encode(movingActivityType, forKey: .activityType) }
         }
         if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
         if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
         try container.encode(samples, forKey: .samples)
     }
 
-    private enum CodingKeys: String, CodingKey {
+    internal enum CodingKeys: String, CodingKey {
         case itemId
         case deleted
         case isVisit

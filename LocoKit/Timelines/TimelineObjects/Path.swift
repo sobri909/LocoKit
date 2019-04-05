@@ -272,7 +272,7 @@ open class Path: TimelineItem, CustomStringConvertible {
         super.encode(to: &container)
         container["isVisit"] = false
         container["distance"] = _distance
-        container["activityType"] = _modeMovingActivityType?.rawValue
+        container["activityType"] = _movingActivityType?.rawValue
     }
 
     // MARK: - CustomStringConvertible
