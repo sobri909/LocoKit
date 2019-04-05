@@ -113,8 +113,8 @@ class MergeScores {
 
     // MARK: - PATH <- PATH
     private static func consumptionScoreFor(path consumer: Path, toConsumePath consumee: Path) -> ConsumptionScore {
-        let consumerType = consumer.movingActivityType ?? consumer.modeActivityType
-        let consumeeType = consumee.movingActivityType ?? consumee.modeActivityType
+        let consumerType = consumer.modeMovingActivityType ?? consumer.modeActivityType
+        let consumeeType = consumee.modeMovingActivityType ?? consumee.modeActivityType
 
         // no types means it's a random guess
         if consumerType == nil && consumeeType == nil { return .medium }

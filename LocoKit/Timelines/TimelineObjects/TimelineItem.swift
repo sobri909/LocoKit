@@ -726,7 +726,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
         if let rawValue = dict["activityType"] as? String, let activityType = ActivityTypeName(rawValue: rawValue) {
             if self is Path {
-                _movingActivityType = activityType
+                _modeMovingActivityType = activityType
             } else {
                 _modeActivityType = activityType
             }
@@ -778,7 +778,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         if altitude != nil { try container.encode(altitude, forKey: .altitude) }
         if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
         if self is Path {
-            if movingActivityType != nil { try container.encode(movingActivityType, forKey: .activityType) }
+            if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
         }
         if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
         if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
