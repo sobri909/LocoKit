@@ -129,6 +129,14 @@ public class ItemSegment: Equatable {
         return true
     }
 
+    public var isDataGap: Bool {
+        if samples.isEmpty { return false }
+        for sample in samples {
+            if sample.recordingState != .off { return false }
+        }
+        return true
+    }
+
     // MARK: - Activity Types
 
     public var activityType: ActivityTypeName? {
