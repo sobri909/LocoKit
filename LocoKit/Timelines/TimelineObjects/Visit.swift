@@ -17,6 +17,24 @@ open class Visit: TimelineItem {
     public static var minimumRadius: CLLocationDistance = 10
     public static var maximumRadius: CLLocationDistance = 150
 
+    // MARK: -
+
+    public required init(from dict: [String: Any?], in store: TimelineStore) {
+        super.init(from: dict, in: store)
+    }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        guard let isVisit = try? container.decode(Bool.self, forKey: .isVisit), isVisit else {
+            throw DecodeError.runtimeError("Trying to decode a Path as a Visit")
+        }
+        try super.init(from: decoder)
+    }
+
+    public required init(in store: TimelineStore) {
+        super.init(in: store)
+    }
+    
     // MARK: - Item validity
 
     open override var isValid: Bool {

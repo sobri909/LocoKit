@@ -29,12 +29,18 @@ open class Path: TimelineItem, CustomStringConvertible {
 
     public private(set) var _distance: CLLocationDistance?
 
+    // MARK: -
+    
     public required init(from dict: [String: Any?], in store: TimelineStore) {
         self._distance = dict["distance"] as? CLLocationDistance
         super.init(from: dict, in: store)
     }
 
     public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        guard let isVisit = try? container.decode(Bool.self, forKey: .isVisit), !isVisit else {
+            throw DecodeError.runtimeError("Trying to decode a Visit as a Path")
+        }
         try super.init(from: decoder)
     }
 

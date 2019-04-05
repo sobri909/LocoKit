@@ -804,3 +804,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         case samples
     }
 }
+
+internal enum DecodeError: Error {
+    case runtimeError(String)
+}
