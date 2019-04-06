@@ -353,7 +353,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: - Activity Types
 
-    private var _classifierResults: ClassifierResults? = nil
+    public private(set) var _classifierResults: ClassifierResults? = nil
 
     /// The `ActivityTypeClassifier` results for the timeline item.
     public var classifierResults: ClassifierResults? {
