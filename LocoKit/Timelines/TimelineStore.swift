@@ -35,6 +35,7 @@ open class TimelineStore {
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
     private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
     private let modelMap = NSMapTable<NSString, ActivityType>.strongToWeakObjects()
+    private let segmentMap = NSMapTable<NSNumber, TimelineSegment>.strongToWeakObjects()
 
     public private(set) var processing = false {
         didSet {
@@ -47,6 +48,7 @@ open class TimelineStore {
     public var itemsInStore: Int { return mutex.sync { itemMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var samplesInStore: Int { return mutex.sync { sampleMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var modelsInStore: Int { return mutex.sync { modelMap.objectEnumerator()?.allObjects.count ?? 0 } }
+    public var segmentsInStore: Int { return mutex.sync { segmentMap.objectEnumerator()?.allObjects.count ?? 0 } }
 
     public var itemsToSave: Set<TimelineItem> = []
     public var samplesToSave: Set<PersistentSample> = []
@@ -126,6 +128,10 @@ open class TimelineStore {
 
     open func add(_ model: ActivityType) {
         mutex.sync { modelMap.setObject(model, forKey: model.geoKey as NSString) }
+    }
+
+    open func add(_ segment: TimelineSegment) {
+        mutex.sync { segmentMap.setObject(segment, forKey: NSNumber(value: segment.hashValue)) }
     }
 
     // MARK: - Object fetching
@@ -258,6 +264,30 @@ open class TimelineStore {
         if let cached = mutex.sync(execute: { modelMap.object(forKey: geoKey as NSString) }) { return cached }
         if let model = ActivityType(dict: row.asDict(in: self), in: self) { return model }
         fatalError("FAILED MODEL INIT FROM ROW")
+    }
+
+    // MARK: - Segments
+
+    public func segment(for dateRange: DateInterval) -> TimelineSegment {
+        let segment = self.segment(where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
+                                   arguments: ["startDate": dateRange.start, "endDate": dateRange.end])
+        segment.dateRange = dateRange
+        return segment
+    }
+
+    public func segment(where query: String, arguments: StatementArguments? = nil) -> TimelineSegment {
+        var hasher = Hasher()
+        hasher.combine("SELECT * FROM TimelineItem WHERE " + query)
+        if let arguments = arguments { hasher.combine(arguments.description) }
+        let hashValue = hasher.finalize()
+
+        // have an existing one?
+        if let cached = segmentMap.object(forKey: NSNumber(value: hashValue)) { print("REUSING SEGMENT"); return cached }
+
+        // make a fresh one
+        let segment = TimelineSegment(where: query, arguments: arguments, in: self)
+        self.add(segment)
+        return segment
     }
 
     // MARK: - Counting

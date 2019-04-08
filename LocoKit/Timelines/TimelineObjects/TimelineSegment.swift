@@ -12,14 +12,14 @@ public extension NSNotification.Name {
     static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
 }
 
-public class TimelineSegment: TransactionObserver, Encodable, Equatable {
+public class TimelineSegment: TransactionObserver, Encodable, Hashable {
 
     public static var reclassifySamples = true
 
     // MARK: -
 
     public var debugLogging = false
-    public var shouldReprocessOnUpdate = true
+    public var shouldReprocessOnUpdate = false
     public var shouldUpdateMarkovValues = true
 
     // MARK: -
@@ -52,13 +52,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     // MARK: -
 
-    public convenience init(for dateRange: DateInterval, in store: TimelineStore, onUpdate: (() -> Void)? = nil) {
-        self.init(for: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
-                  arguments: ["startDate": dateRange.start, "endDate": dateRange.end], in: store)
-        self.dateRange = dateRange
-    }
-
-    public init(for query: String, arguments: StatementArguments? = nil, in store: TimelineStore,
+    public init(where query: String, arguments: StatementArguments? = nil, in store: TimelineStore,
                 onUpdate: (() -> Void)? = nil) {
         self.store = store
         self.query = "SELECT * FROM TimelineItem WHERE " + query
@@ -85,7 +79,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
         onMain {
             guard self.updatingEnabled else { return }
             self.updateTimer?.invalidate()
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { [weak self] _ in
+            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
                 self?.update()
             }
         }
@@ -93,7 +87,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
 
     private func update() {
         guard updatingEnabled else { return }
-        Jobs.addSecondaryJob("TimelineSegment.\(ObjectIdentifier(self).hashValue).update", dontDupe: true) {
+        Jobs.addSecondaryJob("TimelineSegment.\(self.hashValue).update", dontDupe: true) {
             guard self.updatingEnabled else { return }
             guard self.hasChanged else { return }
 
@@ -263,6 +257,15 @@ public class TimelineSegment: TransactionObserver, Encodable, Equatable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(timelineItems, forKey: .timelineItems)
+    }
+
+    // MARK: - Hashable
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(query)
+        if let arguments = arguments {
+            hasher.combine(arguments.description)
+        }
     }
 
     // MARK: - Equatable
