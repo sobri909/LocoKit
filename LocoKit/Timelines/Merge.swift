@@ -86,11 +86,13 @@ internal class Merge: Hashable, CustomStringConvertible {
 
         // deal with a betweener
         if let betweener = betweener {
+            keeper.willConsume(item: betweener)
             keeper.add(betweener.samples)
             betweener.delete()
         }
 
         // deal with the deadman
+        keeper.willConsume(item: deadman)
         keeper.add(deadman.samples)
         deadman.delete()
     }
