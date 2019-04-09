@@ -282,7 +282,7 @@ open class TimelineStore {
         let hashValue = hasher.finalize()
 
         // have an existing one?
-        if let cached = segmentMap.object(forKey: NSNumber(value: hashValue)) { print("REUSING SEGMENT"); return cached }
+        if let cached = segmentMap.object(forKey: NSNumber(value: hashValue)) { return cached }
 
         // make a fresh one
         let segment = TimelineSegment(where: query, arguments: arguments, in: self)
