@@ -6,6 +6,15 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+public enum ClassifierResultScoreGroup: Int {
+    case perfect = 5
+    case veryGood = 4
+    case good = 3
+    case bad = 2
+    case veryBad = 1
+    case terrible = 0
+}
+
 /**
  An individual result row in a `ClassifierResults` instance, for a single activity type.
  */
@@ -33,6 +42,18 @@ public struct ClassifierResultItem: Equatable {
         let scoresTotal = results.scoresTotal
         guard scoresTotal > 0 else { return 0 }
         return score / scoresTotal
+    }
+
+    public func normalisedScoreGroup(in results: ClassifierResults) -> ClassifierResultScoreGroup {
+        let normalisedScore = self.normalisedScore(in: results)
+        switch Int(round(normalisedScore * 100)) {
+        case 100: return .perfect
+        case 80...100: return .veryGood
+        case 50...80: return .good
+        case 20...50: return .bad
+        case 1...20: return .veryBad
+        default: return .terrible
+        }
     }
 
     /**
