@@ -140,8 +140,13 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
                 // don't reclassify samples if they've been done within the past month
                 if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneMonth { continue }
 
+                let oldClassifiedType = sample._classifiedType
+                sample._classifiedType = nil
                 sample.classifierResults = classifier.classify(sample, previousResults: lastResults)
-                if sample.classifierResults != nil { count += 1 }
+                if sample.classifiedType != oldClassifiedType {
+                    count += 1
+                }
+
                 lastResults = sample.classifierResults
             }
 
