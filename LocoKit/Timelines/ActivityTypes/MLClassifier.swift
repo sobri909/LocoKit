@@ -146,7 +146,7 @@ extension MLClassifier {
 
         // no parent? we'll have to settle for what we've got
         guard let parent = parent else {
-            return ClassifierResults(results: scores, moreComing: depth > 0)
+            return ClassifierResults(results: scores, moreComing: depth > 1)
         }
 
         let parentResults = parent.classify(classifiable, previousResults: previousResults)
