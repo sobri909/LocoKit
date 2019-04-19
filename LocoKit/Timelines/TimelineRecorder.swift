@@ -123,6 +123,10 @@ public class TimelineRecorder {
         }
     }
 
+    public func updateCurrentItem() {
+        _currentItem = store.mostRecentItem
+    }
+
     public var currentVisit: Visit? { return currentItem as? Visit }
 
     private var lastRecorded: Date?

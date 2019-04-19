@@ -306,6 +306,9 @@ public class TimelineProcessor {
                 extractPathEdgesFor(visit, in: store)
             }
 
+            // keep currentItem sane
+            store.recorder?.updateCurrentItem()
+
             // complete with the new item
             completion?(newItem)
         }
