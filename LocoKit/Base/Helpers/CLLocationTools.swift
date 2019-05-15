@@ -80,21 +80,17 @@ public struct CodableLocation: Codable {
 }
 
 public extension CLLocationCoordinate2D {
+    var isUsable: Bool { return !isNull && isValid }
+    var isNullIsland: Bool { return isNull }
+    var isNull: Bool { return latitude == 0 && longitude == 0 }
+    var isValid: Bool { return CLLocationCoordinate2DIsValid(self) }
+}
 
-    var isUsable: Bool {
-        return !isNull && isValid
-    }
-
-    var isNullIsland: Bool {
-        return isNull
-    }
-
-    var isNull: Bool {
-        return latitude == 0 && longitude == 0
-    }
-
-    var isValid: Bool {
-        return CLLocationCoordinate2DIsValid(self)
+extension CLLocationCoordinate2D: Equatable {
+    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+        if lhs.latitude != rhs.latitude { return false }
+        if lhs.longitude != rhs.longitude { return false }
+        return true
     }
 }
 
