@@ -10,3 +10,4 @@ report.xml
 *.log
 tags
 build
+.DS_Store
