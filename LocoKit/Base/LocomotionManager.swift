@@ -916,6 +916,26 @@ import LocoKitCore
         // forward the delegate event
         locationManagerDelegate?.locationManager?(manager, didRangeBeacons: beacons, in: region)
     }
+
+    public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+
+        // broadcast a notification
+        let note = Notification(name: .didEnterRegion, object: self, userInfo: ["region": region])
+        NotificationCenter.default.post(note)
+
+        // forward the delegate event
+        locationManagerDelegate?.locationManager?(manager, didEnterRegion: region)
+    }
+
+    public func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+
+        // broadcast a notification
+        let note = Notification(name: .didExitRegion, object: self, userInfo: ["region": region])
+        NotificationCenter.default.post(note)
+
+        // forward the delegate event
+        locationManagerDelegate?.locationManager?(manager, didExitRegion: region)
+    }
     
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
 

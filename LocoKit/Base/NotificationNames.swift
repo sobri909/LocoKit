@@ -72,6 +72,8 @@ public extension NSNotification.Name {
     static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")
     static let didUpdateLocations = Notification.Name("didUpdateLocations")
     static let didRangeBeacons = Notification.Name("didRangeBeacons")
+    static let didEnterRegion = Notification.Name("didEnterRegion")
+    static let didExitRegion = Notification.Name("didExitRegion")
     static let didVisit = Notification.Name("didVisit")
 
     @available(*, unavailable, renamed: "wentFromRecordingToSleepMode")
