@@ -52,6 +52,7 @@ public enum ActivityTypeName: String, Codable {
     case horseback
     case swimming
     case golf
+    case wheelchair
 
     public var displayName: String {
         switch self {
