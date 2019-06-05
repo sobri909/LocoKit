@@ -762,7 +762,6 @@ import LocoKitCore
                 os_log("error: %@", String(describing: error))
                 
             } else if let motion = motion {
-                self.coreMotionPermission = true
                 ActivityBrain.highlander.add(deviceMotion: motion)
             }
         }
