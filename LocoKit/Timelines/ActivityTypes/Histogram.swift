@@ -325,7 +325,7 @@ open class Histogram: CustomStringConvertible {
     }
     
     static func iqr(_ metric: [Double]) -> Double {
-        var sorted = metric.sorted { $0 < $1 }
+        let sorted = metric.sorted { $0 < $1 }
         let q1 = sorted[Int(floor(Double(sorted.count) / 4.0))]
         let q3 = sorted[Int(floor(Double(sorted.count) * 3.0 / 4.0))]
         return q3 - q1

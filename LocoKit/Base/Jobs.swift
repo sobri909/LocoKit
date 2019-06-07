@@ -27,7 +27,7 @@ public class Jobs {
         return queue
     }()
 
-    // will be converted to primary while in the background
+    // will be converted to serial while in the background
     private(set) public lazy var secondaryQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"

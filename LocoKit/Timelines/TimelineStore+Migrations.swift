@@ -67,7 +67,7 @@ internal extension TimelineStore {
             }
 
             // maintain the linked list from the nextItem side
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_update_nextItemId
                     AFTER UPDATE OF nextItemId ON TimelineItem
                     BEGIN
@@ -77,7 +77,7 @@ internal extension TimelineStore {
                 """)
 
             // maintain the linked list from the previousItem side
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_update_previousItemId
                     AFTER UPDATE OF previousItemId ON TimelineItem
                     BEGIN
@@ -118,8 +118,8 @@ internal extension TimelineStore {
             /** new and updated triggers **/
 
             // replacement insert triggers, with more precision
-            try db.execute("DROP TRIGGER IF EXISTS TimelineItem_insert")
-            try db.execute("""
+            try db.execute(sql: "DROP TRIGGER IF EXISTS TimelineItem_insert")
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_INSERT_previousEdge
                     AFTER INSERT ON TimelineItem
                     WHEN NEW.previousItemId IS NOT NULL
@@ -127,7 +127,7 @@ internal extension TimelineStore {
                         UPDATE TimelineItem SET nextItemId = NEW.itemId WHERE itemId = NEW.previousItemId;
                     END
                 """)
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_INSERT_nextEdge
                     AFTER INSERT ON TimelineItem
                     WHEN NEW.nextItemId IS NOT NULL
@@ -137,7 +137,7 @@ internal extension TimelineStore {
                 """)
 
             // ensure the previous edge is detached when an item is soft deleted
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_UPDATE_deleted_previousEdge
                     AFTER UPDATE OF deleted ON TimelineItem
                     WHEN NEW.deleted = 1 AND NEW.previousItemId IS NOT NULL
@@ -148,7 +148,7 @@ internal extension TimelineStore {
                 """)
 
             // ensure the next edge is detached when an item is soft deleted
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_UPDATE_deleted_nextEdge
                     AFTER UPDATE OF deleted ON TimelineItem
                     WHEN NEW.deleted = 1 AND NEW.nextItemId IS NOT NULL

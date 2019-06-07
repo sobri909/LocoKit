@@ -22,6 +22,6 @@ Pod::Spec.new do |s|
   s.subspec 'Timelines' do |sp|
     sp.source_files = 'LocoKit/Timelines/**/*'
     sp.dependency 'LocoKit/Base'
-    sp.dependency 'GRDB.swift', '~> 3'
+    sp.dependency 'GRDB.swift', '~> 4'
   end
 end

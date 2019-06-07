@@ -39,7 +39,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
     }
 
     private let query: String
-    private let arguments: StatementArguments?
+    private let arguments: StatementArguments
     public var dateRange: DateInterval?
 
     // MARK: -
@@ -56,7 +56,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
                 onUpdate: (() -> Void)? = nil) {
         self.store = store
         self.query = "SELECT * FROM TimelineItem WHERE " + query
-        self.arguments = arguments
+        self.arguments = arguments ?? StatementArguments()
         self.onUpdate = onUpdate
         store.pool.add(transactionObserver: self)
     }
@@ -268,9 +268,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(query)
-        if let arguments = arguments {
-            hasher.combine(arguments.description)
-        }
+        hasher.combine(arguments.description)
     }
 
     // MARK: - Equatable

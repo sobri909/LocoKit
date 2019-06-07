@@ -46,7 +46,7 @@ class ItemsObserver: TransactionObserver {
         do {
             let marks = repeatElement("?", count: rowIds.count).joined(separator: ",")
             let query = "SELECT itemId, previousItemId, nextItemId FROM TimelineItem WHERE rowId IN (\(marks))"
-            let rows = try Row.fetchCursor(db, query, arguments: StatementArguments(rowIds))
+            let rows = try Row.fetchCursor(db, sql: query, arguments: StatementArguments(rowIds))
 
             while let row = try rows.next() {
                 let previousItemIdString = row["previousItemId"] as String?

@@ -171,25 +171,25 @@ open class TimelineStore {
         return item(where: "itemId = ?", arguments: [itemId.uuidString])
     }
 
-    public func item(where query: String, arguments: StatementArguments? = nil) -> TimelineItem? {
-        return item(for: "SELECT * FROM TimelineItem WHERE " + query + " LIMIT 1", arguments: arguments)
+    public func item(where query: String, arguments: StatementArguments = StatementArguments()) -> TimelineItem? {
+        return item(for: "SELECT * FROM TimelineItem WHERE " + query, arguments: arguments)
     }
 
-    public func items(where query: String, arguments: StatementArguments? = nil) -> [TimelineItem] {
+    public func items(where query: String, arguments: StatementArguments = StatementArguments()) -> [TimelineItem] {
         return items(for: "SELECT * FROM TimelineItem WHERE " + query, arguments: arguments)
     }
 
-    public func item(for query: String, arguments: StatementArguments? = nil) -> TimelineItem? {
+    public func item(for query: String, arguments: StatementArguments = StatementArguments()) -> TimelineItem? {
         return try! pool.read { db in
-            guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
+            guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return item(for: row)
         }
     }
 
-    public func items(for query: String, arguments: StatementArguments? = nil) -> [TimelineItem] {
+    public func items(for query: String, arguments: StatementArguments = StatementArguments()) -> [TimelineItem] {
         return try! pool.read { db in
             var items: [TimelineItem] = []
-            let itemRows = try Row.fetchCursor(db, query, arguments: arguments)
+            let itemRows = try Row.fetchCursor(db, sql: query, arguments: arguments)
             while let row = try itemRows.next() { items.append(item(for: row)) }
             return items
         }
@@ -211,24 +211,24 @@ open class TimelineStore {
         return sample(for: "SELECT * FROM LocomotionSample WHERE sampleId = ?", arguments: [sampleId.uuidString])
     }
 
-    public func sample(where query: String, arguments: StatementArguments? = nil) -> PersistentSample? {
-        return sample(for: "SELECT * FROM LocomotionSample WHERE " + query + " LIMIT 1", arguments: arguments)
+    public func sample(where query: String, arguments: StatementArguments = StatementArguments()) -> PersistentSample? {
+        return sample(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments)
     }
 
-    public func samples(where query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
+    public func samples(where query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
         return samples(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments)
     }
 
-    public func sample(for query: String, arguments: StatementArguments? = nil) -> PersistentSample? {
+    public func sample(for query: String, arguments: StatementArguments = StatementArguments()) -> PersistentSample? {
         return try! pool.read { db in
-            guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
+            guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return sample(for: row)
         }
     }
 
-    public func samples(for query: String, arguments: StatementArguments? = nil) -> [PersistentSample] {
+    public func samples(for query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
         let rows = try! pool.read { db in
-            return try Row.fetchAll(db, query, arguments: arguments)
+            return try Row.fetchAll(db, sql: query, arguments: arguments)
         }
         return rows.map { sample(for: $0) }
     }
@@ -241,20 +241,20 @@ open class TimelineStore {
 
     // MARK: - Model fetching
 
-    public func model(where query: String, arguments: StatementArguments? = nil) -> ActivityType? {
-        return model(for: "SELECT * FROM ActivityTypeModel WHERE " + query + " LIMIT 1", arguments: arguments)
+    public func model(where query: String, arguments: StatementArguments = StatementArguments()) -> ActivityType? {
+        return model(for: "SELECT * FROM ActivityTypeModel WHERE " + query, arguments: arguments)
     }
 
-    public func model(for query: String, arguments: StatementArguments? = nil) -> ActivityType? {
+    public func model(for query: String, arguments: StatementArguments = StatementArguments()) -> ActivityType? {
         return try! pool.read { db in
-            guard let row = try Row.fetchOne(db, query, arguments: arguments) else { return nil }
+            guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return model(for: row)
         }
     }
 
-    public func models(for query: String, arguments: StatementArguments? = nil) -> [ActivityType] {
+    public func models(for query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
         let rows = try! pool.read { db in
-            return try Row.fetchAll(db, query, arguments: arguments)
+            return try Row.fetchAll(db, sql: query, arguments: arguments)
         }
         return rows.map { model(for: $0) }
     }
@@ -292,21 +292,21 @@ open class TimelineStore {
 
     // MARK: - Counting
 
-    public func countItems(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
+    public func countItems(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
         return try! pool.read { db in
-            return try Int.fetchOne(db, "SELECT COUNT(*) FROM TimelineItem WHERE " + query, arguments: arguments)!
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM TimelineItem WHERE " + query, arguments: arguments)!
         }
     }
 
-    public func countSamples(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
+    public func countSamples(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
         return try! pool.read { db in
-            return try Int.fetchOne(db, "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
         }
     }
 
-    public func countModels(where query: String = "1", arguments: StatementArguments? = nil) -> Int {
+    public func countModels(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
         return try! pool.read { db in
-            return try Int.fetchOne(db, "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
         }
     }
 
@@ -402,8 +402,8 @@ open class TimelineStore {
         let deadline = Date(timeIntervalSinceNow: -keepDeletedObjectsFor)
         do {
             try pool.write { db in
-                try db.execute("DELETE FROM LocomotionSample WHERE deleted = 1 AND date < ?", arguments: [deadline])
-                try db.execute("DELETE FROM TimelineItem WHERE deleted = 1 AND (endDate < ? OR endDate IS NULL)", arguments: [deadline])
+                try db.execute(sql: "DELETE FROM LocomotionSample WHERE deleted = 1 AND date < ?", arguments: [deadline])
+                try db.execute(sql: "DELETE FROM TimelineItem WHERE deleted = 1 AND (endDate < ? OR endDate IS NULL)", arguments: [deadline])
             }
         } catch {
             os_log("%@", error.localizedDescription)
@@ -414,9 +414,9 @@ open class TimelineStore {
         let deadline = Date(timeIntervalSinceNow: -ActivityTypesCache.staleLastUpdatedAge)
         do {
             try pool.write { db in
-                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND version = 0")
-                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated IS NULL")
-                try db.execute("DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
+                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND version = 0")
+                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated IS NULL")
+                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
             }
         } catch {
             os_log("%@", error.localizedDescription)
