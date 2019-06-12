@@ -46,6 +46,10 @@ public extension DateInterval {
         }
         return false
     }
+    
+    var containsNow: Bool {
+        return contains(Date())
+    }
 }
 
 public extension Date {
