@@ -10,6 +10,7 @@ import os.log
 public class TimelineProcessor {
 
     public static var debugLogging = false
+    public static var maximumItemsInProcessingLoop = 9
 
     // MARK: - Sequential item processing
 
@@ -28,7 +29,7 @@ public class TimelineProcessor {
         // collect items after fromItem, up to two keepers
         keeperCount = 0
         workingItem = fromItem
-        while keeperCount < 2, let next = workingItem.nextItem {
+        while keeperCount < 2, items.count < TimelineProcessor.maximumItemsInProcessingLoop, let next = workingItem.nextItem {
             items.append(next)
             if next.isWorthKeeping { keeperCount += 1 }
             workingItem = next
@@ -44,7 +45,7 @@ public class TimelineProcessor {
             // recurse until no remaining possible merges
             process(items) { results in
                 if let kept = results?.kept {
-                    process(from: kept)
+                    delay(0.1) { process(from: kept) }
                 }
             }
         }
@@ -125,7 +126,7 @@ public class TimelineProcessor {
             if !sortedMerges.isEmpty {
                 var descriptions = ""
                 for merge in sortedMerges { descriptions += String(describing: merge) + "\n" }
-                if debugLogging { os_log("Considering:\n%@", type: .debug, descriptions) }
+                if debugLogging { os_log("Considering %d merges:\n%@", type: .debug, merges.count, descriptions) }
             }
 
             /** find the highest scoring valid merge **/
