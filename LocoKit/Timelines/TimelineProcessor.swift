@@ -222,7 +222,7 @@ public class TimelineProcessor {
                 arguments: ["startDate": segmentRange.start, "endDate": segmentRange.end])
 
             var modifiedItems: [TimelineItem] = []
-            var samplesToSteal: [PersistentSample] = []
+            var samplesToSteal: Set<PersistentSample> = Set(segment.samples)
 
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {
@@ -238,7 +238,7 @@ public class TimelineProcessor {
                 for sample in overlapper.samples where segmentRange.contains(sample.date) {
                     if sample == overlapper.samples.first { lostPrevEdge = true }
                     if sample == overlapper.samples.last { lostNextEdge = true }
-                    samplesToSteal.append(sample)
+                    samplesToSteal.insert(sample)
                 }
 
                 // detach previous edge, if modified
@@ -261,7 +261,7 @@ public class TimelineProcessor {
 
             // add the stolen samples to the new item
             if !samplesToSteal.isEmpty {
-                newItem.add(samplesToSteal)
+                newItem.add(Array(samplesToSteal))
             }
 
             // delete any newly empty items
