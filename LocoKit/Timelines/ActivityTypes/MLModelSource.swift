@@ -25,10 +25,12 @@ public extension Array where Element: MLModel {
             return 0
         }
         var total = 0.0
-        for model in self {
+        var modelCount = 0
+        for model in self where model.name != .bogus {
             total += model.completenessScore
+            modelCount += 1
         }
-        return total / Double(count)
+        return modelCount > 0 ? total / Double(modelCount) : 0
     }
 
     var accuracyScore: Double? {
