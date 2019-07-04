@@ -100,13 +100,15 @@ import LocoKitCore
     internal lazy var coreMotionQueue: OperationQueue = {
         return OperationQueue()
     }()
+
+    public var coordinateAssessor: TrustAssessor?
     
     // MARK: The Singleton
     
     /// The LocomotionManager singleton instance, through which all actions should be performed.
     @objc public static let highlander = LocomotionManager()
     
-    // MARK: Settings
+    // MARK: - Settings
 
     /**
      The maximum desired location accuracy in metres. Set this value to your highest required accuracy.
@@ -287,7 +289,7 @@ import LocoKitCore
         return ActivityBrain.highlander.movingState
     }
 
-    // MARK: Starting and Stopping Recording
+    // MARK: - Starting and Stopping Recording
     
     /**
      Start monitoring device location and motion.
@@ -680,8 +682,6 @@ import LocoKitCore
 
     // MARK: - Core Motion management
 
-    // MARK: Activity Type
-
     private func startTheM() {
         if watchingTheM {
             return
@@ -711,7 +711,7 @@ import LocoKitCore
         watchingTheM = false
     }
 
-    // MARK: Pedometer
+    // MARK: - Pedometer
 
     private func startThePedometer() {
         if watchingThePedometer {
@@ -744,7 +744,7 @@ import LocoKitCore
         watchingThePedometer = false
     }
 
-    // MARK: Accelerometer
+    // MARK: - Accelerometer
 
     private func startTheWiggles() {
         if watchingTheWiggles {
@@ -985,7 +985,12 @@ import LocoKitCore
 
             lastLocation = location
 
-            ActivityBrain.highlander.add(rawLocation: location)
+            if let trustFactor = coordinateAssessor?.trustFactorFor(location.coordinate) {
+                ActivityBrain.highlander.add(rawLocation: location, trustFactor: trustFactor)
+            } else {
+                ActivityBrain.highlander.add(rawLocation: location)
+            }
+
             addedLocations = true
         }
 

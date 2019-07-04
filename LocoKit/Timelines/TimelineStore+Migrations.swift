@@ -248,6 +248,20 @@ internal extension TimelineStore {
             }
         }
 
+        migrator.registerMigration("7.0.6 trust factor") { db in
+            try db.create(table: "CoordinateTrust") { table in
+                table.column("latitude", .double).notNull()
+                table.column("longitude", .double).notNull()
+                table.primaryKey(["latitude", "longitude"])
+                table.column("trustFactor", .double).notNull()
+            }
+        }
+
+        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
+            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved",
+                          on: "LocomotionSample", columns: ["confirmedType", "lastSaved"])
+        }
+
         // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
     }
 
