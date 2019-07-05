@@ -176,7 +176,52 @@ internal extension TimelineStore {
             }
         }
 
-        migrator.registerMigration("7.0.0 models") { db in
+        migrator.registerMigration("7.0.1 segments") { db in
+            try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
+                          columns: ["deleted", "startDate"])
+        }
+
+        migrator.registerMigration("7.0.2") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "previousSampleConfirmedType", .text)
+            }
+        }
+
+        migrator.registerMigration("7.0.3") { db in
+            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
+                          columns: ["confirmedType", "latitude", "longitude"])
+        }
+
+        migrator.registerMigration("7.0.4 timezones") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "secondsFromGMT", .integer)
+            }
+        }
+
+        migrator.registerMigration("7.0.5 cached activity types") { db in
+            try db.alter(table: "LocomotionSample") { table in
+                table.add(column: "classifiedType", .text)
+            }
+        }
+
+        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
+            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved",
+                          on: "LocomotionSample", columns: ["confirmedType", "lastSaved"])
+        }
+
+        migrator.registerMigration("7.0.6 models have moved") { db in
+            try? db.drop(table: "ActivityTypeModel")
+        }
+
+        migrator.registerMigration("7.0.6 trusts have moved") { db in
+            try? db.drop(table: "CoordinateTrust")
+        }
+
+        // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
+    }
+
+    func registerAuxiliaryMigrations() {
+        auxiliaryMigrator.registerMigration("7.0.0 models") { db in
             try db.create(table: "ActivityTypeModel") { table in
                 table.column("geoKey", .text).primaryKey()
                 table.column("lastSaved", .datetime).notNull().indexed()
@@ -210,19 +255,8 @@ internal extension TimelineStore {
             }
         }
 
-        migrator.registerMigration("7.0.1") { db in
+        auxiliaryMigrator.registerMigration("7.0.1") { db in
             try db.create(index: "ActivityTypeModel_on_lastUpdated", on: "ActivityTypeModel", columns: ["lastUpdated"])
-        }
-
-        migrator.registerMigration("7.0.1 segments") { db in
-            try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
-                          columns: ["deleted", "startDate"])
-        }
-
-        migrator.registerMigration("7.0.2") { db in
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "previousSampleConfirmedType", .text)
-            }
         }
 
         migrator.registerMigration("7.0.2 markov") { db in
@@ -231,24 +265,7 @@ internal extension TimelineStore {
             }
         }
 
-        migrator.registerMigration("7.0.3") { db in
-            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
-                          columns: ["confirmedType", "latitude", "longitude"])
-        }
-
-        migrator.registerMigration("7.0.4 timezones") { db in
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "secondsFromGMT", .integer)
-            }
-        }
-
-        migrator.registerMigration("7.0.5 cached activity types") { db in
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "classifiedType", .text)
-            }
-        }
-
-        migrator.registerMigration("7.0.6 trust factor") { db in
+        auxiliaryMigrator.registerMigration("7.0.6 trust factor") { db in
             try db.create(table: "CoordinateTrust") { table in
                 table.column("latitude", .double).notNull()
                 table.column("longitude", .double).notNull()
@@ -256,13 +273,6 @@ internal extension TimelineStore {
                 table.column("trustFactor", .double).notNull()
             }
         }
-
-        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
-            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved",
-                          on: "LocomotionSample", columns: ["confirmedType", "lastSaved"])
-        }
-
-        // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
     }
 
 }

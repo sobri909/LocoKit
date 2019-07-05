@@ -20,7 +20,7 @@ public extension NSNotification.Name {
 open class TimelineStore {
 
     public init() {
-        migrateDatabase()
+        migrateDatabases()
         pool.add(transactionObserver: itemsObserver)
         pool.setupMemoryManagement(in: UIApplication.shared)
     }
@@ -63,6 +63,12 @@ open class TimelineStore {
             .appendingPathComponent("LocoKit.sqlite")
     }()
 
+    open lazy var auxiliaryDbUrl: URL = {
+        return try! FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("LocoKitAuxiliary.sqlite")
+    }()
+
     public lazy var poolConfig: Configuration = {
         var config = Configuration()
         if sqlDebugLogging {
@@ -75,6 +81,10 @@ open class TimelineStore {
 
     public lazy var pool: DatabasePool = {
         return try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
+    }()
+
+    public lazy var auxiliaryPool: DatabasePool = {
+        return try! DatabasePool(path: self.auxiliaryDbUrl.path, configuration: self.poolConfig)
     }()
 
     // MARK: - Object creation
@@ -246,14 +256,14 @@ open class TimelineStore {
     }
 
     public func model(for query: String, arguments: StatementArguments = StatementArguments()) -> ActivityType? {
-        return try! pool.read { db in
+        return try! auxiliaryPool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return model(for: row)
         }
     }
 
     public func models(for query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
-        let rows = try! pool.read { db in
+        let rows = try! auxiliaryPool.read { db in
             return try Row.fetchAll(db, sql: query, arguments: arguments)
         }
         return rows.map { model(for: $0) }
@@ -305,7 +315,7 @@ open class TimelineStore {
     }
 
     public func countModels(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
-        return try! pool.read { db in
+        return try! auxiliaryPool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
         }
     }
@@ -413,7 +423,7 @@ open class TimelineStore {
     open func deleteStaleSharedModels() {
         let deadline = Date(timeIntervalSinceNow: -ActivityTypesCache.staleLastUpdatedAge)
         do {
-            try pool.write { db in
+            try auxiliaryPool.write { db in
                 try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND version = 0")
                 try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated IS NULL")
                 try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
@@ -426,10 +436,14 @@ open class TimelineStore {
     // MARK: - Database creation and migrations
 
     public var migrator = DatabaseMigrator()
+    public var auxiliaryMigrator = DatabaseMigrator()
 
-    open func migrateDatabase() {
+    open func migrateDatabases() {
         registerMigrations()
         try! migrator.migrate(pool)
+
+        registerAuxiliaryMigrations()
+        try! auxiliaryMigrator.migrate(auxiliaryPool)
     }
 
     open var dateFields: [String] { return ["lastSaved", "lastUpdated", "startDate", "endDate", "date"] }

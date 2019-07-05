@@ -410,7 +410,7 @@ open class ActivityType: MLModel, PersistableRecord {
 
     public func save() {
         do {
-            try store?.pool.write { db in
+            try store?.auxiliaryPool.write { db in
                 self.transactionDate = Date()
                 try self.save(in: db)
                 self.lastSaved = self.transactionDate

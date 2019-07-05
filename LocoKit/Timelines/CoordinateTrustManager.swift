@@ -32,7 +32,7 @@ public class CoordinateTrustManager: TrustAssessor {
         // cached?
         if let model = cache.object(forKey: rounded) { return model }
 
-        if let model = try? store.pool.read({
+        if let model = try? store.auxiliaryPool.read({
             try CoordinateTrust.fetchOne($0, sql: "SELECT * FROM CoordinateTrust WHERE latitude = ? AND longitude = ?",
                                          arguments: [rounded.latitude, rounded.longitude])
         }) {
@@ -95,7 +95,7 @@ public class CoordinateTrustManager: TrustAssessor {
 
             // save/update the models
             do {
-                try self.store.pool.write { db in
+                try self.store.auxiliaryPool.write { db in
                     for model in models {
                         try model.save(db)
                     }
