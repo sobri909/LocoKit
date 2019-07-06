@@ -59,7 +59,13 @@ public class CoordinateTrustManager: TrustAssessor {
         // don't update too frequently
         if let lastUpdated = lastUpdated, lastUpdated.age < .oneDay { return }
 
+        guard UIDevice.current.batteryState != .unplugged else { return }
+        guard !ProcessInfo.processInfo.isLowPowerModeEnabled else { return }
+
         Jobs.addSecondaryJob("CoordinateTrustManager.updateTrustFactors", dontDupe: true) {
+            guard UIDevice.current.batteryState != .unplugged else { return }
+            guard !ProcessInfo.processInfo.isLowPowerModeEnabled else { return }
+
             os_log("CoordinateTrustManager.updateTrustFactors", type: .debug)
 
             // fetch most recent X confirmed stationary samples
