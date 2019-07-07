@@ -225,7 +225,7 @@ internal extension TimelineStore {
                 table.column("geoKey", .text).primaryKey()
                 table.column("lastSaved", .datetime).notNull().indexed()
                 table.column("version", .integer).notNull().indexed()
-                table.column("lastUpdated", .datetime)
+                table.column("lastUpdated", .datetime).indexed()
 
                 table.column("name", .text).notNull().indexed()
                 table.column("depth", .integer).notNull().indexed()
@@ -252,10 +252,6 @@ internal extension TimelineStore {
                 table.column("horizontalAccuracyHistogram", .text)
                 table.column("coordinatesMatrix", .text)
             }
-        }
-
-        auxiliaryMigrator.registerMigration("7.0.1") { db in
-            try db.create(index: "ActivityTypeModel_on_lastUpdated", on: "ActivityTypeModel", columns: ["lastUpdated"])
         }
 
         migrator.registerMigration("7.0.2 markov") { db in
