@@ -68,6 +68,8 @@ public class CoordinateTrustManager: TrustAssessor {
 
             os_log("CoordinateTrustManager.updateTrustFactors", type: .debug)
 
+            self.lastUpdated = Date()
+
             // fetch most recent X confirmed stationary samples
             let samples = self.store.samples(where: "confirmedType = ? ORDER BY lastSaved DESC LIMIT 2000", arguments: ["stationary"])
 
@@ -109,8 +111,6 @@ public class CoordinateTrustManager: TrustAssessor {
             } catch {
                 print("ERROR: \(error)")
             }
-
-            self.lastUpdated = Date()
         }
     }
 
