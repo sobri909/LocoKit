@@ -133,9 +133,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         return results.best.name
     }
 
-    @available(*, deprecated, message: "Set confirmedType to .bogus instead.")
-    public var locationIsBogus: Bool = false
-
     // MARK: - Convenience Getters
     
     public lazy var timeOfDay: TimeInterval = { return self.date.sinceStartOfDay }()
@@ -224,9 +221,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             locationDict["timestamp"] = dict["date"]
             self.location = CLLocation(from: locationDict)
         }
-        if let locationIsBogus = dict["locationIsBogus"] as? Bool, locationIsBogus {
-            self.confirmedType = .bogus
-        } else if let rawValue = dict["confirmedType"] as? String {
+        if let rawValue = dict["confirmedType"] as? String {
             self.confirmedType = ActivityTypeName(rawValue: rawValue)
         } else {
             self.confirmedType = nil
@@ -282,13 +277,8 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.xyAcceleration = try? container.decode(Double.self, forKey: .xyAcceleration)
         self.zAcceleration = try? container.decode(Double.self, forKey: .zAcceleration)
         self.coreMotionActivityType = try? container.decode(CoreMotionActivityTypeName.self, forKey: .coreMotionActivityType)
+        self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
 
-        if let locationIsBogus = try? container.decode(Bool.self, forKey: .locationIsBogus), locationIsBogus {
-            self.confirmedType = .bogus
-        } else {
-            self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
-        }
-        
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .location) {
             self.location = CLLocation(from: codableLocation)
         } else {
@@ -320,7 +310,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         case date
         case secondsFromGMT
         case location
-        case locationIsBogus
         case movingState
         case recordingState
         case stepHz
