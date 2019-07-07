@@ -463,7 +463,7 @@ public extension Row {
     }
 }
 
-extension Database {
+public extension Database {
     func explain(query: String, arguments: StatementArguments = StatementArguments()) throws {
         for explain in try Row.fetchAll(self, sql: "EXPLAIN QUERY PLAN " + query, arguments: arguments) {
             print("EXPLAIN: \(explain)")
