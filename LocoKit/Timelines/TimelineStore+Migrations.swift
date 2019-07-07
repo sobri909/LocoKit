@@ -89,8 +89,6 @@ internal extension TimelineStore {
 
         // add some missing indexes
         migrator.registerMigration("5.1.2") { db in
-            try db.create(index: "LocomotionSample_on_confirmedType",
-                          on: "LocomotionSample", columns: ["confirmedType"])
             try db.create(index: "LocomotionSample_on_lastSaved",
                           on: "LocomotionSample", columns: ["lastSaved"])
         }
@@ -210,13 +208,12 @@ internal extension TimelineStore {
 
         migrator.registerMigration("7.0.6 models have moved") { db in
             try? db.drop(table: "ActivityTypeModel")
-        }
-
-        migrator.registerMigration("7.0.6 trusts have moved") { db in
             try? db.drop(table: "CoordinateTrust")
         }
 
-        // TODO: remove the 'locationIsBogus' field eventually, because it's been replaced by the .bogus activityType
+        migrator.registerMigration("7.0.6 redundant index") { db in
+            try? db.drop(index: "LocomotionSample_on_confirmedType")
+        }
     }
 
     func registerAuxiliaryMigrations() {
@@ -251,12 +248,7 @@ internal extension TimelineStore {
                 table.column("zAccelerationHistogram", .text)
                 table.column("horizontalAccuracyHistogram", .text)
                 table.column("coordinatesMatrix", .text)
-            }
-        }
-
-        migrator.registerMigration("7.0.2 markov") { db in
-            try db.alter(table: "ActivityTypeModel") { table in
-                table.add(column: "previousSampleActivityTypeScores", .text)
+                table.column("previousSampleActivityTypeScores", .text)
             }
         }
 
