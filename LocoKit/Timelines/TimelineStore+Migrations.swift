@@ -179,8 +179,9 @@ internal extension TimelineStore {
             try? db.drop(table: "CoordinateTrust")
         }
 
-        migrator.registerMigration("7.0.6 redundant index") { db in
+        migrator.registerMigration("7.0.6 redundant indexes") { db in
             try? db.drop(index: "LocomotionSample_on_confirmedType")
+            try? db.drop(index: "LocomotionSample_on_timelineItemId")
         }
     }
 
