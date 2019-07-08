@@ -17,10 +17,11 @@ internal extension TimelineStore {
                 table.column("itemId", .text).primaryKey()
 
                 table.column("lastSaved", .datetime).notNull().indexed()
-                table.column("deleted", .boolean).notNull().indexed()
+                table.column("deleted", .boolean).notNull()
                 table.column("isVisit", .boolean).notNull().indexed()
                 table.column("startDate", .datetime).indexed()
                 table.column("endDate", .datetime).indexed()
+                table.column("source", .text).defaults(to: "LocoKit").indexed()
 
                 table.column("previousItemId", .text).indexed().references("TimelineItem", deferred: true)
                     .check(sql: "previousItemId != itemId AND (previousItemId IS NULL OR deleted = 0)")
@@ -34,27 +35,34 @@ internal extension TimelineStore {
                 table.column("floorsAscended", .integer)
                 table.column("floorsDescended", .integer)
                 table.column("activityType", .text)
+                table.column("distance", .double)
 
                 // item.center
                 table.column("latitude", .double)
                 table.column("longitude", .double)
             }
+
             try db.create(table: "LocomotionSample") { table in
                 table.column("sampleId", .text).primaryKey()
 
                 table.column("date", .datetime).notNull().indexed()
-                table.column("lastSaved", .datetime).notNull()
+                table.column("deleted", .boolean).notNull().indexed()
+                table.column("lastSaved", .datetime).notNull().indexed()
+                table.column("source", .text).defaults(to: "LocoKit").indexed()
+
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
 
-                table.column("timelineItemId", .text).references("TimelineItem", deferred: true).indexed()
+                table.column("timelineItemId", .text).references("TimelineItem", deferred: true)
 
                 table.column("stepHz", .double)
                 table.column("courseVariance", .double)
                 table.column("xyAcceleration", .double)
                 table.column("zAcceleration", .double)
                 table.column("coreMotionActivityType", .text)
+                table.column("classifiedType", .text)
                 table.column("confirmedType", .text)
+                table.column("previousSampleConfirmedType", .text)
 
                 // sample.location
                 table.column("latitude", .double).indexed()
@@ -66,9 +74,17 @@ internal extension TimelineStore {
                 table.column("course", .double)
             }
 
-            // maintain the linked list from the nextItem side
+            try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
+                          columns: ["timelineItemId", "deleted", "date"])
+            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
+                          columns: ["confirmedType", "latitude", "longitude"])
+            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
+                          columns: ["confirmedType", "lastSaved"])
+
+            /** maintaining the linked list **/
+
             try db.execute(sql: """
-                CREATE TRIGGER TimelineItem_update_nextItemId
+                CREATE TRIGGER TimelineItem_UPDATE_nextItemId
                     AFTER UPDATE OF nextItemId ON TimelineItem
                     BEGIN
                         UPDATE TimelineItem SET previousItemId = NULL WHERE itemId = OLD.nextItemId;
@@ -76,47 +92,15 @@ internal extension TimelineStore {
                     END
                 """)
 
-            // maintain the linked list from the previousItem side
             try db.execute(sql: """
-                CREATE TRIGGER TimelineItem_update_previousItemId
+                CREATE TRIGGER TimelineItem_UPDATE_previousItemId
                     AFTER UPDATE OF previousItemId ON TimelineItem
                     BEGIN
                         UPDATE TimelineItem SET nextItemId = NULL WHERE itemId = OLD.previousItemId;
                         UPDATE TimelineItem SET nextItemId = NEW.itemId WHERE itemId = NEW.previousItemId;
                     END
                 """)
-        }
 
-        // add some missing indexes
-        migrator.registerMigration("5.1.2") { db in
-            try db.create(index: "LocomotionSample_on_lastSaved",
-                          on: "LocomotionSample", columns: ["lastSaved"])
-        }
-
-        migrator.registerMigration("6.0.0") { db in
-
-            /** table changes **/
-
-            // ability to soft delete samples, same as items
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "deleted", .boolean).defaults(to: false).notNull().indexed()
-            }
-
-            // caching distance to db reduces costs on fetch
-            try db.alter(table: "TimelineItem") { table in
-                table.add(column: "distance", .double)
-            }
-
-            /** indexes **/
-
-            // faster sample fetching for timeline items
-            try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
-                          columns: ["timelineItemId", "deleted", "date"])
-
-            /** new and updated triggers **/
-
-            // replacement insert triggers, with more precision
-            try db.execute(sql: "DROP TRIGGER IF EXISTS TimelineItem_insert")
             try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_INSERT_previousEdge
                     AFTER INSERT ON TimelineItem
@@ -134,7 +118,8 @@ internal extension TimelineStore {
                     END
                 """)
 
-            // ensure the previous edge is detached when an item is soft deleted
+            /** ensure the edges are detached when an item is soft deleted **/
+
             try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_UPDATE_deleted_previousEdge
                     AFTER UPDATE OF deleted ON TimelineItem
@@ -145,7 +130,6 @@ internal extension TimelineStore {
                     END
                 """)
 
-            // ensure the next edge is detached when an item is soft deleted
             try db.execute(sql: """
                 CREATE TRIGGER TimelineItem_UPDATE_deleted_nextEdge
                     AFTER UPDATE OF deleted ON TimelineItem
@@ -157,35 +141,19 @@ internal extension TimelineStore {
                 """)
         }
 
-        // add source fields, so that imported data can be distinguished from recorded data
-        migrator.registerMigration("6.0.0 source") { db in
-            try db.alter(table: "TimelineItem") { table in
-                table.add(column: "source", .text).defaults(to: "LocoKit").indexed()
-            }
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "source", .text).defaults(to: "LocoKit").indexed()
-            }
-        }
-
-        migrator.registerMigration("6.0.0 bogus") { db in
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "locationIsBogus", .boolean).defaults(to: false)
-            }
-        }
-
         migrator.registerMigration("7.0.1 segments") { db in
             try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
                           columns: ["deleted", "startDate"])
         }
 
         migrator.registerMigration("7.0.2") { db in
-            try db.alter(table: "LocomotionSample") { table in
+            try? db.alter(table: "LocomotionSample") { table in
                 table.add(column: "previousSampleConfirmedType", .text)
             }
         }
 
         migrator.registerMigration("7.0.3") { db in
-            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
+            try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
                           columns: ["confirmedType", "latitude", "longitude"])
         }
 
@@ -196,14 +164,14 @@ internal extension TimelineStore {
         }
 
         migrator.registerMigration("7.0.5 cached activity types") { db in
-            try db.alter(table: "LocomotionSample") { table in
+            try? db.alter(table: "LocomotionSample") { table in
                 table.add(column: "classifiedType", .text)
             }
         }
 
         migrator.registerMigration("7.0.6 recent confirmed samples") { db in
-            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved",
-                          on: "LocomotionSample", columns: ["confirmedType", "lastSaved"])
+            try? db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
+                           columns: ["confirmedType", "lastSaved"])
         }
 
         migrator.registerMigration("7.0.6 models have moved") { db in
