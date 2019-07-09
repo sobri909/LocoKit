@@ -76,8 +76,8 @@ internal extension TimelineStore {
 
             try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
                           columns: ["timelineItemId", "deleted", "date"])
-            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
-                          columns: ["confirmedType", "latitude", "longitude"])
+            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
+                          columns: ["confirmedType", "latitude", "longitude", "date"])
             try db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
                           columns: ["confirmedType", "lastSaved"])
 
@@ -152,11 +152,6 @@ internal extension TimelineStore {
             }
         }
 
-        migrator.registerMigration("7.0.3") { db in
-            try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude", on: "LocomotionSample",
-                          columns: ["confirmedType", "latitude", "longitude"])
-        }
-
         migrator.registerMigration("7.0.4 timezones") { db in
             try db.alter(table: "LocomotionSample") { table in
                 table.add(column: "secondsFromGMT", .integer)
@@ -168,25 +163,12 @@ internal extension TimelineStore {
                 table.add(column: "classifiedType", .text)
             }
         }
-
-        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
-            try? db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
-                           columns: ["confirmedType", "lastSaved"])
-        }
-
-        migrator.registerMigration("7.0.6 models have moved") { db in
-            try? db.drop(table: "ActivityTypeModel")
-            try? db.drop(table: "CoordinateTrust")
-        }
-
-        migrator.registerMigration("7.0.6 redundant indexes") { db in
-            try? db.drop(index: "LocomotionSample_on_confirmedType")
-            try? db.drop(index: "LocomotionSample_on_timelineItemId")
-        }
     }
 
-    func registerAuxiliaryMigrations() {
-        auxiliaryMigrator.registerMigration("7.0.0 models") { db in
+    // MARK: - Auxiliary database
+
+    func registerAuxiliaryDbMigrations() {
+        auxiliaryDbMigrator.registerMigration("7.0.0 models") { db in
             try db.create(table: "ActivityTypeModel") { table in
                 table.column("geoKey", .text).primaryKey()
                 table.column("lastSaved", .datetime).notNull().indexed()
@@ -221,13 +203,42 @@ internal extension TimelineStore {
             }
         }
 
-        auxiliaryMigrator.registerMigration("7.0.6 trust factor") { db in
+        auxiliaryDbMigrator.registerMigration("7.0.6 trust factor") { db in
             try db.create(table: "CoordinateTrust") { table in
                 table.column("latitude", .double).notNull()
                 table.column("longitude", .double).notNull()
                 table.primaryKey(["latitude", "longitude"])
                 table.column("trustFactor", .double).notNull()
             }
+        }
+    }
+
+    // MARK: - Delayable migrations
+
+    func registerDelayedMigrations() {
+        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
+            try? db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
+                           columns: ["confirmedType", "lastSaved"])
+        }
+
+        migrator.registerMigration("7.0.6 models have moved") { db in
+            try? db.drop(table: "ActivityTypeModel")
+            try? db.drop(table: "CoordinateTrust")
+        }
+
+        migrator.registerMigration("7.0.6 redundant indexes") { db in
+            try? db.drop(index: "LocomotionSample_on_confirmedType")
+            try? db.drop(index: "LocomotionSample_on_timelineItemId")
+        }
+
+        migrator.registerMigration("7.0.6 even better sample index") { db in
+            try? db.drop(index: "LocomotionSample_on_confirmedType_latitude_longitude")
+            try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
+                           columns: ["confirmedType", "latitude", "longitude", "date"])
+        }
+
+        migrator.registerMigration("7.0.6 oops 2") { db in
+            try? db.drop(index: "LocomotionSample_on_confirmedType_latitude_longitude")
         }
     }
 

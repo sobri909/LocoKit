@@ -436,14 +436,19 @@ open class TimelineStore {
     // MARK: - Database creation and migrations
 
     public var migrator = DatabaseMigrator()
-    public var auxiliaryMigrator = DatabaseMigrator()
+    public var auxiliaryDbMigrator = DatabaseMigrator()
 
     open func migrateDatabases() {
         registerMigrations()
         try! migrator.migrate(pool)
 
-        registerAuxiliaryMigrations()
-        try! auxiliaryMigrator.migrate(auxiliaryPool)
+        registerAuxiliaryDbMigrations()
+        try! auxiliaryDbMigrator.migrate(auxiliaryPool)
+
+        delay(10, onQueue: DispatchQueue.global()) {
+            self.registerDelayedMigrations()
+            try! self.migrator.migrate(self.pool)
+        }
     }
 
     open var dateFields: [String] { return ["lastSaved", "lastUpdated", "startDate", "endDate", "date"] }

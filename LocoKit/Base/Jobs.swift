@@ -224,7 +224,9 @@ public class Jobs {
 // MARK: -
 
 func delay(_ delay: Double, closure: @escaping () -> ()) {
-    DispatchQueue.main.asyncAfter(
-        deadline: DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC),
-        execute: closure)
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: closure)
+}
+
+func delay(_ delay: TimeInterval, onQueue queue: DispatchQueue, closure: @escaping () -> ()) {
+    queue.asyncAfter(deadline: .now() + delay, execute: closure)
 }
