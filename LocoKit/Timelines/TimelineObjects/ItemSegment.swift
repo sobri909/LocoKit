@@ -154,7 +154,7 @@ public class ItemSegment: Equatable {
     private var _classifierResults: ClassifierResults? = nil
     public var classifierResults: ClassifierResults? {
         if let results = _classifierResults { return results }
-        guard let results = timelineItem?.classifier?.classify(self) else { return nil }
+        guard let results = timelineItem?.classifier?.classify(self, timeout: 30) else { return nil }
         if results.moreComing { return results }
         _classifierResults = results
         return results

@@ -359,7 +359,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     public var classifierResults: ClassifierResults? {
         if let cached = _classifierResults { return cached }
 
-        guard let results = classifier?.classify(self) else { return nil }
+        guard let results = classifier?.classify(self, timeout: 30) else { return nil }
 
         // don't cache if it's incomplete
         if results.moreComing { return results }

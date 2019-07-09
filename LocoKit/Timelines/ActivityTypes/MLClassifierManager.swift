@@ -5,6 +5,7 @@
 //  Created by Matt Greenfield on 3/04/18.
 //
 
+import os.log
 import Upsurge
 import LocoKitCore
 import CoreLocation
@@ -47,8 +48,8 @@ extension MLClassifierManager {
         }
     }
 
-    public func classify(_ timelineItem: TimelineItem) -> ClassifierResults? {
-        guard let results = classify(timelineItem.samples) else { return nil }
+    public func classify(_ timelineItem: TimelineItem, timeout: TimeInterval? = nil) -> ClassifierResults? {
+        guard let results = classify(timelineItem.samples, timeout: timeout) else { return nil }
 
         // radius is small enough to consider stationary a valid result
         if timelineItem.radius3sd < Visit.maximumRadius { return results }
@@ -64,8 +65,8 @@ extension MLClassifierManager {
         return ClassifierResults(results: resultsArray, moreComing: results.moreComing)
     }
 
-    public func classify(_ segment: ItemSegment) -> ClassifierResults? {
-        guard let results = classify(segment.samples) else { return nil }
+    public func classify(_ segment: ItemSegment, timeout: TimeInterval? = nil) -> ClassifierResults? {
+        guard let results = classify(segment.samples, timeout: timeout) else { return nil }
 
         // radius is small enough to consider stationary a valid result
         if segment.radius.with3sd < Visit.maximumRadius {
@@ -86,8 +87,10 @@ extension MLClassifierManager {
     }
 
     // Note: samples must be provided in date ascending order
-    public func classify(_ samples: [ActivityTypeClassifiable]) -> ClassifierResults? {
+    public func classify(_ samples: [ActivityTypeClassifiable], timeout: TimeInterval? = nil) -> ClassifierResults? {
         if samples.isEmpty { return nil }
+
+        let start = Date()
 
         var allScores: [ActivityTypeName: ValueArray<Double>] = [:]
         var allAccuracies: [ActivityTypeName: ValueArray<Double>] = [:]
@@ -100,6 +103,11 @@ extension MLClassifierManager {
         var lastResults: ClassifierResults?
 
         for sample in samples {
+            if let timeout = timeout, start.age >= timeout {
+                os_log("Classifer reached timeout limit", type: .debug)
+                moreComing = true
+                break
+            }
 
             // attempt to use existing results
             var tmpResults = sample.classifierResults
