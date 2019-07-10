@@ -236,10 +236,6 @@ internal extension TimelineStore {
             try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
                            columns: ["confirmedType", "latitude", "longitude", "date"])
         }
-
-        migrator.registerMigration("7.0.6 oops 2") { db in
-            try? db.drop(index: "LocomotionSample_on_confirmedType_latitude_longitude")
-        }
     }
 
 }
