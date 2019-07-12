@@ -239,8 +239,8 @@ open class Path: TimelineItem, CustomStringConvertible {
         guard let timeGap = timeInterval(from: otherPath), timeGap < 60 * 10 else { return nil }
 
         // get the activity types
-        guard let myActivityType = self.movingActivityType else { return nil }
-        guard let theirActivityType = otherPath.movingActivityType else { return nil }
+        guard let myActivityType = self.activityType else { return nil }
+        guard let theirActivityType = otherPath.activityType else { return nil }
 
         // can't path-path cleanse two paths of same type
         if myActivityType == theirActivityType { return nil }

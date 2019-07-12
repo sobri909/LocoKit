@@ -353,6 +353,21 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     // MARK: - Activity Types
 
+    open var activityType: ActivityTypeName? {
+        if self is Visit { return .stationary }
+
+        // if cached classifier results available, use classified moving type
+        if _classifierResults != nil, let activityType = movingActivityType { return activityType }
+
+        // if cached classifier result not available, use mode moving type
+        if let activityType = modeMovingActivityType { return activityType }
+
+        // if there's no mode moving type, fall back to mode type (most likely stationary)
+        if let activityType = modeActivityType { return activityType }
+
+        return nil
+    }
+
     public private(set) var _classifierResults: ClassifierResults? = nil
 
     /// The `ActivityTypeClassifier` results for the timeline item.
@@ -474,8 +489,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
     @discardableResult
     internal func sanitiseEdges(excluding: Set<LocomotionSample> = []) -> Set<LocomotionSample> {
         var allMoved: Set<LocomotionSample> = []
+        let maximumEdgeSteals = 30
 
-        while true {
+        while allMoved.count < maximumEdgeSteals {
             var movedThisLoop: Set<LocomotionSample> = []
 
             if let previousPath = self.previousItem as? Path {
