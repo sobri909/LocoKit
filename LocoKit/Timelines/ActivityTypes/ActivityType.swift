@@ -404,7 +404,7 @@ open class ActivityType: MLModel, PersistableRecord {
         return output
     }
 
-    // MARK: Saving
+    // MARK: - Saving
 
     var lastSaved: Date? // TODO: need to decode this at init time
 
