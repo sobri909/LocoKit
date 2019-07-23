@@ -81,6 +81,15 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
         self.results = results.sorted { $0.score > $1.score }
         self.moreComing = moreComing
     }
+
+    public init(confirmedType: ActivityTypeName) {
+        var resultItems = [ClassifierResultItem(name: confirmedType, score: 1)]
+        for activityType in ActivityTypeName.allTypes where activityType != confirmedType {
+            resultItems.append(ClassifierResultItem(name: activityType, score: 0))
+        }
+        self.results = resultItems
+        self.moreComing = false
+    }
     
     private lazy var arrayIterator: IndexingIterator<Array<ClassifierResultItem>> = {
         return self.results.makeIterator()

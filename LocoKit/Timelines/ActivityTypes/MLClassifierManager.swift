@@ -109,8 +109,16 @@ extension MLClassifierManager {
                 break
             }
 
-            // attempt to use existing results
-            var tmpResults = sample.classifierResults
+            var tmpResults: ClassifierResults?
+
+            // if sample has confirmedType, mock up fake classifierResults
+            if let sample = sample as? ActivityTypeTrainable, let confirmedType = sample.confirmedType {
+                tmpResults = ClassifierResults(confirmedType: confirmedType)
+
+            } else {
+                // attempt to use existing results
+                tmpResults = sample.classifierResults
+            }
 
             // nil or incomplete existing results? get fresh results
             if tmpResults == nil || tmpResults?.moreComing == true {
