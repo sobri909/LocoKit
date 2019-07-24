@@ -82,21 +82,13 @@ public extension String {
     }
     
     init(metresPerSecond mps: CLLocationSpeed) {
-        if Locale.current.usesMetricSystem {
-            if mps.kmh < 10 {
-                self.init(format: "%.1f km/h", mps.kmh)
-            } else {
-                self.init(format: "%.0f km/h", mps.kmh)
-            }
-
+        let formatter = MeasurementFormatter()
+        if mps.kmh < 10 {
+            formatter.numberFormatter.maximumFractionDigits = 1
         } else {
-            let mph = mps.kmh / 1.609344
-            if mph < 10 {
-                self.init(format: "%.1f mph", mph)
-            } else {
-                self.init(format: "%.0f mph", mph)
-            }
+            formatter.numberFormatter.maximumFractionDigits = 0
         }
+        self.init(format: formatter.string(from: mps.speedMeasurement))
     }
 
 }

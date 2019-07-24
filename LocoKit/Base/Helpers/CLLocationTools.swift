@@ -53,6 +53,7 @@ public extension CLLocationDistance {
 public extension CLLocationSpeed {
     init(kmh: Double) { self.init(kmh / 3.6) }
     var kmh: Double { return self * 3.6 }
+    var speedMeasurement: Measurement<UnitSpeed> { return Measurement(value: self, unit: UnitSpeed.metersPerSecond) }
 }
 
 public struct CodableLocation: Codable {
