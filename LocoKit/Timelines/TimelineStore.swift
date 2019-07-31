@@ -71,6 +71,7 @@ open class TimelineStore {
 
     public lazy var poolConfig: Configuration = {
         var config = Configuration()
+        config.maximumReaderCount = 12
         if sqlDebugLogging {
             config.trace = {
                 if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
