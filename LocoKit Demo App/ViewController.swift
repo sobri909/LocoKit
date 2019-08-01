@@ -51,7 +51,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
 
         let query = "deleted = 0 AND endDate > datetime('now','-24 hours') ORDER BY startDate DESC"
-        dataSet = TimelineSegment(for: query, in: store) {
+        dataSet = TimelineSegment(where: query, in: store) {
             onMain {
                 let items = self.itemsToShow
                 self.mapView.update(with: items)
