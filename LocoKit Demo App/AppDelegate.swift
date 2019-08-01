@@ -8,9 +8,6 @@
 
 import LocoKit
 
-import Fabric
-import Crashlytics
-
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -18,11 +15,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-        // only bother with Crashlytics for my own internal development builds
-        if Bundle.main.bundleIdentifier == "com.bigpaua.LocoKit-Demo-App" {
-            Fabric.with([Crashlytics.self])
-        }
 
         window = UIWindow(frame: UIScreen.main.bounds)
         

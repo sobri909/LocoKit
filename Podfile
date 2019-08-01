@@ -11,6 +11,3 @@ pod 'LocoKitCore', :git => 'https://github.com/sobri909/LocoKit.git', :branch =>
 
 pod 'SwiftNotes'
 pod 'Anchorage'
-
-pod 'Fabric'
-pod 'Crashlytics'
