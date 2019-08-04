@@ -23,9 +23,9 @@ internal extension TimelineStore {
                 table.column("endDate", .datetime).indexed()
                 table.column("source", .text).defaults(to: "LocoKit").indexed()
 
-                table.column("previousItemId", .text).indexed().references("TimelineItem", deferred: true)
+                table.column("previousItemId", .text).indexed().references("TimelineItem", onDelete: .setNull, deferred: true)
                     .check(sql: "previousItemId != itemId AND (previousItemId IS NULL OR deleted = 0)")
-                table.column("nextItemId", .text).indexed().references("TimelineItem", deferred: true)
+                table.column("nextItemId", .text).indexed().references("TimelineItem", onDelete: .setNull, deferred: true)
                     .check(sql: "nextItemId != itemId AND (nextItemId IS NULL OR deleted = 0)")
 
                 table.column("radiusMean", .double)
@@ -53,7 +53,7 @@ internal extension TimelineStore {
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
 
-                table.column("timelineItemId", .text).references("TimelineItem", deferred: true)
+                table.column("timelineItemId", .text).references("TimelineItem", onDelete: .setNull, deferred: true)
 
                 table.column("stepHz", .double)
                 table.column("courseVariance", .double)
