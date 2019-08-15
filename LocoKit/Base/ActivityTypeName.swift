@@ -54,6 +54,7 @@ public enum ActivityTypeName: String, Codable {
     case golf
     case wheelchair
     case rowing
+    case kayaking
 
     public var displayName: String {
         switch self {
@@ -78,13 +79,13 @@ public enum ActivityTypeName: String, Codable {
     /// A convenience array containing the extended transport types.
     public static let extendedTypes = [
         train, bus, motorcycle, boat, tram, tractor, tuktuk, songthaew, skateboarding, inlineSkating, snowboarding, skiing, horseback,
-        scooter, metro, cableCar, funicular, chairlift, skiLift, taxi, swimming, golf, wheelchair, rowing, bogus
+        scooter, metro, cableCar, funicular, chairlift, skiLift, taxi, swimming, golf, wheelchair, rowing, kayaking, bogus
     ]
 
     /// A convenience array containing all activity types.
     public static let allTypes = baseTypes + extendedTypes
 
     /// Activity types that can sensibly have related step counts 
-    public static let stepsTypes = [walking, running, cycling, golf, rowing]
+    public static let stepsTypes = [walking, running, cycling, golf, rowing, kayaking]
 
 }
