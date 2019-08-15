@@ -59,58 +59,50 @@ public class CoordinateTrustManager: TrustAssessor {
         // don't update too frequently
         if let lastUpdated = lastUpdated, lastUpdated.age < .oneDay { return }
 
-        guard UIDevice.current.batteryState != .unplugged else { return }
-        guard !ProcessInfo.processInfo.isLowPowerModeEnabled else { return }
+        os_log("CoordinateTrustManager.updateTrustFactors", type: .debug)
 
-        Jobs.addSecondaryJob("CoordinateTrustManager.updateTrustFactors", dontDupe: true) {
-            guard UIDevice.current.batteryState != .unplugged else { return }
-            guard !ProcessInfo.processInfo.isLowPowerModeEnabled else { return }
+        self.lastUpdated = Date()
 
-            os_log("CoordinateTrustManager.updateTrustFactors", type: .debug)
+        // fetch most recent X confirmed stationary samples
+        let samples = self.store.samples(where: "confirmedType = ? ORDER BY lastSaved DESC LIMIT 2000", arguments: ["stationary"])
 
-            self.lastUpdated = Date()
+        // collate the samples into coordinate buckets
+        var buckets: [Coordinate: [LocomotionSample]] = [:]
+        for sample in samples where sample.hasUsableCoordinate {
+            guard let coordinate = sample.location?.coordinate else { continue }
 
-            // fetch most recent X confirmed stationary samples
-            let samples = self.store.samples(where: "confirmedType = ? ORDER BY lastSaved DESC LIMIT 2000", arguments: ["stationary"])
+            let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate)
+            if let samples = buckets[rounded] {
+                buckets[rounded] = samples + [sample]
+            } else {
+                buckets[rounded] = [sample]
+            }
+        }
 
-            // collate the samples into coordinate buckets
-            var buckets: [Coordinate: [LocomotionSample]] = [:]
-            for sample in samples where sample.hasUsableCoordinate {
-                guard let coordinate = sample.location?.coordinate else { continue }
+        // for each bucket, fetch/create the model
+        var models: [CoordinateTrust] = []
+        for (coordinate, samples) in buckets {
+            let model: CoordinateTrust
+            if let trust = self.modelFor(coordinate.coordinate) {
+                model = trust
+            } else {
+                model = CoordinateTrust(coordinate: coordinate.coordinate)
+            }
+            models.append(model)
 
-                let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate)
-                if let samples = buckets[rounded] {
-                    buckets[rounded] = samples + [sample]
-                } else {
-                    buckets[rounded] = [sample]
+            // update the model's trustFactor
+            model.update(from: samples)
+        }
+
+        // save/update the models
+        do {
+            try self.store.auxiliaryPool.write { db in
+                for model in models {
+                    try model.save(db)
                 }
             }
-
-            // for each bucket, fetch/create the model
-            var models: [CoordinateTrust] = []
-            for (coordinate, samples) in buckets {
-                let model: CoordinateTrust
-                if let trust = self.modelFor(coordinate.coordinate) {
-                    model = trust
-                } else {
-                    model = CoordinateTrust(coordinate: coordinate.coordinate)
-                }
-                models.append(model)
-
-                // update the model's trustFactor
-                model.update(from: samples)
-            }
-
-            // save/update the models
-            do {
-                try self.store.auxiliaryPool.write { db in
-                    for model in models {
-                        try model.save(db)
-                    }
-                }
-            } catch {
-                print("ERROR: \(error)")
-            }
+        } catch {
+            print("ERROR: \(error)")
         }
     }
 
