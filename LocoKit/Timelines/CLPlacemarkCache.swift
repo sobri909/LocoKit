@@ -5,11 +5,14 @@
 //  Created by Matt Greenfield on 29/7/18.
 //
 
+import LocoKitCore
 import CoreLocation
 
 public class CLPlacemarkCache {
 
     private static let cache = NSCache<CLLocation, CLPlacemark>()
+
+    private static let mutex = UnfairLock()
 
     private static var fetching: Set<Int> = []
 
@@ -21,15 +24,16 @@ public class CLPlacemarkCache {
             return
         }
 
-        if fetching.contains(location.hashValue) {
+        let alreadyFetching = mutex.sync { fetching.contains(location.hashValue) }
+        if alreadyFetching {
             completion(nil)
             return
         }
 
-        fetching.insert(location.hashValue)
+        mutex.sync { fetching.insert(location.hashValue) }
 
         CLGeocoder().reverseGeocodeLocation(location) { placemarks, error in
-            fetching.remove(location.hashValue)
+            mutex.sync { fetching.remove(location.hashValue) }
 
             // nil result? nil completion
             guard let placemark = placemarks?.first else {
