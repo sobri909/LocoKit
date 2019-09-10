@@ -77,12 +77,15 @@ public extension String {
         self.init(format: formatter.string(from: metres.measurement))
     }
 
-    init(speed: CLLocationSpeed) {
-        self.init(metresPerSecond: speed)
+    init(speed: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {
+        self.init(metresPerSecond: speed, style: style)
     }
     
-    init(metresPerSecond mps: CLLocationSpeed) {
+    init(metresPerSecond mps: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {
         let formatter = MeasurementFormatter()
+        if let style = style {
+            formatter.unitStyle = style
+        }
         if mps.kmh < 10 {
             formatter.numberFormatter.maximumFractionDigits = 1
         } else {
