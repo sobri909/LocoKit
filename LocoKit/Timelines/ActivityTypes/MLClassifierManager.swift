@@ -109,16 +109,7 @@ extension MLClassifierManager {
                 break
             }
 
-            var tmpResults: ClassifierResults?
-
-            // if sample has confirmedType, mock up fake classifierResults
-            if let sample = sample as? ActivityTypeTrainable, let confirmedType = sample.confirmedType {
-                tmpResults = ClassifierResults(confirmedType: confirmedType)
-
-            } else {
-                // attempt to use existing results
-                tmpResults = sample.classifierResults
-            }
+            var tmpResults = sample.classifierResults
 
             // nil or incomplete existing results? get fresh results
             if tmpResults == nil || tmpResults?.moreComing == true {
@@ -131,7 +122,12 @@ extension MLClassifierManager {
             if results.moreComing { moreComing = true }
 
             for typeName in ActivityTypeName.allTypes {
-                if let resultRow = results[typeName] {
+                // if sample has confirmedType, give it a 1.0 score
+                if let sample = sample as? ActivityTypeTrainable, typeName == sample.confirmedType {
+                    allScores[typeName]!.append(1.0)
+                    allAccuracies[typeName]!.append(1.0)
+
+                } else if let resultRow = results[typeName] {
                     allScores[resultRow.name]!.append(resultRow.score)
                     allAccuracies[resultRow.name]!.append(resultRow.modelAccuracyScore ?? 0)
 
