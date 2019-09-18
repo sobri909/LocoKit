@@ -522,82 +522,76 @@ public class TimelineProcessor {
     }
 
     private static func adoptOrphanedSamples(in store: TimelineStore) {
-        store.process {
-            let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
+        let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
 
-            if orphans.isEmpty { return }
+        if orphans.isEmpty { return }
 
-            os_log("Found orphaned samples: %d", type: .debug, orphans.count)
+        os_log("Found orphaned samples: %d", type: .debug, orphans.count)
 
-            var newParents: [TimelineItem] = []
+        var newParents: [TimelineItem] = []
 
-            for orphan in orphans where orphan.timelineItem == nil {
-                if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
-                                         arguments: [orphan.date, orphan.date]) {
-                    os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
-                           orphan.sampleId.shortString, String(describing: orphan.date))
-                    item.add(orphan)
+        for orphan in orphans where orphan.timelineItem == nil {
+            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
+                                     arguments: [orphan.date, orphan.date]) {
+                os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
+                       orphan.sampleId.shortString, String(describing: orphan.date))
+                item.add(orphan)
 
-                } else { // create a new item for the orphan
-                    if orphan.movingState == .stationary {
-                        newParents.append(store.createVisit(from: orphan))
-                    } else {
-                        newParents.append(store.createPath(from: orphan))
-                    }
-                    os_log("CREATED NEW PARENT FOR ORPHAN (sample: %@, date: %@)", type: .debug,
-                           orphan.sampleId.shortString, String(describing: orphan.date))
+            } else { // create a new item for the orphan
+                if orphan.movingState == .stationary {
+                    newParents.append(store.createVisit(from: orphan))
+                } else {
+                    newParents.append(store.createPath(from: orphan))
                 }
+                os_log("CREATED NEW PARENT FOR ORPHAN (sample: %@, date: %@)", type: .debug,
+                       orphan.sampleId.shortString, String(describing: orphan.date))
             }
+        }
 
-            store.save()
+        store.save()
 
-            if newParents.isEmpty { return }
+        if newParents.isEmpty { return }
 
-            // clean up the new parents
-            newParents.forEach {
-                TimelineProcessor.healEdges(of: $0)
-                TimelineProcessor.process(from: $0)
-            }
+        // clean up the new parents
+        newParents.forEach {
+            TimelineProcessor.healEdges(of: $0)
+            TimelineProcessor.process(from: $0)
         }
     }
 
     private static func orphanSamplesFromDeadParents(in store: TimelineStore) {
-        store.process {
-            let orphans = store.samples(for: """
+        let orphans = store.samples(for: """
                 SELECT LocomotionSample.* FROM LocomotionSample
                     JOIN TimelineItem ON timelineItemId = TimelineItem.itemId
                 WHERE TimelineItem.deleted = 1
                 """)
 
-            if orphans.isEmpty { return }
+        if orphans.isEmpty { return }
 
-            print("Samples holding onto dead parents: \(orphans.count)")
+        print("Samples holding onto dead parents: \(orphans.count)")
 
-            for orphan in orphans where orphan.timelineItemId != nil {
-                print("Detaching an orphan from dead parent.")
-                orphan.timelineItemId = nil
-            }
-
-            store.save()
+        for orphan in orphans where orphan.timelineItemId != nil {
+            print("Detaching an orphan from dead parent.")
+            orphan.timelineItemId = nil
         }
+
+        store.save()
     }
 
     private static func detachDeadmenEdges(in store: TimelineStore) {
-        store.process {
-            let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
+        let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
 
-            if deadmen.isEmpty { return }
+        if deadmen.isEmpty { return }
 
-            print("Deadmen to edge detach: \(deadmen.count)")
+        print("Deadmen to edge detach: \(deadmen.count)")
 
-            for deadman in deadmen {
-                print("Detaching edges of a deadman.")
-                deadman.previousItemId = nil
-                deadman.nextItemId = nil
-            }
-
-            store.save()
+        for deadman in deadmen {
+            print("Detaching edges of a deadman.")
+            deadman.previousItemId = nil
+            deadman.nextItemId = nil
         }
+
+        store.save()
     }
 
 }
