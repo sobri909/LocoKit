@@ -206,7 +206,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
     // MARK: - Export helpers
 
     public var filename: String? {
-        if timelineItems.count == 1 {
+        if dateRange == nil, timelineItems.count == 1 {
             return singleItemFilename
         }
 
