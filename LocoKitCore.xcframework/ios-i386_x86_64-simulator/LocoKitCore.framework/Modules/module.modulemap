@@ -1,0 +1,11 @@
+framework module LocoKitCore {
+  umbrella header "LocoKitCore.h"
+
+  export *
+  module * { export * }
+}
+
+module LocoKitCore.Swift {
+    header "LocoKitCore-Swift.h"
+    requires objc
+}
