@@ -212,11 +212,11 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
 
         guard let dateRange = dateRange else { return nil }
 
-        if dateRange.start.isSameDayAs(dateRange.end) {
+        if (dateRange.start + 1).isSameDayAs(dateRange.end - 1) {
             return dayFilename
         }
 
-        if dateRange.start.isSameMonthAs(dateRange.end) {
+        if (dateRange.start + 1).isSameMonthAs(dateRange.end - 1) {
             return monthFilename
         }
 
