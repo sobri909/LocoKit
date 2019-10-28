@@ -23,6 +23,14 @@ open class TimelineStore {
         migrateDatabases()
         pool.add(transactionObserver: itemsObserver)
         pool.setupMemoryManagement(in: UIApplication.shared)
+
+        let center = NotificationCenter.default
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.didBecomeActive()
+        }
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+            self?.didEnterBackground()
+        }
     }
     
     open var keepDeletedObjectsFor: TimeInterval = 60 * 60
@@ -405,6 +413,18 @@ open class TimelineStore {
             self.save()
             self.processing = false
         }
+    }
+
+    // MARK: - Background and Foreground
+
+    private func didBecomeActive() {
+        guard let segments = mutex.sync(execute: { segmentMap.objectEnumerator()?.allObjects as? [TimelineSegment] }) else { return }
+        segments.forEach { $0.shouldReclassifySamples = true }
+    }
+
+    private func didEnterBackground() {
+        guard let segments = mutex.sync(execute: { segmentMap.objectEnumerator()?.allObjects as? [TimelineSegment] }) else { return }
+        segments.forEach { $0.shouldReclassifySamples = false }
     }
 
     // MARK: - Database housekeeping

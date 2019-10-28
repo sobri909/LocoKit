@@ -14,13 +14,12 @@ public extension NSNotification.Name {
 
 public class TimelineSegment: TransactionObserver, Encodable, Hashable {
 
-    public static var reclassifySamples = true
-
     // MARK: -
 
     public var debugLogging = false
     public var shouldReprocessOnUpdate = false
     public var shouldUpdateMarkovValues = true
+    public var shouldReclassifySamples = true
 
     // MARK: -
 
@@ -126,7 +125,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
 
     // Note: this expects samples to be in date ascending order
     private func reclassifySamples() {
-        guard TimelineSegment.reclassifySamples else { return }
+        guard shouldReclassifySamples else { return }
         
         guard let classifier = store.recorder?.classifier else { return }
 
