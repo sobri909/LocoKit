@@ -49,41 +49,11 @@ extension MLClassifierManager {
     }
 
     public func classify(_ timelineItem: TimelineItem, timeout: TimeInterval? = nil) -> ClassifierResults? {
-        guard let results = classify(timelineItem.samples, timeout: timeout) else { return nil }
-
-        // radius is small enough to consider stationary a valid result
-        if timelineItem.radius3sd < Visit.maximumRadius { return results }
-
-        guard let stationary = results[.stationary] else { return results }
-
-        // radius is too big for stationary. so let's zero out its score
-        var resultsArray = results.array
-        resultsArray.remove(stationary)
-        resultsArray.append(ClassifierResultItem(name: .stationary, score: 0,
-                                                 modelAccuracyScore: stationary.modelAccuracyScore))
-
-        return ClassifierResults(results: resultsArray, moreComing: results.moreComing)
+        return classify(timelineItem.samples, timeout: timeout)
     }
 
     public func classify(_ segment: ItemSegment, timeout: TimeInterval? = nil) -> ClassifierResults? {
-        guard let results = classify(segment.samples, timeout: timeout) else { return nil }
-
-        // radius is small enough to consider stationary a valid result
-        if segment.radius.with3sd < Visit.maximumRadius {
-            return results
-        }
-
-        guard let stationary = results[.stationary] else {
-            return results
-        }
-
-        // radius is too big for stationary. so let's zero out its score
-        var resultsArray = results.array
-        resultsArray.remove(stationary)
-        resultsArray.append(ClassifierResultItem(name: .stationary, score: 0,
-                                                 modelAccuracyScore: stationary.modelAccuracyScore))
-
-        return ClassifierResults(results: resultsArray, moreComing: results.moreComing)
+        return classify(segment.samples, timeout: timeout)
     }
 
     // Note: samples must be provided in date ascending order
