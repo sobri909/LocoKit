@@ -537,9 +537,6 @@ import LocoKitCore
         let note = Notification(name: .willStartDeepSleepMode, object: self, userInfo: nil)
         NotificationCenter.default.post(note)
 
-        // turn on background fetches
-        onMain { UIApplication.shared.setMinimumBackgroundFetchInterval(deepSleepDuration) }
-
         // request a wakeup call silent push
         LocoKitService.requestWakeup(at: wakeupTime)
 
