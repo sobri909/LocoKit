@@ -205,7 +205,7 @@ public class TimelineRecorder {
 
         currentItem.add(sample)
 
-        // if in sleep mode, only retain the last 10 sleep mode samples
+        // if in sleep mode, only retain the last X sleep mode samples
         if RecordingState.sleepStates.contains(sample.recordingState) {
             guard let endDate = currentItem.endDate else { return }
 
@@ -214,8 +214,8 @@ public class TimelineRecorder {
                 RecordingState.sleepStates.contains($0.recordingState)
             }
 
-            // keep most recent 5 minutes of sleep samples
-            let keeperBoundary: TimeInterval = .oneMinute * 5
+            // keep most recent 20 minutes of sleep samples
+            let keeperBoundary: TimeInterval = .oneMinute * 20
 
             var samplesToKill: [PersistentSample] = []
             for sample in edgeSleepSamples {
