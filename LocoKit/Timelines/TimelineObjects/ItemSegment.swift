@@ -16,9 +16,15 @@ public class ItemSegment: Equatable {
 
     private var _samples: [PersistentSample]?
     public var samples: [PersistentSample] {
-        if let cached = _samples { return cached }
-        _samples = unsortedSamples.sorted { $0.date < $1.date }
-        return _samples!
+        get {
+            if let cached = _samples { return cached }
+            _samples = unsortedSamples.sorted { $0.date < $1.date }
+            return _samples!
+        }
+        set(newSamples) {
+            unsortedSamples.removeAll()
+            add(newSamples)
+        }
     }
 
     // MARK: - Initialisers
@@ -46,7 +52,7 @@ public class ItemSegment: Equatable {
     private var manualStartDate: Date?
     private var manualEndDate: Date?
     private var manualRecordingState: RecordingState?
-    private var manualActivityType: ActivityTypeName?
+    public var manualActivityType: ActivityTypeName?
 
     public var startDate: Date? { return manualStartDate ?? samples.first?.date }
     public var endDate: Date? {
