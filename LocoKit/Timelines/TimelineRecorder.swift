@@ -154,6 +154,11 @@ public class TimelineRecorder {
             self.process(sample)
             self.updateSleepModeAcceptability()
         }
+
+        // recreate the location manager on nolo, to work around iOS 13.3 bug
+        if sample.isNolo {
+            LocomotionManager.highlander.recreateTheLocationManager()
+        }
     }
 
     private func process(_ sample: PersistentSample) {

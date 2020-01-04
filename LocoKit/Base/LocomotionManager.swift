@@ -90,6 +90,7 @@ import LocoKitCore
     
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
+    internal var lastLocationManagerCreated: Date?
 
     internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
 
@@ -469,12 +470,15 @@ import LocoKitCore
      untimely deaths of small cute animals in Madagascar.
      */
     @objc public private(set) lazy var locationManager: CLLocationManager = {
+        lastLocationManagerCreated = Date()
+
         let manager = CLLocationManager()
         manager.distanceFilter = kCLDistanceFilterNone
         manager.desiredAccuracy = self.maximumDesiredLocationAccuracy
         manager.pausesLocationUpdatesAutomatically = false
         
         manager.delegate = self
+
         return manager
     }()
     
@@ -675,6 +679,31 @@ import LocoKitCore
         os_log("Ending LocoKit background task.", type: .debug)
         UIApplication.shared.endBackgroundTask(backgroundTaskId)
         backgroundTaskId = UIBackgroundTaskIdentifier.invalid
+    }
+
+    // MARK: - iOS bug workaround
+
+    // to work around an iOS 13.3 bug that results in the location manager "dying", no longer receiving location updates
+    public func recreateTheLocationManager() {
+
+        // don't recreate location managers too often
+        if let last = lastLocationManagerCreated, last.age < .oneMinute { return }
+
+        lastLocationManagerCreated = Date()
+
+        let freshManager = CLLocationManager()
+        freshManager.distanceFilter = locationManager.distanceFilter
+        freshManager.desiredAccuracy = locationManager.desiredAccuracy
+        freshManager.pausesLocationUpdatesAutomatically = false
+        freshManager.allowsBackgroundLocationUpdates = true
+        freshManager.delegate = self
+
+        // hand over to new manager
+        freshManager.startUpdatingLocation()
+        locationManager.stopUpdatingLocation()
+        locationManager = freshManager
+
+        os_log("Recreated the LocationManager", type: .fault)
     }
 
     // MARK: - Core Motion management
