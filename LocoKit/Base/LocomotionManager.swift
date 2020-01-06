@@ -469,12 +469,19 @@ import LocoKitCore
      untimely deaths of small cute animals in Madagascar.
      */
     @objc public private(set) lazy var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.distanceFilter = kCLDistanceFilterNone
-        manager.desiredAccuracy = self.maximumDesiredLocationAccuracy
-        manager.pausesLocationUpdatesAutomatically = false
-        
-        manager.delegate = self
+        var manager: CLLocationManager!
+
+        // Problems may occur if CLLocationManager is not created on the main thread
+        onMain(sync: true) {
+            manager = CLLocationManager()
+            manager.distanceFilter = kCLDistanceFilterNone
+            manager.desiredAccuracy = self.maximumDesiredLocationAccuracy
+            manager.pausesLocationUpdatesAutomatically = false
+
+            manager.delegate = self
+
+        }
+
         return manager
     }()
     
@@ -759,7 +766,6 @@ import LocoKitCore
                 os_log("error: %@", String(describing: error))
                 
             } else if let motion = motion {
-                self.coreMotionPermission = true
                 ActivityBrain.highlander.add(deviceMotion: motion)
             }
         }

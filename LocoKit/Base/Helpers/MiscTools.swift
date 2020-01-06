@@ -8,11 +8,12 @@
 
 import Foundation
 
-public func onMain(_ closure: @escaping () -> ()) {
+public func onMain(sync: Bool = false, _ closure: @escaping () -> ()) {
     if Thread.isMainThread {
         closure()
     } else {
-        DispatchQueue.main.async(execute: closure)
+        sync ? DispatchQueue.main.sync(execute: closure)
+            : DispatchQueue.main.async(execute: closure)
     }
 }
 
