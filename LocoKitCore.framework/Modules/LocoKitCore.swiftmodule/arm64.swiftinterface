@@ -1,0 +1,207 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.1.3 effective-4.2 (swiftlang-1100.0.282.1 clang-1100.0.33.15)
+// swift-module-flags: -target arm64-apple-ios10.0 -enable-objc-interop -enable-library-evolution -swift-version 4.2 -enforce-exclusivity=checked -O -module-name LocoKitCore
+import Accelerate
+import CoreLocation
+import CoreMotion
+import Darwin
+import Foundation
+@_exported import LocoKitCore
+import Swift
+import os.log
+import os
+public enum CoreMotionActivityTypeName : Swift.String, Swift.Codable {
+  case unknown
+  case stationary
+  case automotive
+  case walking
+  case running
+  case cycling
+  public static let allTypes: [LocoKitCore.CoreMotionActivityTypeName]
+  public typealias RawValue = Swift.String
+  public init?(rawValue: Swift.String)
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public class ActivityBrain {
+  public var processHistoricalLocations: Swift.Bool
+  public static let highlander: LocoKitCore.ActivityBrain
+  public var presentSample: LocoKitCore.ActivityBrainSample {
+    get
+    set
+  }
+  public var stationaryPeriodStart: Foundation.Date?
+  @objc deinit
+}
+extension ActivityBrain {
+  public static var historicalLocationsBrain: LocoKitCore.ActivityBrain {
+    get
+  }
+  public func add(rawLocation location: CoreLocation.CLLocation, trustFactor: Swift.Double? = nil)
+  public func update()
+  public func freezeTheBrain()
+  public var movingState: LocoKitCore.MovingState {
+    get
+  }
+  public var horizontalAccuracy: Swift.Double {
+    get
+  }
+  public var kalmanLocation: CoreLocation.CLLocation? {
+    get
+  }
+  public func resetKalmans()
+  public var kalmanRequiredN: Swift.Double {
+    get
+  }
+  public var speedRequiredN: Swift.Double {
+    get
+  }
+  public var requiredN: Swift.Int {
+    get
+  }
+  public var dynamicMinimumConfidenceN: Swift.Int {
+    get
+  }
+  public func spread(_ locations: [CoreLocation.CLLocation]) -> Foundation.TimeInterval
+  public func add(pedoData: CoreMotion.CMPedometerData)
+  public func add(deviceMotion: CoreMotion.CMDeviceMotion)
+  public func add(cmMotionActivity activity: CoreMotion.CMMotionActivity)
+}
+public enum MovingState : Swift.String, Swift.Codable {
+  case moving
+  case stationary
+  case uncertain
+  public typealias RawValue = Swift.String
+  public init?(rawValue: Swift.String)
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public class ActivityBrainSample {
+  public var movingState: LocoKitCore.MovingState
+  public var rawLocations: [CoreLocation.CLLocation] {
+    get
+  }
+  public var filteredLocations: [CoreLocation.CLLocation] {
+    get
+  }
+  public var date: Foundation.Date {
+    get
+  }
+  public var location: CoreLocation.CLLocation? {
+    get
+  }
+  public var stepHz: Swift.Double? {
+    get
+  }
+  public var coreMotionActivityType: LocoKitCore.CoreMotionActivityTypeName? {
+    get
+  }
+  public var speed: CoreLocation.CLLocationSpeed {
+    get
+  }
+  public var course: CoreLocation.CLLocationDirection {
+    get
+  }
+  public var courseVariance: Swift.Double? {
+    get
+  }
+  public var xyAcceleration: Swift.Double? {
+    get
+  }
+  public var zAcceleration: Swift.Double? {
+    get
+  }
+  @objc deinit
+}
+postfix operator ′
+public protocol ScopedMutex {
+  @discardableResult
+  func sync<R>(execute work: () throws -> R) rethrows -> R
+  @discardableResult
+  func trySync<R>(execute work: () throws -> R) rethrows -> R?
+}
+public protocol RawMutex : LocoKitCore.ScopedMutex {
+  associatedtype MutexPrimitive
+  var unsafeMutex: Self.MutexPrimitive { get set }
+  func unbalancedLock()
+  func unbalancedTryLock() -> Swift.Bool
+  func unbalancedUnlock()
+}
+extension RawMutex {
+  @discardableResult
+  public func sync<R>(execute work: () throws -> R) rethrows -> R
+  @discardableResult
+  public func trySync<R>(execute work: () throws -> R) rethrows -> R?
+}
+final public class PThreadMutex : LocoKitCore.RawMutex {
+  public typealias MutexPrimitive = Darwin.pthread_mutex_t
+  public enum PThreadMutexType {
+    case normal
+    case recursive
+    public static func == (a: LocoKitCore.PThreadMutex.PThreadMutexType, b: LocoKitCore.PThreadMutex.PThreadMutexType) -> Swift.Bool
+    public var hashValue: Swift.Int {
+      get
+    }
+    public func hash(into hasher: inout Swift.Hasher)
+  }
+  final public var unsafeMutex: Darwin.pthread_mutex_t
+  public init(type: LocoKitCore.PThreadMutex.PThreadMutexType = .normal)
+  @objc deinit
+  final public func unbalancedLock()
+  final public func unbalancedTryLock() -> Swift.Bool
+  final public func unbalancedUnlock()
+}
+final public class UnfairLock : LocoKitCore.RawMutex {
+  public typealias MutexPrimitive = Darwin.os_unfair_lock
+  public init()
+  final public var unsafeMutex: Darwin.os_unfair_lock
+  final public func unbalancedLock()
+  final public func unbalancedTryLock() -> Swift.Bool
+  final public func unbalancedUnlock()
+  @objc deinit
+}
+public typealias Radians = Swift.Double
+public typealias AccuracyRange = (best: CoreLocation.CLLocationAccuracy, worst: CoreLocation.CLLocationAccuracy)
+extension Array where Element : CoreLocation.CLLocation {
+  public var dateInterval: Foundation.DateInterval? {
+    get
+  }
+}
+infix operator ≅ : ComparisonPrecedence
+infix operator • : DefaultPrecedence
+public struct LocoKitService {
+  public static var apiKey: Swift.String? {
+    get
+    set(key)
+  }
+  public static var deviceToken: Foundation.Data?
+  public static var requestedWakeupCall: Foundation.Date? {
+    get
+    }
+  public static var requestingWakeupCall: Swift.Bool {
+    get
+    }
+  @discardableResult
+  public static func requestWakeup(at requestedDate: Foundation.Date) -> Swift.Bool
+  public static func fetchModelsFor(coordinate: CoreLocation.CLLocationCoordinate2D, depth: Swift.Int, completion: @escaping ([Swift.String : Any]?) -> Swift.Void)
+}
+extension Date {
+  public var startOfDay: Foundation.Date {
+    get
+  }
+  public var sinceStartOfDay: Foundation.TimeInterval {
+    get
+  }
+  public var age: Foundation.TimeInterval {
+    get
+  }
+}
+extension LocoKitCore.CoreMotionActivityTypeName : Swift.Equatable {}
+extension LocoKitCore.CoreMotionActivityTypeName : Swift.Hashable {}
+extension LocoKitCore.CoreMotionActivityTypeName : Swift.RawRepresentable {}
+extension LocoKitCore.MovingState : Swift.Hashable {}
+extension LocoKitCore.MovingState : Swift.RawRepresentable {}
+extension LocoKitCore.PThreadMutex.PThreadMutexType : Swift.Equatable {}
+extension LocoKitCore.PThreadMutex.PThreadMutexType : Swift.Hashable {}
