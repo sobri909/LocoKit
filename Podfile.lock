@@ -1,8 +1,8 @@
 PODS:
   - Anchorage (4.3.1)
-  - GRDB.swift (4.4.0):
-    - GRDB.swift/standard (= 4.4.0)
-  - GRDB.swift/standard (4.4.0)
+  - GRDB.swift (4.8.1):
+    - GRDB.swift/standard (= 4.8.1)
+  - GRDB.swift/standard (4.8.1)
   - LocoKit (7.0.0):
     - LocoKit/Base (= 7.0.0)
   - LocoKit/Base (7.0.0):
@@ -39,15 +39,15 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   LocoKit:
-    :commit: 95362957962f0edd07d41300df3cc302d12ad0a7
+    :commit: c2dea1cd279ec522e5dbdf1824f9c92e83169601
     :git: https://github.com/sobri909/LocoKit.git
   LocoKitCore:
-    :commit: 95362957962f0edd07d41300df3cc302d12ad0a7
+    :commit: c2dea1cd279ec522e5dbdf1824f9c92e83169601
     :git: https://github.com/sobri909/LocoKit.git
 
 SPEC CHECKSUMS:
   Anchorage: a187da0bc9b07440637d42c8744b8c82a4490295
-  GRDB.swift: 4f9b6e7efc9470426f6a6de10ec1fee798ff7e43
+  GRDB.swift: 6cd628021154e2d1d6a39d3a9a3ab3e8af55547f
   LocoKit: 11697ab6994ff259a773fdab8f8ce239ad2e62b8
   LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
@@ -55,4 +55,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 01f7e8cce82cffff5821ec2e152a1a9c39ed7917
 
-COCOAPODS: 1.8.0
+COCOAPODS: 1.8.4
