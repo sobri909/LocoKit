@@ -1,0 +1,49 @@
+/* 
+  Localizable.strings
+  LocoKit
+
+  Created by Matt Greenfield on 26/1/20.
+  Copyright © 2020 Big Paua. All rights reserved.
+*/
+
+"Unknown" = "ไม่ปรากฏ";
+"Bogus" = "เก๊";
+"Transport" = "Transport";
+"Data Gap" = "Data Gap";
+
+// base types
+"Stationary" = "อยู่กับที่";
+"Walking" = "เดิน";
+"Running" = "วิ่ง";
+"Cycling" = "ขี่จักรยาน";
+"Car" = "รถ";
+"Airplane" = "เครื่องบิน";
+
+// extended types
+"Train" = "รถไฟ";
+"Bus" = "รถเมล์";
+"Motorcycle" = "มอเตอร์ไซค์";
+"Boat" = "เรือ";
+"Tram" = "รถราง";
+"Tractor" = "แทรกเตอร์";
+"Tuk-tuk" = "ตุ๊กตุ๊ก";
+"Songthaew" = "สองแถว";
+"Scooter" = "สกูตเตอร์";
+"Metro" = "รถไฟฟ้าใต้ดิน";
+"Cable Car" = "เคเบิลคาร์";
+"Funicular" = "รถรางท่ีใช้เชือกลาก";
+"Chairlift" = "ลิฟท์เก้าอี้";
+"Ski Lift" = "ลิฟท์สกี";
+"Taxi" = "แท็กซี่";
+
+// active types
+"Skateboarding" = "สเกตบอร์ด";
+"Inline Skating" = "อินไลน์สเก็ต";
+"Snowboarding" = "สโนว์บอร์ด";
+"Skiing" = "สกี";
+"Horseback" = "ขี่ม้า";
+"Swimming" = "ว่ายน้ำ";
+"Golf" = "กอล์ฟ";
+"Wheelchair" = "เก้าอี้เข็น";
+"Rowing" = "การพาย";
+"Kayaking" = "เรือบด";

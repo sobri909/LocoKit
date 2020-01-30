@@ -1,0 +1,49 @@
+/* 
+  Localizable.strings
+  LocoKit
+
+  Created by Matt Greenfield on 26/1/20.
+  Copyright © 2020 Big Paua. All rights reserved.
+*/
+
+"Unknown" = "不明";
+"Bogus" = "不正確なデータ";
+"Transport" = "Transport";
+"Data Gap" = "Data Gap";
+
+// base types
+"Stationary" = "滞在";
+"Walking" = "徒歩";
+"Running" = "ランニング";
+"Cycling" = "サイクリング";
+"Car" = "車";
+"Airplane" = "飛行機";
+
+// extended types
+"Train" = "電車";
+"Bus" = "バス";
+"Motorcycle" = "オートバイ";
+"Boat" = "ボート";
+"Tram" = "路面電車";
+"Tractor" = "トラクター";
+"Tuk-tuk" = "トゥクトゥク";
+"Songthaew" = "ソンテウ";
+"Scooter" = "スクーター";
+"Metro" = "地下鉄";
+"Cable Car" = "ケーブルカー";
+"Funicular" = "フニクラ";
+"Chairlift" = "チェアリフト";
+"Ski Lift" = "スキーリフト";
+"Taxi" = "タクシー";
+
+// active types
+"Skateboarding" = "スケートボード";
+"Inline Skating" = "インラインスケート";
+"Snowboarding" = "スノーボード";
+"Skiing" = "スキー";
+"Horseback" = "乗馬";
+"Swimming" = "スイミング";
+"Golf" = "ゴルフ";
+"Wheelchair" = "車いす";
+"Rowing" = "ボート漕ぎ";
+"Kayaking" = "カヤック漕ぎ";
