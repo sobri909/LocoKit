@@ -9,10 +9,10 @@
 "Unknown" = "Unbekannt";
 "Bogus" = "Quatsch";
 "Transport" = "Transport";
-"Data Gap" = "Data Gap";
+"Data Gap" = "Datenlücke";
 
 // base types
-"Stationary" = "Ortsfest";
+"Stationary" = "Aufenthalt";
 "Walking" = "Gehen";
 "Running" = "Laufen";
 "Cycling" = "Fahrrad";
@@ -26,9 +26,9 @@
 "Boat" = "Boot";
 "Tram" = "Straßenbahn";
 "Tractor" = "Traktor";
-"Tuk-tuk" = "Tuk-tuk";
-"Songthaew" = "Songthaew";
-"Scooter" = "Scooter";
+"Tuk-tuk" = "Tuk-Tuk";
+"Songthaew" = "Songthaeo";
+"Scooter" = "Roller";
 "Metro" = "U-Bahn";
 "Cable Car" = "Seilbahn";
 "Funicular" = "Standseilbahn";
