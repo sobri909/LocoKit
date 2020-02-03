@@ -1,4 +1,4 @@
-/* 
+/*
   Localizable.strings
   LocoKit
 
@@ -26,7 +26,7 @@
 "Boat" = "เรือ";
 "Tram" = "รถราง";
 "Tractor" = "แทรกเตอร์";
-"Tuk-tuk" = "ตุ๊กตุ๊ก";
+"Tuk-Tuk" = "ตุ๊กตุ๊ก";
 "Songthaew" = "สองแถว";
 "Scooter" = "สกูตเตอร์";
 "Metro" = "รถไฟฟ้าใต้ดิน";
