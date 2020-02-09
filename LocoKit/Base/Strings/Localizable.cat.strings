@@ -9,7 +9,7 @@
 "Unknown" = "Desconegut";
 "Bogus" = "Errònia";
 "Transport" = "Transport";
-"Data Gap" = "Falta de Dades";
+"Data Gap" = "Sense Dades";
 
 // base types
 "Stationary" = "Estacionari";
