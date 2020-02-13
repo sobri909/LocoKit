@@ -8,8 +8,8 @@
 
 "Unknown" = "不明";
 "Bogus" = "不正確なデータ";
-"Transport" = "Transport";
-"Data Gap" = "Data Gap";
+"Transport" = "移動";
+"Data Gap" = "データの欠落";
 
 // base types
 "Stationary" = "滞在";
