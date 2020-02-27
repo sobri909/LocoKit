@@ -212,34 +212,46 @@ public class TimelineRecorder {
 
         // if in sleep mode, only retain the last X sleep mode samples
         if RecordingState.sleepStates.contains(sample.recordingState) {
-            guard let endDate = currentItem.endDate else { return }
-
-            // collect the contiguous sleep samples from the end
-            let edgeSleepSamples = currentItem.samples.reversed().prefix {
-                RecordingState.sleepStates.contains($0.recordingState)
-            }
-
-            // keep most recent 20 minutes of sleep samples
-            let keeperBoundary: TimeInterval = .oneMinute * 20
-
-            var samplesToKill: [PersistentSample] = []
-            for sample in edgeSleepSamples {
-
-                // always keep the newest sleep sample
-                if sample == edgeSleepSamples.first { continue }
-
-                // always keep the oldest sleep sample
-                if sample == edgeSleepSamples.last { break }
-
-                // sample older than the time window?
-                if endDate.timeIntervalSince(sample.date) > keeperBoundary {
-                    samplesToKill.append(sample)
-                    continue
-                }
-            }
-
-            samplesToKill.forEach { $0.delete() }
+            pruneSleepModeSamples(for: currentItem)
         }
+    }
+
+    private func pruneSleepModeSamples(for item: TimelineItem) {
+        guard let endDate = item.endDate else { return }
+
+        // collect the contiguous sleep samples from the end
+        let edgeSleepSamples = item.samples.reversed().prefix {
+            RecordingState.sleepStates.contains($0.recordingState)
+        }
+
+        // keep most recent 20 minutes of sleep samples
+        let keeperBoundary: TimeInterval = .oneMinute * 20
+        let durationBetween: TimeInterval = .oneMinute * 5
+
+        var lastKept: PersistentSample? = edgeSleepSamples.last
+        var samplesToKill: [PersistentSample] = []
+
+        for sample in edgeSleepSamples.reversed() {
+            // sample younger than the time window? then we done
+            if endDate.timeIntervalSince(sample.date) < keeperBoundary { break }
+
+            // always keep the newest sleep sample
+            if sample == edgeSleepSamples.first { break }
+
+            // always keep the oldest sleep sample
+            if sample == edgeSleepSamples.last { continue }
+
+            // sample is too close to the previously kept one?
+            if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
+                samplesToKill.append(sample)
+                continue
+            }
+
+            // must've kept it
+            lastKept = sample
+        }
+
+        samplesToKill.forEach { $0.delete() }
     }
 
     private func updateSleepModeAcceptability() {
