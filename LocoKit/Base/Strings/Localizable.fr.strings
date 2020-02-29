@@ -9,13 +9,13 @@
 "Unknown" = "Inconnu";
 "Bogus" = "Faux mouvement";
 "Transport" = "Transport";
-"Data Gap" = "Data Gap";
+"Data Gap" = "Pas de données";
 
 // base types
 "Stationary" = "Stationnaire";
 "Walking" = "Marche";
 "Running" = "Course à pied";
-"Cycling" = "Cyclisme";
+"Cycling" = "Vélo";
 "Car" = "Voiture";
 "Airplane" = "Avion";
 
@@ -33,7 +33,7 @@
 "Cable Car" = "Téléphérique";
 "Funicular" = "Funiculaire";
 "Chairlift" = "Télésiège";
-"Ski Lift" = "Tire-fesse";
+"Ski Lift" = "Téléski";
 "Taxi" = "Taxi";
 
 // active types
