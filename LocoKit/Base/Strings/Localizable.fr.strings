@@ -9,7 +9,7 @@
 "Unknown" = "Inconnu";
 "Bogus" = "Faux mouvement";
 "Transport" = "Transport";
-"Data Gap" = "Pas de données";
+"Data Gap" = "Données manquantes";
 
 // base types
 "Stationary" = "Stationnaire";
