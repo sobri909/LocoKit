@@ -22,7 +22,6 @@ open class TimelineStore {
     public init() {
         migrateDatabases()
         pool.add(transactionObserver: itemsObserver)
-        pool.setupMemoryManagement(in: UIApplication.shared)
 
         let center = NotificationCenter.default
         center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
