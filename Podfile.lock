@@ -1,58 +1,40 @@
 PODS:
-  - Anchorage (4.3.1)
-  - GRDB.swift (4.8.1):
-    - GRDB.swift/standard (= 4.8.1)
-  - GRDB.swift/standard (4.8.1)
+  - Anchorage (4.4.0)
+  - GRDB.swift (4.11.0):
+    - GRDB.swift/standard (= 4.11.0)
+  - GRDB.swift/standard (4.11.0)
   - LocoKit (7.0.0):
     - LocoKit/Base (= 7.0.0)
   - LocoKit/Base (7.0.0):
+    - GRDB.swift (~> 4)
     - LocoKitCore (= 7.0.0)
     - Upsurge (~> 0.10)
-  - LocoKit/Timelines (7.0.0):
-    - GRDB.swift (~> 4)
-    - LocoKit/Base
   - LocoKitCore (7.0.0)
   - SwiftNotes (1.1.0)
   - Upsurge (0.10.2)
 
 DEPENDENCIES:
   - Anchorage
-  - LocoKit (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
-  - LocoKit/Timelines (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
-  - LocoKitCore (from `https://github.com/sobri909/LocoKit.git`, branch `develop`)
+  - LocoKit
   - SwiftNotes
 
 SPEC REPOS:
   trunk:
     - Anchorage
     - GRDB.swift
+    - LocoKit
+    - LocoKitCore
     - SwiftNotes
     - Upsurge
 
-EXTERNAL SOURCES:
-  LocoKit:
-    :branch: develop
-    :git: https://github.com/sobri909/LocoKit.git
-  LocoKitCore:
-    :branch: develop
-    :git: https://github.com/sobri909/LocoKit.git
-
-CHECKOUT OPTIONS:
-  LocoKit:
-    :commit: 8932f62701a01a84efbff484a3ed3e8c864c7065
-    :git: https://github.com/sobri909/LocoKit.git
-  LocoKitCore:
-    :commit: 8932f62701a01a84efbff484a3ed3e8c864c7065
-    :git: https://github.com/sobri909/LocoKit.git
-
 SPEC CHECKSUMS:
-  Anchorage: a187da0bc9b07440637d42c8744b8c82a4490295
-  GRDB.swift: 6cd628021154e2d1d6a39d3a9a3ab3e8af55547f
-  LocoKit: 11697ab6994ff259a773fdab8f8ce239ad2e62b8
+  Anchorage: d7f02c4f9425b537053237aab11ae97e59b55f36
+  GRDB.swift: 22e9d04cb732dfa9fa4440bc0bbb069ee8195183
+  LocoKit: 8a06074e90dfd24ee10e94c9f5274e300f6b9d2f
   LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: 01f7e8cce82cffff5821ec2e152a1a9c39ed7917
+PODFILE CHECKSUM: c9cb1714b431c31888efb12c1a62351506e334e2
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.0
