@@ -25,6 +25,21 @@ A Machine Learning based location recording and activity detection framework for
 - Optionally persist your recorded samples and timeline items to a local SQL based store, for
   retention between sessions.
 
+[More information about timeline items can be found here](https://github.com/sobri909/LocoKit/blob/master/TimelineItemDescription.md)
+
+## Supporting the Project
+
+LocoKit is an LGPL licensed open source project. Its ongoing development is made possible 
+thanks to the support of its backers on Patreon.
+
+- [patreon.com/sobri909](https://www.patreon.com/sobri909)
+
+If you have an app that uses LocoKit and is a revenue generating product, please consider
+sponsoring LocoKit development, to ensure the project that your product relies on stays
+healthy and actively maintained.
+
+Thanks so much for your support!
+
 # Installation
 
 ```ruby
@@ -109,6 +124,19 @@ when(loco, does: .locomotionSampleUpdated) { _ in
 }
 ```
 
+## Fetching TimelineItems / Samples
+
+If you wanted to get all timeline items between the start of today and now, you might do this:
+
+```swift
+let date = Date() // some specific day
+let items = store.items(
+        where: "deleted = 0 AND endDate > ? AND startDate < ? ORDER BY endDate",
+        arguments: [date.startOfDay, date.endOfDay])
+```
+
+You can also construct more complex queries, like for fetching all timeline items that overlap a certain geographic region. Or all samples of a specific activity type (eg all "car" samples). Or all timeline items that contain samples over a certain speed (eg paths containing fast driving).
+
 ## Detect Activity Types
 
 Note that if you are using a `TimelineManager`, activity type classifying is already handled 
@@ -143,6 +171,12 @@ noteCenter.addObserver(forName: .locomotionSampleUpdated, object: loco, queue: q
     // do stuff
 }
 ```
+
+## Background Location Monitoring
+
+If you want the app to be relaunched after the user force quits, enable significant location change monitoring.
+
+[More details and requirements here](https://github.com/sobri909/LocoKit/blob/master/BackgroundLocationMonitoring.md)
 
 ## Examples and Screenshots
 
