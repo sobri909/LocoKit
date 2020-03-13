@@ -7,12 +7,13 @@
 
 import os.log
 import GRDB
+import Combine
 
 public extension NSNotification.Name {
     static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
 }
 
-public class TimelineSegment: TransactionObserver, Encodable, Hashable {
+public class TimelineSegment: TransactionObserver, Encodable, Hashable, ObservableObject {
 
     // MARK: -
 
@@ -46,7 +47,9 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
-    private var pendingChanges = false
+    private var pendingChanges = false {
+        willSet(haveChanges) { if haveChanges { onMain { self.objectWillChange.send() } } }
+    }
     private var updatingEnabled = true
 
     // MARK: -
@@ -251,6 +254,10 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
         formatter.dateFormat = "yyyy"
         return formatter.string(from: dateRange.middle)
     }
+
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
 
     // MARK: - Encodable
 

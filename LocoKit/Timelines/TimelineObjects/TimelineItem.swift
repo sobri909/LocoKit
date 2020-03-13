@@ -31,6 +31,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public var source: String = "LocoKit"
 
+    public var isVisit: Bool {
+        return self is Visit
+    }
+
     open var isMergeLocked: Bool {
         if isCurrentItem && !isWorthKeeping { return true }
         return false
