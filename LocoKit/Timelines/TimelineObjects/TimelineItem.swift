@@ -11,11 +11,16 @@ import GRDB
 import LocoKitCore
 import CoreLocation
 import CoreMotion
+import Combine
 
 /// The abstract base class for timeline items.
-open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
+open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifiable, ObservableObject {
 
-    // MARK: TimelineObject
+    // MARK: - Identifiable
+
+    public var id: UUID { return objectId }
+
+    // MARK: - TimelineObject
 
     public var objectId: UUID { return itemId }
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
@@ -593,6 +598,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
         onMain {
             NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+            self.objectWillChange.send()
         }
     }
 
@@ -653,6 +659,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             if madeChanges {
                 onMain {
                     NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+                    self.objectWillChange.send()
                 }
             }
         }
@@ -823,6 +830,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         case floorsDescended
         case samples
     }
+
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
+
 }
 
 internal enum DecodeError: Error {

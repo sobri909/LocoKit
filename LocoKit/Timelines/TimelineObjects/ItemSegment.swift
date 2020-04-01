@@ -8,7 +8,7 @@
 
 import CoreLocation
 
-public class ItemSegment: Equatable {
+public class ItemSegment: Equatable, Identifiable {
 
     public weak var timelineItem: TimelineItem?
 
@@ -212,5 +212,10 @@ public class ItemSegment: Equatable {
     public static func ==(lhs: ItemSegment, rhs: ItemSegment) -> Bool {
         return lhs.dateRange == rhs.dateRange && lhs.samples.count == rhs.samples.count
     }
+
+    // MARK: - Identifiable
+
+    public private(set) var id = UUID()
+    
 }
 
