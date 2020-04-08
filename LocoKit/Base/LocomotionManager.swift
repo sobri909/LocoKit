@@ -92,8 +92,6 @@ import LocoKitCore
     internal var wakeupTimer: Timer?
     internal var lastLocationManagerCreated: Date?
 
-    internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
-
     internal lazy var wigglesQueue: OperationQueue = {
         return OperationQueue()
     }()
@@ -317,9 +315,6 @@ import LocoKitCore
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.startUpdatingLocation()
 
-        // start a background task, to keep iOS happy
-        startBackgroundTask()
-
         // start the motion gimps
         startCoreMotion()
         
@@ -364,9 +359,6 @@ import LocoKitCore
         locationManager.stopMonitoringVisits()
         locationManager.stopMonitoringSignificantLocationChanges()
 
-        // allow the app to suspend and terminate cleanly
-        endBackgroundTask()
-        
         recordingState = .off
     }
     
@@ -558,9 +550,6 @@ import LocoKitCore
         stopTheWakeupTimer()
         stopTheUpdateTimer()
 
-        // allow the app to suspend and terminate cleanly
-        endBackgroundTask()
-
         recordingState = .deepSleeping
     }
 
@@ -582,9 +571,6 @@ import LocoKitCore
         if recordingState == .off || recordingState == .deepSleeping {
             locationManager.allowsBackgroundLocationUpdates = true
             locationManager.startUpdatingLocation()
-
-            // start a background task, to keep iOS happy
-            startBackgroundTask()
         }
 
         // need to be able to detect nolos
@@ -656,29 +642,6 @@ import LocoKitCore
         }
 
         return false
-    }
-
-    // MARK: - Background management
-
-    private func startBackgroundTask() {
-        guard backgroundTaskId == UIBackgroundTaskIdentifier.invalid else { return }
-        os_log("Starting LocoKit background task.", type: .debug)
-        backgroundTaskId = UIApplication.shared.beginBackgroundTask(withName: "LocoKitBackground") {
-            os_log("LocoKit background task expired.", type: .error)
-
-            // tell people that the task expired, thus the app will be suspended soon
-            let note = Notification(name: .backgroundTaskExpired, object: self, userInfo: nil)
-            NotificationCenter.default.post(note)
-            
-            self.endBackgroundTask()
-        }
-    }
-
-    private func endBackgroundTask() {
-        guard backgroundTaskId != UIBackgroundTaskIdentifier.invalid else { return }
-        os_log("Ending LocoKit background task.", type: .debug)
-        UIApplication.shared.endBackgroundTask(backgroundTaskId)
-        backgroundTaskId = UIBackgroundTaskIdentifier.invalid
     }
 
     // MARK: - iOS bug workaround
