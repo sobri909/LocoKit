@@ -227,7 +227,7 @@ public class TimelineProcessor {
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {
                 if overlapper.isMergeLocked {
-                    print("An overlapper is merge locked. Aborting extraction.")
+                    os_log("An overlapper is merge locked. Aborting extraction.", type: .debug)
                     completion?(nil)
                     return
                 }
@@ -276,7 +276,7 @@ public class TimelineProcessor {
                 guard let intersection = overlapperRange.intersection(with: newItemRange) else { continue }
                 guard intersection.duration < overlapper.duration else { continue }
 
-                print("Splitting an overlapping item in two")
+                os_log("Splitting an overlapping item in two", type: .debug)
 
                 // get all samples from overlapper up to the point of overlap
                 let samplesToExtract = overlapper.samples.prefix { $0.date < newItemRange.start }
@@ -344,8 +344,6 @@ public class TimelineProcessor {
             return
         }
 
-        print("Extracting a path between visits")
-
         extractItem(for: pathSegment, in: store)
     }
 
@@ -377,7 +375,6 @@ public class TimelineProcessor {
                             "itemId": brokenItem.itemId.uuidString]),
                 !overlapper.deleted && !overlapper.isMergeLocked
             {
-                print("healEdges(of: \(brokenItem.itemId.shortString)) MERGED INTO CONTAINING ITEM")
                 overlapper.add(brokenItem.samples)
                 brokenItem.delete()
                 return
@@ -496,7 +493,7 @@ public class TimelineProcessor {
         store.process {
             guard !newerItem.isDataGap && !olderItem.isDataGap else { return }
 
-            guard let gap = newerItem.timeInterval(from: olderItem), gap > 60 * 5 else { print("TOO CLOSE"); return }
+            guard let gap = newerItem.timeInterval(from: olderItem), gap > 60 * 5 else { return }
 
             guard let startDate = olderItem.endDate else { return }
             guard let endDate = newerItem.startDate else { return }
@@ -568,10 +565,9 @@ public class TimelineProcessor {
 
         if orphans.isEmpty { return }
 
-        print("Samples holding onto dead parents: \(orphans.count)")
+        os_log("Samples holding onto dead parents: %d", type: .debug, orphans.count)
 
         for orphan in orphans where orphan.timelineItemId != nil {
-            print("Detaching an orphan from dead parent.")
             orphan.timelineItemId = nil
         }
 
@@ -583,10 +579,9 @@ public class TimelineProcessor {
 
         if deadmen.isEmpty { return }
 
-        print("Deadmen to edge detach: \(deadmen.count)")
+        os_log("Deadmen to edge detach: %d", type: .debug, deadmen.count)
 
         for deadman in deadmen {
-            print("Detaching edges of a deadman.")
             deadman.previousItemId = nil
             deadman.nextItemId = nil
         }
