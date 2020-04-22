@@ -7,7 +7,6 @@
 //
 
 import GRDB
-import Upsurge
 import CoreLocation
 
 open class Path: TimelineItem, CustomStringConvertible {
@@ -223,7 +222,7 @@ open class Path: TimelineItem, CustomStringConvertible {
         if otherPath.mps > 0 {
             speeds.append(otherPath.mps)
         }
-        return CLLocationDistance(mean(speeds) * timeSeparation * 4)
+        return CLLocationDistance(speeds.mean * timeSeparation * 4)
     }
 
     internal override func cleanseEdge(with otherPath: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {

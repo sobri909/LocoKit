@@ -7,7 +7,6 @@
 //
 
 import os.log
-import Upsurge
 
 open class Histogram: CustomStringConvertible {
    
@@ -32,8 +31,8 @@ open class Histogram: CustomStringConvertible {
                      snapToBoundaries: Bool = false, name: String? = nil,
                      printFormat: String? = nil, printModifier: Double? = nil) {
 
-        let mean = Upsurge.mean(values)
-        let sd = Upsurge.std(values)
+        let mean = values.mean
+        let sd = values.standardDeviation
         
         var filteredValues = values
         
@@ -313,7 +312,8 @@ open class Histogram: CustomStringConvertible {
     }
 
     public static func numberOfBins(_ metric: [Double], defaultBins: Int = 10) -> Int {
-        let h = binWidth(metric), ulim = max(metric), llim = min(metric)
+        let h = binWidth(metric)
+        guard let ulim = metric.max(), let llim = metric.min() else { return 1 }
         if h <= (ulim - llim) / Double(metric.count) {
             return defaultBins
         }
