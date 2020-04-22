@@ -389,14 +389,13 @@ public class TimelineProcessor {
         guard let endDate = brokenItem.endDate else { return }
 
         if let nearest = store.item(
-            where: "startDate >= :endDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
+            where: "startDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
             arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": endDate.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
-            if nearest.previousItemId == brokenItem.itemId {
-                return
-            }
+            // nearest is already this item's edge? eh?
+            if nearest.previousItemId == brokenItem.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -441,14 +440,13 @@ public class TimelineProcessor {
         guard let startDate = brokenItem.startDate else { return }
 
         if let nearest = store.item(
-            where: "endDate <= :startDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
+            where: "endDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
             arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": startDate.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
-            if nearest.nextItemId == brokenItem.itemId {
-                return
-            }
+            // nearest is already this item's edge? eh?
+            if nearest.nextItemId == brokenItem.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
