@@ -272,6 +272,10 @@ open class TimelineStore {
         }
     }
 
+    public func models(where query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
+        return models(for: "SELECT * FROM ActivityTypeModel WHERE " + query, arguments: arguments)
+    }
+
     public func models(for query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
         let rows = try! auxiliaryPool.read { db in
             return try Row.fetchAll(db, sql: query, arguments: arguments)
