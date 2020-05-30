@@ -23,7 +23,7 @@ open class ActivityType: MLModel, PersistableRecord {
     static let latLongBucketMaxDepth1 = 1800 // cutoff of roughly 3 hours of data for each depth 1 bucket
     static let latLongBucketMaxDepth2 = 80 // cutoff of roughly 8 mins of data for each depth 2 bucket
 
-    var store: TimelineStore?
+    public var store: TimelineStore?
    
     public internal(set) var name: ActivityTypeName
     public internal(set) var geoKey: String = ""
@@ -406,7 +406,7 @@ open class ActivityType: MLModel, PersistableRecord {
 
     // MARK: - Saving
 
-    var lastSaved: Date? // TODO: need to decode this at init time
+    public var lastSaved: Date?
 
     public func save() {
         do {
