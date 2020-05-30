@@ -78,6 +78,8 @@ open class TimelineStore {
 
     public lazy var poolConfig: Configuration = {
         var config = Configuration()
+        config.busyMode = .timeout(30)
+        config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
         if sqlDebugLogging {
             config.trace = {
