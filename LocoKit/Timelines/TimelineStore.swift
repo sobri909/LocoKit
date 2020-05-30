@@ -64,16 +64,16 @@ open class TimelineStore {
         return ItemsObserver(store: self)
     }()
 
+    open lazy var dbDir: URL = {
+        return try! FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+    }()
+
     open lazy var dbUrl: URL = {
-        return try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("LocoKit.sqlite")
+        return dbDir.appendingPathComponent("LocoKit.sqlite")
     }()
 
     open lazy var auxiliaryDbUrl: URL = {
-        return try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("LocoKitAuxiliary.sqlite")
+        return dbDir.appendingPathComponent("LocoKitAuxiliary.sqlite")
     }()
 
     public lazy var poolConfig: Configuration = {
