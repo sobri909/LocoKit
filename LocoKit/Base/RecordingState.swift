@@ -35,6 +35,11 @@ public enum RecordingState: String, Codable {
     case wakeup
 
     /**
+     Recording is off, but the app is kept alive and the manager is ready to restart recording immediately if requested.
+     */
+    case standby
+
+    /**
      This state indicates that the LocomotionManager is turned off and is not recording location or motion data.
      */
     case off

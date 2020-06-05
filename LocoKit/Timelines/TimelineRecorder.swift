@@ -70,7 +70,9 @@ public class TimelineRecorder {
 
     public func startRecording() {
         if isRecording { return }
-        addDataGapItem()
+        if LocomotionManager.highlander.appGroup?.currentRecorder == nil {
+            addDataGapItem()
+        }
         LocomotionManager.highlander.startRecording()
     }
 

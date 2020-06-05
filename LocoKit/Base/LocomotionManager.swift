@@ -90,6 +90,7 @@ import LocoKitCore
     
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
+    internal var standbyTimer: Timer?
     internal var lastLocationManagerCreated: Date?
 
     internal lazy var wigglesQueue: OperationQueue = {
@@ -101,6 +102,7 @@ import LocoKitCore
     }()
 
     public var coordinateAssessor: TrustAssessor?
+    public var appGroup: AppGroup?
     
     // MARK: The Singleton
     
@@ -233,6 +235,8 @@ import LocoKitCore
      thus reducing energy consumption and improving battery life.
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
+
+    @objc public var standbyCycleDuration: TimeInterval = 60 * 10
 
     // MARK: Raw, Filtered, and Smoothed Data
     
@@ -488,7 +492,7 @@ import LocoKitCore
         // notify that we're going to sleep
         NotificationCenter.default.post(Notification(name: .willStartSleepMode, object: self, userInfo: nil))
 
-        // kill the gimps
+        // stop the gimps
         stopCoreMotion()
 
         // set the location manager to ask for nothing and ignore everything
@@ -549,6 +553,7 @@ import LocoKitCore
         // stop the timers
         stopTheWakeupTimer()
         stopTheUpdateTimer()
+        stopTheStandbyTimer()
 
         recordingState = .deepSleeping
     }
@@ -562,6 +567,19 @@ import LocoKitCore
     @objc public func startWakeup() {
         if recordingState == .wakeup { return }
         if recordingState == .recording { return }
+
+        // if in standby, just check to make sure someone else is still in charge of recording
+        if recordingState == .standby {
+            if let appGroup = appGroup, appGroup.needARecorder {
+                startRecording()
+                if recordingState != .standby {
+                    NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
+                }
+            } else {
+                startStandby()
+            }
+            return
+        }
 
         // make the location manager receptive again
         locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
@@ -579,9 +597,31 @@ import LocoKitCore
         recordingState = .wakeup
     }
 
+    public func startStandby() {
+
+        // stop the gimps
+        stopCoreMotion()
+
+        // set the location manager to ask for almost nothing and ignore everything
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+        locationManager.distanceFilter = kCLDistanceFilterNone
+
+        // make sure the location manager is alive
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.startUpdatingLocation()
+
+        // no fallback updates while in standby
+        stopTheUpdateTimer()
+
+        // reset the standby timer
+        restartTheStandbyTimer()
+
+        recordingState = .standby
+    }
+
     private func touchTheRecordingState() {
         switch recordingState {
-        case .off:
+        case .off, .standby:
             return
 
         case .wakeup:
@@ -611,7 +651,10 @@ import LocoKitCore
             }
 
         case .recording, .sleeping, .deepSleeping:
-            if needToBeRecording {
+            if shouldConcedeRecording {
+                os_log(.info, "Conceding recording.")
+                startStandby()
+            } else if needToBeRecording {
                 startRecording()
             } else {
                 startSleeping()
@@ -619,7 +662,17 @@ import LocoKitCore
         }
     }
 
+    private var shouldConcedeRecording: Bool {
+        guard let appGroup = appGroup else { return false }
+        guard let currentRecorder = appGroup.currentRecorder else { return false }
+        return currentRecorder.appName != appGroup.thisApp
+    }
+
     private var needToBeRecording: Bool {
+        if let thisApp = appGroup?.thisApp, let currentRecorder = appGroup?.currentRecorder, currentRecorder.appName != thisApp {
+            return false
+        }
+
         if movingState == .moving {
             return true
         }
@@ -794,10 +847,26 @@ import LocoKitCore
         }
     }
 
+    private func restartTheStandbyTimer() {
+        onMain {
+            self.standbyTimer?.invalidate()
+            self.standbyTimer = Timer.scheduledTimer(timeInterval: self.standbyCycleDuration, target: self,
+                                                    selector: #selector(self.startWakeup), userInfo: nil,
+                                                    repeats: false)
+        }
+    }
+
     private func stopTheWakeupTimer() {
         onMain {
             self.wakeupTimer?.invalidate()
             self.wakeupTimer = nil
+        }
+    }
+
+    private func stopTheStandbyTimer() {
+        onMain {
+            self.standbyTimer?.invalidate()
+            self.standbyTimer = nil
         }
     }
 
