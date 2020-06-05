@@ -137,7 +137,7 @@ import LocoKitCore
      alone, without engaging GPS, thus reducing energy consumption. Wifi triangulation is typically more energy
      efficient than GPS.
      */
-    @objc public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 30
+    @objc public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 10
 
     /**
      Whether LocomotionManager should dynamically adjust the internal CLLocationManager's `desiredAccuracy` to best
