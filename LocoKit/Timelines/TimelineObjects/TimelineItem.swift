@@ -63,6 +63,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     public private(set) var deleted = false
     open func delete() {
+        if isMergeLocked {
+            os_log(.debug, "Can't delete (TimelineItem.isMergeLocked).")
+            return
+        }
         deleted = true
         previousItem = nil
         nextItem = nil
