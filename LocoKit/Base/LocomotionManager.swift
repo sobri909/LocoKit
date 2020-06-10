@@ -236,7 +236,7 @@ import LocoKitCore
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
 
-    @objc public var standbyCycleDuration: TimeInterval = 60 * 10
+    @objc public var standbyCycleDuration: TimeInterval = 60 * 5
 
     // MARK: Raw, Filtered, and Smoothed Data
     
@@ -568,9 +568,13 @@ import LocoKitCore
         if recordingState == .wakeup { return }
         if recordingState == .recording { return }
 
-        // if in standby, just check to make sure someone else is still in charge of recording
+        // make the location manager receptive again
+        locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
+        locationManager.distanceFilter = kCLDistanceFilterNone
+
+        // if in standby, do standby specific checks then exit early
         if recordingState == .standby {
-            if let appGroup = appGroup, appGroup.needARecorder {
+            if appGroup?.needARecorder == true {
                 startRecording()
                 if recordingState != .standby {
                     NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
@@ -580,10 +584,6 @@ import LocoKitCore
             }
             return
         }
-
-        // make the location manager receptive again
-        locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
-        locationManager.distanceFilter = kCLDistanceFilterNone
 
         // location recording needs to be turned on?
         if recordingState == .off || recordingState == .deepSleeping {
