@@ -35,7 +35,6 @@ public class AppGroup {
         NotificationCenter.default.addObserver(forName: .receivedAppGroupMessage, object: nil, queue: nil) { note in
             if let messageRaw = note.userInfo?["message"] as? String {
                 if let message = AppGroupTalk.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) {
-                    print("RECEIVED AppGroupTalk.Message: \(message)")
                     self.received(message)
                 }
             }
@@ -67,12 +66,11 @@ public class AppGroup {
     }
 
     public func save() {
-        print("AppGroup.save()")
         load()
         apps[thisApp] = AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updated: Date())
         guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
         groupDefaults?.set(data, forKey: thisApp.rawValue)
-        print("SAVED: \(apps[thisApp]!)")
+        print("AppGroup.save() SAVED: \(apps[thisApp]!)")
         talker.send(message: .updatedAppState)
     }
 
