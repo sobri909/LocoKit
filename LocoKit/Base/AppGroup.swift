@@ -21,6 +21,7 @@ public class AppGroup {
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
     public var sortedApps: [AppState] { apps.values.sorted { $0.updated > $1.updated } }
     public var currentRecorder: AppState? { sortedApps.first { $0.recordingState != .off && $0.recordingState != .standby } }
+    public var haveMultipleRecorders: Bool { apps.values.filter({ $0.recordingState != .off && $0.recordingState != .standby }).count > 1 }
 
     private lazy var talker: AppGroupTalk = { AppGroupTalk(messagePrefix: self.suiteName) }()
 
@@ -41,8 +42,9 @@ public class AppGroup {
         }
     }
 
-    public var needARecorder: Bool {
+    public var shouldBeTheRecorder: Bool {
         guard let currentRecorder = currentRecorder else { return true }
+        if haveMultipleRecorders { return false } // this shouldn't happen in the first place
         if currentRecorder.appName == thisApp { return true }
         if currentRecorder.updated.age > .oneMinute * 10 {
             talker.send(message: .pleaseUpdateAppState)

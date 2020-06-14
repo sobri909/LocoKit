@@ -74,7 +74,7 @@ import LocoKitCore
      */
     public private(set) var recordingState: RecordingState = .off {
         didSet(oldValue) {
-            if recordingState != oldValue {
+            if recordingState != oldValue || recordingState == .standby {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
             }
         }
@@ -574,7 +574,7 @@ import LocoKitCore
 
         // if in standby, do standby specific checks then exit early
         if recordingState == .standby {
-            if appGroup?.needARecorder == true {
+            if appGroup?.shouldBeTheRecorder == true {
                 startRecording()
                 if recordingState != .standby {
                     NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
@@ -801,7 +801,7 @@ import LocoKitCore
         
         wiggles.startDeviceMotionUpdates(to: wigglesQueue) { motion, error in
             if let error = error {
-                os_log("error: %@", String(describing: error))
+                os_log(.error, "%@", String(describing: error))
                 
             } else if let motion = motion {
                 self.coreMotionPermission = true
