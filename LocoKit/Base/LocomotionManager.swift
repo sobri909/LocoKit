@@ -913,6 +913,9 @@ import LocoKitCore
 
         // notify everyone about the updated sample
         NotificationCenter.default.post(Notification(name: .locomotionSampleUpdated, object: self, userInfo: nil))
+
+        // keep the AppGroup state fresh
+        appGroup?.save()
     }
     
     private func updateDesiredAccuracy() {
