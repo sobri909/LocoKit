@@ -45,7 +45,7 @@ public class AppGroup {
         guard let currentRecorder = currentRecorder else { return true }
         if haveMultipleRecorders { return false } // this shouldn't happen in the first place
         if currentRecorder.appName == thisApp { return true }
-        if currentRecorder.updated.age > .oneMinute * 10 {
+        if currentRecorder.updated.age > LocomotionManager.highlander.standbyCycleDuration {
             talker.send(message: .pleaseUpdateAppState)
             return true // TODO: shouldn't just return true here?
         }
