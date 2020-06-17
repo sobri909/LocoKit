@@ -236,7 +236,7 @@ import LocoKitCore
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
 
-    @objc public var standbyCycleDuration: TimeInterval = 60 * 5
+    @objc public var standbyCycleDuration: TimeInterval = 60 * 3
 
     // MARK: Raw, Filtered, and Smoothed Data
     
