@@ -158,8 +158,8 @@ open class TimelineStore {
 
     public func object(for objectId: UUID) -> TimelineObject? {
         return mutex.sync {
-            if let item = itemMap.object(forKey: objectId as NSUUID) { return item }
-            if let sample = sampleMap.object(forKey: objectId as NSUUID) { return sample }
+            if let item = itemMap.object(forKey: objectId as NSUUID), !item.invalidated { return item }
+            if let sample = sampleMap.object(forKey: objectId as NSUUID), !sample.invalidated { return sample }
             return nil
         }
     }
@@ -168,6 +168,7 @@ open class TimelineStore {
         return mutex.sync {
             guard let enumerator = itemMap.objectEnumerator() else { return nil }
             for case let item as TimelineItem in enumerator {
+                if item.invalidated { continue }
                 if matching(item) { return item }
             }
             return nil

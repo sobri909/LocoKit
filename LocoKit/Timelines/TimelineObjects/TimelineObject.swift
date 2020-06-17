@@ -23,6 +23,9 @@ public protocol TimelineObject: class, PersistableRecord {
     func save(immediate: Bool)
     func save(in db: Database) throws
 
+    var invalidated: Bool { get }
+    func invalidate()
+    
 }
 
 public extension TimelineObject {

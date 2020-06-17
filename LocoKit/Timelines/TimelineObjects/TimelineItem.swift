@@ -36,6 +36,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     public var source: String = "LocoKit"
 
+    private var _invalidated = false
+    public var invalidated: Bool { return _invalidated }
+    public func invalidate() { _invalidated = true }
+
     public var isVisit: Bool {
         return self is Visit
     }

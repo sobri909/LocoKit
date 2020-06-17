@@ -18,6 +18,10 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var source: String = "LocoKit"
 
+    private var _invalidated = false
+    public var invalidated: Bool { return _invalidated }
+    public func invalidate() { _invalidated = true }
+
     internal override var _classifiedType: ActivityTypeName? {
         didSet { if oldValue != _classifiedType { hasChanges = true; save() } }
     }
