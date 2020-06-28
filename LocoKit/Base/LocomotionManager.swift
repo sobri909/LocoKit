@@ -651,21 +651,17 @@ import LocoKitCore
             }
 
         case .recording, .sleeping, .deepSleeping:
-            if shouldConcedeRecording {
-                os_log(.info, "Conceding recording.")
+            if let appGroup = appGroup, !appGroup.shouldBeTheRecorder {
                 startStandby()
+                os_log(.info, "Conceded recording.")
+                NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
+
             } else if needToBeRecording {
                 startRecording()
             } else {
                 startSleeping()
             }
         }
-    }
-
-    private var shouldConcedeRecording: Bool {
-        guard let appGroup = appGroup else { return false }
-        guard let currentRecorder = appGroup.currentRecorder else { return false }
-        return currentRecorder.appName != appGroup.thisApp
     }
 
     private var needToBeRecording: Bool {
