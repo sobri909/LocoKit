@@ -76,21 +76,9 @@ public class Jobs {
     // MARK: - PRIVATE
 
     private var observers: [Any] = []
-    private var applicationState: UIApplication.State
+    private var applicationState: UIApplication.State = .active
 
     private init() {
-        self.applicationState = UIApplication.shared.applicationState
-
-        // background / foreground observers
-        let notes =  NotificationCenter.default
-        notes.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { _ in
-            self.applicationState = .background
-            self.didEnterBackground()
-        }
-        notes.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { _ in
-            self.applicationState = .active
-            self.didBecomeActive()
-        }
 
         // if primary queue complete, open up the secondary queue again
         observers.append(primaryQueue.observe(\.operationCount) { _, _ in
@@ -143,7 +131,9 @@ public class Jobs {
 
     // MARK: - Queue State Management
 
-    private func didEnterBackground() {
+    public func didEnterBackground() {
+        applicationState = .background
+
         let queues = managedQueues + [primaryQueue]
 
         // secondary queue goes serial in background
@@ -161,7 +151,9 @@ public class Jobs {
         }
     }
 
-    private func didBecomeActive() {
+    public func didBecomeActive() {
+        applicationState = .active
+
         let queues = [primaryQueue] + managedQueues
 
         // secondary queue goes mildly parallel in foreground
