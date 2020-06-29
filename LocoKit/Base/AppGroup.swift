@@ -20,8 +20,9 @@ public class AppGroup {
 
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
     public var sortedApps: [AppState] { apps.values.sorted { $0.updated > $1.updated } }
-    public var currentRecorder: AppState? { sortedApps.first { $0.recordingState != .off && $0.recordingState != .standby } }
-    public var haveMultipleRecorders: Bool { apps.values.filter({ $0.recordingState != .off && $0.recordingState != .standby }).count > 1 }
+    public var currentRecorder: AppState? { sortedApps.first { $0.isAliveAndRecording } }
+    public var haveMultipleRecorders: Bool { apps.values.filter({ $0.isAliveAndRecording }).count > 1 }
+    public var haveAppsInStandby: Bool { apps.values.filter({ $0.recordingState == .standby }).count > 0 }
 
     private lazy var talker: AppGroupTalk = { AppGroupTalk(messagePrefix: self.suiteName) }()
 
@@ -45,15 +46,10 @@ public class AppGroup {
         guard let currentRecorder = currentRecorder else { return true }
         if haveMultipleRecorders { return false } // this shouldn't happen in the first place
         if currentRecorder.appName == thisApp { return true }
-        if currentRecorder.updated.age > LocomotionManager.highlander.standbyCycleDuration {
-            talker.send(message: .pleaseUpdateAppState)
-            return true // TODO: shouldn't just return true here?
-        }
         return false
     }
 
     public func load() {
-        print("AppGroup.load()")
         var states: [AppName: AppState] = [:]
         for appName in AppName.allCases {
             if let data = groupDefaults?.value(forKey: appName.rawValue) as? Data {
@@ -70,7 +66,6 @@ public class AppGroup {
         apps[thisApp] = AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updated: Date())
         guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
         groupDefaults?.set(data, forKey: thisApp.rawValue)
-        print("AppGroup.save() SAVED: \(apps[thisApp]!)")
         talker.send(message: .updatedAppState)
     }
 
@@ -95,6 +90,9 @@ public class AppGroup {
         public var appName: AppName
         public var recordingState: RecordingState
         public var updated: Date
+
+        public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration }
+        public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
     }
 
 }
@@ -108,7 +106,7 @@ final public class AppGroupTalk: NSObject {
 
     public enum Message: String, CaseIterable {
         case updatedAppState
-        case pleaseUpdateAppState
+        case modifiedObjects
     }
 
     // MARK: -
