@@ -76,6 +76,7 @@ import LocoKitCore
         didSet(oldValue) {
             if recordingState != oldValue || recordingState == .standby {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
+                appGroup?.save()
             }
         }
     }
@@ -374,6 +375,16 @@ import LocoKitCore
         ActivityBrain.highlander.resetKalmans()
     }
 
+    public func becomeTheActiveRecorder() {
+        guard let appGroup = appGroup else { return }
+        if appGroup.isTheCurrentRecorder { return }
+        startRecording()
+        NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
+        appGroup.becameCurrentRecorder()
+    }
+
+    // MARK: -
+
     /**
      This method is temporarily public because the only way to request Core Motion permission is to just go ahead and
      start using Core Motion. I will make this method private soon, and provide a more tidy way to trigger a Core
@@ -391,7 +402,7 @@ import LocoKitCore
         stopTheWiggles()
     }
     
-    // MARK: Misc Helpers and Convenience Wrappers
+    // MARK: - Misc Helpers and Convenience Wrappers
     
     /// A convenience wrapper for `CLLocationManager.locationServicesEnabled()`
     public var locationServicesAreOn: Bool {
@@ -653,8 +664,10 @@ import LocoKitCore
         case .recording, .sleeping, .deepSleeping:
             if let appGroup = appGroup, !appGroup.shouldBeTheRecorder {
                 startStandby()
-                os_log(.info, "Conceded recording.")
-                NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
+                if appGroup.isTheCurrentRecorder {
+                    os_log(.info, "Conceded recording.")
+                    NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
+                }
 
             } else if needToBeRecording {
                 startRecording()

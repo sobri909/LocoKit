@@ -24,20 +24,29 @@ public class AppGroup {
     public var haveMultipleRecorders: Bool { apps.values.filter({ $0.isAliveAndRecording }).count > 1 }
     public var haveAppsInStandby: Bool { apps.values.filter({ $0.recordingState == .standby }).count > 0 }
 
-    private lazy var talker: AppGroupTalk = { AppGroupTalk(messagePrefix: self.suiteName) }()
+    private lazy var talker: AppGroupTalk = { AppGroupTalk(messagePrefix: suiteName, appName: thisApp) }()
 
     // MARK: - Public methods
 
-    public init(appName: AppName, suiteName: String) {
+    public init(appName: AppName, suiteName: String, readOnly: Bool = false) {
         self.thisApp = appName
         self.suiteName = suiteName
+
+        if readOnly { load(); return }
+
         save()
 
         NotificationCenter.default.addObserver(forName: .receivedAppGroupMessage, object: nil, queue: nil) { note in
-            if let messageRaw = note.userInfo?["message"] as? String {
-                if let message = AppGroupTalk.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) {
-                    self.received(message)
-                }
+            guard let messageRaw = note.userInfo?["message"] as? String else { return }
+            guard let message = AppGroupTalk.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) else { return }
+            if message == .modifiedObjects {
+                // TODO: this ain't gonna happen. userInfo aint there
+                print("RECEIVED 2 cfUserInfo: \(note.userInfo?["cfUserInfo"])")
+            }
+            if let cfUserInfo = note.userInfo?["cfUserInfo"] as? [NSString: Any] {
+                self.received(message, userInfo: cfUserInfo)
+            } else {
+                self.received(message)
             }
         }
     }
@@ -48,6 +57,17 @@ public class AppGroup {
         if currentRecorder.appName == thisApp { return true }
         return false
     }
+
+    public var isTheCurrentRecorder: Bool {
+        return currentRecorder?.appName == thisApp
+    }
+
+    public func becameCurrentRecorder() {
+        save()
+        talker.send(message: .tookOverRecording)
+    }
+
+    // MARK: - 
 
     public func load() {
         var states: [AppName: AppState] = [:]
@@ -63,22 +83,23 @@ public class AppGroup {
 
     public func save() {
         load()
-        apps[thisApp] = AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updated: Date())
+        apps[thisApp] = AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updateInfo: [:], updated: Date())
         guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
         groupDefaults?.set(data, forKey: thisApp.rawValue)
         talker.send(message: .updatedAppState)
     }
 
-    private func received(_ message: AppGroupTalk.Message) {
+    private func received(_ message: AppGroupTalk.Message, userInfo: [NSString: Any]? = nil) {
         switch message {
         case .updatedAppState:
             if let updated = apps[thisApp]?.updated, updated.age > .oneMinute {
                 load()
             }
-        case .pleaseUpdateAppState:
-            if let updated = apps[thisApp]?.updated, updated.age > .oneMinute {
-                save()
+        case .modifiedObjects:
+            if let userInfo = userInfo {
             }
+        case .tookOverRecording:
+            fatalError() // TODO: uh, no
         }
     }
 
@@ -89,6 +110,7 @@ public class AppGroup {
     public struct AppState: Codable {
         public var appName: AppName
         public var recordingState: RecordingState
+        public var updateInfo: [String: String]
         public var updated: Date
 
         public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration }
@@ -107,6 +129,8 @@ final public class AppGroupTalk: NSObject {
     public enum Message: String, CaseIterable {
         case updatedAppState
         case modifiedObjects
+        case tookOverRecording
+        func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
     }
 
     // MARK: -
