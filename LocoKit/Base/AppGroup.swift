@@ -137,9 +137,11 @@ final public class AppGroupTalk: NSObject {
 
     private let center = CFNotificationCenterGetDarwinNotifyCenter()
     private let messagePrefix: String
+    private let appName: AppGroup.AppName
 
-    public init(messagePrefix: String) {
+    public init(messagePrefix: String, appName: AppGroup.AppName) {
         self.messagePrefix = messagePrefix
+        self.appName = appName
         super.init()
         startListeners()
     }
@@ -149,9 +151,8 @@ final public class AppGroupTalk: NSObject {
     }
 
     public func send(message: Message) {
-        let fullMessage = "\(messagePrefix).\(message.rawValue)"
-        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
-                                             CFNotificationName(rawValue: fullMessage as CFString), nil, nil, true)
+        let noteName = CFNotificationName(rawValue: message.withPrefix(messagePrefix) as CFString)
+        CFNotificationCenterPostNotification(center, noteName, nil, nil, true)
     }
 
     // MARK: - Private
