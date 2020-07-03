@@ -354,11 +354,13 @@ open class TimelineStore {
 
         mutex.sync {
             savingItems = itemsToSave.filter { $0.needsSave }
-            itemsToSave.removeAll(keepingCapacity: true)
+            itemsToSave = []
 
             savingSamples = samplesToSave.filter { $0.needsSave }
-            samplesToSave.removeAll(keepingCapacity: true)
+            samplesToSave = []
         }
+
+        var savedObjectIds: Set<UUID> = []
 
         if !savingItems.isEmpty {
             try! pool.write { db in
@@ -374,6 +376,7 @@ open class TimelineStore {
                         (item as? TimelineItem)?.nextItemId = nil
                         save(item, immediate: false)
                     }
+                    savedObjectIds.insert(item.objectId)
                 }
                 db.afterNextTransactionCommit { db in
                     for case let item as TimelineObject in savingItems { item.lastSaved = item.transactionDate }
@@ -387,12 +390,16 @@ open class TimelineStore {
                     sample.transactionDate = now
                     do { try sample.save(in: db) }
                     catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                    savedObjectIds.insert(sample.objectId)
                 }
                 db.afterNextTransactionCommit { db in
                     for case let sample as TimelineObject in savingSamples { sample.lastSaved = sample.transactionDate }
                 }
             }
         }
+
+        // tell the app group about db objects that've changed
+        LocomotionManager.highlander.appGroup?.notifyObjectChanges(objectIds: savedObjectIds)
     }
 
     public func saveOne(_ object: TimelineObject) {

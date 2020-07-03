@@ -38,16 +38,8 @@ public class AppGroup {
 
         NotificationCenter.default.addObserver(forName: .receivedAppGroupMessage, object: nil, queue: nil) { note in
             guard let messageRaw = note.userInfo?["message"] as? String else { return }
-            guard let message = AppGroupTalk.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) else { return }
-            if message == .modifiedObjects {
-                // TODO: this ain't gonna happen. userInfo aint there
-                print("RECEIVED 2 cfUserInfo: \(note.userInfo?["cfUserInfo"])")
-            }
-            if let cfUserInfo = note.userInfo?["cfUserInfo"] as? [NSString: Any] {
-                self.received(message, userInfo: cfUserInfo)
-            } else {
-                self.received(message)
-            }
+            guard let message = AppGroup.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) else { return }
+            self.received(message)
         }
     }
 
@@ -64,7 +56,7 @@ public class AppGroup {
 
     public func becameCurrentRecorder() {
         save()
-        talker.send(message: .tookOverRecording)
+        send(message: .tookOverRecording)
     }
 
     // MARK: - 
@@ -83,24 +75,57 @@ public class AppGroup {
 
     public func save() {
         load()
-        apps[thisApp] = AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updateInfo: [:], updated: Date())
+        apps[thisApp] = currentAppState
         guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
         groupDefaults?.set(data, forKey: thisApp.rawValue)
-        talker.send(message: .updatedAppState)
     }
 
-    private func received(_ message: AppGroupTalk.Message, userInfo: [NSString: Any]? = nil) {
-        switch message {
-        case .updatedAppState:
-            if let updated = apps[thisApp]?.updated, updated.age > .oneMinute {
-                load()
-            }
-        case .modifiedObjects:
-            if let userInfo = userInfo {
-            }
-        case .tookOverRecording:
-            fatalError() // TODO: uh, no
+    var currentAppState: AppState {
+        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updated: Date())
+    }
+
+    public func notifyObjectChanges(objectIds: Set<UUID>) {
+        let messageInfo = MessageInfo(date: Date(), appState: currentAppState, modifiedObjectIds: objectIds)
+        send(message: .modifiedObjects, messageInfo: messageInfo)
+    }
+
+    // MARK: - Private
+
+    private func send(message: Message, messageInfo: MessageInfo? = nil) {
+        let lastMessage = messageInfo ?? MessageInfo(date: Date(), appState: currentAppState, modifiedObjectIds: nil)
+        if let data = try? AppGroup.encoder.encode(lastMessage) {
+            groupDefaults?.set(data, forKey: "lastMessage")
+        } else {
+            print("FAILED TO ENCODE LAST MESSAGE: \(lastMessage)")
         }
+        talker.send(message)
+    }
+
+    private func received(_ message: AppGroup.Message) {
+        print("RECEIVED: \(message)")
+
+        guard let data = groupDefaults?.value(forKey: "lastMessage") as? Data else { print("NO MESSAGE INFO DATA"); return }
+        guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { print("NO MESSAGE INFO OBJECT"); return }
+
+        switch message {
+        case .modifiedObjects:
+            objectsWereModified(by: messageInfo.appState.appName, messageInfo: messageInfo)
+        case .tookOverRecording:
+            recordingWasTakenOver(by: messageInfo.appState.appName, messageInfo: messageInfo)
+        }
+    }
+
+    private func recordingWasTakenOver(by: AppName, messageInfo: MessageInfo) {
+        if by == thisApp { print("IT WAS ME"); return }
+        if LocomotionManager.highlander.recordingState.isCurrentRecorder {
+            LocomotionManager.highlander.startStandby()
+            NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
+        }
+    }
+
+    private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
+        if by == thisApp { print("IT WAS ME"); return }
+        print("[\(by)] modifiedObjectIds: \(messageInfo.modifiedObjectIds)")
     }
 
     // MARK: - Interfaces
@@ -110,11 +135,22 @@ public class AppGroup {
     public struct AppState: Codable {
         public var appName: AppName
         public var recordingState: RecordingState
-        public var updateInfo: [String: String]
         public var updated: Date
 
         public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
+    }
+
+    public enum Message: String, CaseIterable {
+        case modifiedObjects
+        case tookOverRecording
+        func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
+    }
+
+    public struct MessageInfo: Codable {
+        public var date: Date
+        public var appState: AppState
+        public var modifiedObjectIds: Set<UUID>? = nil
     }
 
 }
@@ -125,15 +161,6 @@ extension NSNotification.Name {
 
 // https://stackoverflow.com/a/58188965/790036
 final public class AppGroupTalk: NSObject {
-
-    public enum Message: String, CaseIterable {
-        case updatedAppState
-        case modifiedObjects
-        case tookOverRecording
-        func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
-    }
-
-    // MARK: -
 
     private let center = CFNotificationCenterGetDarwinNotifyCenter()
     private let messagePrefix: String
@@ -150,7 +177,9 @@ final public class AppGroupTalk: NSObject {
         stopListeners()
     }
 
-    public func send(message: Message) {
+    // MARK: -
+
+    public func send(_ message: AppGroup.Message) {
         let noteName = CFNotificationName(rawValue: message.withPrefix(messagePrefix) as CFString)
         CFNotificationCenterPostNotification(center, noteName, nil, nil, true)
     }
@@ -158,7 +187,7 @@ final public class AppGroupTalk: NSObject {
     // MARK: - Private
 
     private func startListeners() {
-        for message in Message.allCases {
+        for message in AppGroup.Message.allCases {
             CFNotificationCenterAddObserver(center, Unmanaged.passRetained(self).toOpaque(), { center, observer, name, object, userInfo in
                 NotificationCenter.default.post(name: .receivedAppGroupMessage, object: nil, userInfo: ["message": name?.rawValue as Any])
             }, "\(messagePrefix).\(message.rawValue)" as CFString, nil, .deliverImmediately)

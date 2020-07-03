@@ -663,8 +663,9 @@ import LocoKitCore
 
         case .recording, .sleeping, .deepSleeping:
             if let appGroup = appGroup, !appGroup.shouldBeTheRecorder {
+                let wasTheCurrentRecorder = appGroup.isTheCurrentRecorder
                 startStandby()
-                if appGroup.isTheCurrentRecorder {
+                if wasTheCurrentRecorder {
                     os_log(.info, "Conceded recording.")
                     NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
                 }
