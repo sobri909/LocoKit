@@ -76,8 +76,8 @@ import LocoKitCore
         didSet(oldValue) {
             if recordingState != oldValue || recordingState == .standby {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
-                appGroup?.save()
             }
+            appGroup?.save()
         }
     }
 
@@ -585,11 +585,8 @@ import LocoKitCore
 
         // if in standby, do standby specific checks then exit early
         if recordingState == .standby {
-            if appGroup?.shouldBeTheRecorder == true {
-                startRecording()
-                if recordingState != .standby {
-                    NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
-                }
+            if let appGroup = appGroup, appGroup.shouldBeTheRecorder {
+                becomeTheActiveRecorder()
             } else {
                 startStandby()
             }
@@ -662,14 +659,8 @@ import LocoKitCore
             }
 
         case .recording, .sleeping, .deepSleeping:
-            if let appGroup = appGroup, !appGroup.shouldBeTheRecorder {
-                let wasTheCurrentRecorder = appGroup.isTheCurrentRecorder
+            if let appGroup = appGroup, appGroup.isTheCurrentRecorder, !appGroup.shouldBeTheRecorder {
                 startStandby()
-                if wasTheCurrentRecorder {
-                    os_log(.info, "Conceded recording.")
-                    NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
-                }
-
             } else if needToBeRecording {
                 startRecording()
             } else {

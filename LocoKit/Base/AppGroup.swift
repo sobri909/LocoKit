@@ -85,38 +85,35 @@ public class AppGroup {
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {
-        let messageInfo = MessageInfo(date: Date(), appState: currentAppState, modifiedObjectIds: objectIds)
+        let messageInfo = MessageInfo(date: Date(), message: .modifiedObjects, appName: thisApp, modifiedObjectIds: objectIds)
         send(message: .modifiedObjects, messageInfo: messageInfo)
     }
 
     // MARK: - Private
 
     private func send(message: Message, messageInfo: MessageInfo? = nil) {
-        let lastMessage = messageInfo ?? MessageInfo(date: Date(), appState: currentAppState, modifiedObjectIds: nil)
+        let lastMessage = messageInfo ?? MessageInfo(date: Date(), message: message, appName: thisApp, modifiedObjectIds: nil)
         if let data = try? AppGroup.encoder.encode(lastMessage) {
             groupDefaults?.set(data, forKey: "lastMessage")
-        } else {
-            print("FAILED TO ENCODE LAST MESSAGE: \(lastMessage)")
         }
         talker.send(message)
     }
 
     private func received(_ message: AppGroup.Message) {
-        print("RECEIVED: \(message)")
-
-        guard let data = groupDefaults?.value(forKey: "lastMessage") as? Data else { print("NO MESSAGE INFO DATA"); return }
-        guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { print("NO MESSAGE INFO OBJECT"); return }
+        guard let data = groupDefaults?.value(forKey: "lastMessage") as? Data else { return }
+        guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { return }
+        guard messageInfo.appName != thisApp else { return }
+        guard messageInfo.message == message else { print("LASTMESSAGE.MESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))"); return }
 
         switch message {
         case .modifiedObjects:
-            objectsWereModified(by: messageInfo.appState.appName, messageInfo: messageInfo)
+            objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
         case .tookOverRecording:
-            recordingWasTakenOver(by: messageInfo.appState.appName, messageInfo: messageInfo)
+            recordingWasTakenOver(by: messageInfo.appName, messageInfo: messageInfo)
         }
     }
 
     private func recordingWasTakenOver(by: AppName, messageInfo: MessageInfo) {
-        if by == thisApp { print("IT WAS ME"); return }
         if LocomotionManager.highlander.recordingState.isCurrentRecorder {
             LocomotionManager.highlander.startStandby()
             NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
@@ -124,8 +121,11 @@ public class AppGroup {
     }
 
     private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
-        if by == thisApp { print("IT WAS ME"); return }
-        print("[\(by)] modifiedObjectIds: \(messageInfo.modifiedObjectIds)")
+        print("[\(by)] modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0)")
+        if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
+            let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
+            NotificationCenter.default.post(note)
+        }
     }
 
     // MARK: - Interfaces
@@ -141,7 +141,7 @@ public class AppGroup {
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
     }
 
-    public enum Message: String, CaseIterable {
+    public enum Message: String, CaseIterable, Codable {
         case modifiedObjects
         case tookOverRecording
         func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
@@ -149,7 +149,8 @@ public class AppGroup {
 
     public struct MessageInfo: Codable {
         public var date: Date
-        public var appState: AppState
+        public var message: Message
+        public var appName: AppName
         public var modifiedObjectIds: Set<UUID>? = nil
     }
 

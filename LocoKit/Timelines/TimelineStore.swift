@@ -30,6 +30,10 @@ open class TimelineStore {
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
             self?.didEnterBackground()
         }
+        center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
+            guard let objectIds = note.userInfo?["objectIds"] as? Set<UUID> else { return }
+            self?.invalidate(objectIds: objectIds)
+        }
     }
     
     open var keepDeletedObjectsFor: TimeInterval = 60 * 60
@@ -156,7 +160,7 @@ open class TimelineStore {
 
     // MARK: - Object fetching
 
-    public func object(for objectId: UUID) -> TimelineObject? {
+    open func object(for objectId: UUID) -> TimelineObject? {
         return mutex.sync {
             if let item = itemMap.object(forKey: objectId as NSUUID), !item.invalidated { return item }
             if let sample = sampleMap.object(forKey: objectId as NSUUID), !sample.invalidated { return sample }
@@ -414,6 +418,14 @@ open class TimelineStore {
             }
         } catch {
             os_log("%@", type: .error, error.localizedDescription)
+        }
+    }
+
+    // MARK: - Object invalidation
+
+    open func invalidate(objectIds: Set<UUID>) {
+        for objectId in objectIds {
+            object(for: objectId)?.invalidate()
         }
     }
 
