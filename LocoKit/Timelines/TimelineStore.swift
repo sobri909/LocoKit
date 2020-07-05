@@ -403,7 +403,9 @@ open class TimelineStore {
         }
 
         // tell the app group about db objects that've changed
-        LocomotionManager.highlander.appGroup?.notifyObjectChanges(objectIds: savedObjectIds)
+        if !savedObjectIds.isEmpty {
+            LocomotionManager.highlander.appGroup?.notifyObjectChanges(objectIds: savedObjectIds)
+        }
     }
 
     public func saveOne(_ object: TimelineObject) {
