@@ -44,13 +44,26 @@ public class AppGroup {
     }
 
     public var shouldBeTheRecorder: Bool {
+        // if no current recorder, then should take on the job
         guard let currentRecorder = currentRecorder else { return true }
-        if haveMultipleRecorders { return false } // this shouldn't happen in the first place
+
+        // there's multiple recorders and this app is one of them? hmm
+        if haveMultipleRecorders, isAnActiveRecorder {
+            if LocomotionManager.highlander.applicationState == .active { // should always be current recorder in foreground
+                return true
+            } else { // there's multiple recorders, and not in foreground, so it's time to concede
+                return false
+            }
+        }
+
+        // if this app is the current recorder, it should continue to be so
         if currentRecorder.appName == thisApp { return true }
+
+        // someone else must be the current recorder, so it should be left to them
         return false
     }
 
-    public var isTheCurrentRecorder: Bool {
+    public var isAnActiveRecorder: Bool {
         return currentAppState.recordingState.isCurrentRecorder
     }
 

@@ -22,17 +22,18 @@ public class Jobs {
     private(set) public lazy var primaryQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "LocoKit.primaryQueue"
-        queue.qualityOfService = applicationState == .active ? .userInitiated : .background
+        queue.qualityOfService = LocomotionManager.highlander.applicationState == .active ? .userInitiated : .background
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
 
     // will be converted to serial while in the background
     private(set) public lazy var secondaryQueue: OperationQueue = {
+        let loco = LocomotionManager.highlander
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
-        queue.qualityOfService = applicationState == .active ? .utility : .background
-        queue.maxConcurrentOperationCount = applicationState == .active ? OperationQueue.defaultMaxConcurrentOperationCount : 1
+        queue.qualityOfService = loco.applicationState == .active ? .utility : .background
+        queue.maxConcurrentOperationCount = loco.applicationState == .active ? OperationQueue.defaultMaxConcurrentOperationCount : 1
         return queue
     }()
 
@@ -48,7 +49,7 @@ public class Jobs {
             highlander.runJob(name, work: block)
         }
         job.name = name
-        job.qualityOfService = highlander.applicationState == .active ? .userInitiated : .background
+        job.qualityOfService = LocomotionManager.highlander.applicationState == .active ? .userInitiated : .background
         highlander.primaryQueue.addOperation(job)
 
         // suspend the secondary queues while primary queue is non empty
@@ -69,14 +70,13 @@ public class Jobs {
             highlander.runJob(name, work: block)
         }
         job.name = name
-        job.qualityOfService = highlander.applicationState == .active ? .utility : .background
+        job.qualityOfService = LocomotionManager.highlander.applicationState == .active ? .utility : .background
         highlander.secondaryQueue.addOperation(job)
     }
 
     // MARK: - PRIVATE
 
     private var observers: [Any] = []
-    private var applicationState: UIApplication.State = .active
 
     private init() {
 
@@ -126,13 +126,13 @@ public class Jobs {
         if Jobs.debugLogging { os_log("FINISHED JOB: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
 
         // always pause managed queues between background jobs
-        if applicationState == .background { pauseManagedQueues(for: 60) }
+        if LocomotionManager.highlander.applicationState == .background { pauseManagedQueues(for: 60) }
     }
 
     // MARK: - Queue State Management
 
     public func didEnterBackground() {
-        applicationState = .background
+        LocomotionManager.highlander.applicationState = .background
 
         let queues = managedQueues + [primaryQueue]
 
@@ -152,7 +152,7 @@ public class Jobs {
     }
 
     public func didBecomeActive() {
-        applicationState = .active
+        LocomotionManager.highlander.applicationState = .active
 
         let queues = [primaryQueue] + managedQueues
 

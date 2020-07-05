@@ -104,6 +104,8 @@ import LocoKitCore
 
     public var coordinateAssessor: TrustAssessor?
     public var appGroup: AppGroup?
+
+    public var applicationState: UIApplication.State = .active
     
     // MARK: The Singleton
     
@@ -377,7 +379,7 @@ import LocoKitCore
 
     public func becomeTheActiveRecorder() {
         guard let appGroup = appGroup else { return }
-        if appGroup.isTheCurrentRecorder { return }
+        if appGroup.isAnActiveRecorder { return }
         startRecording()
         NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
         appGroup.becameCurrentRecorder()
@@ -659,7 +661,7 @@ import LocoKitCore
             }
 
         case .recording, .sleeping, .deepSleeping:
-            if let appGroup = appGroup, appGroup.isTheCurrentRecorder, !appGroup.shouldBeTheRecorder {
+            if let appGroup = appGroup, appGroup.isAnActiveRecorder, !appGroup.shouldBeTheRecorder {
                 startStandby()
             } else if needToBeRecording {
                 startRecording()
