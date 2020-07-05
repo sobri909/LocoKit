@@ -13,12 +13,12 @@ public class AppGroup {
 
     // MARK: - Properties
 
-    private var apps: [AppName: AppState] = [:]
-
     public let thisApp: AppName
     public let suiteName: String
 
+    public private(set) var apps: [AppName: AppState] = [:]
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
+
     public var sortedApps: [AppState] { apps.values.sorted { $0.updated > $1.updated } }
     public var currentRecorder: AppState? { sortedApps.first { $0.isAliveAndRecording } }
     public var haveMultipleRecorders: Bool { apps.values.filter({ $0.isAliveAndRecording }).count > 1 }
@@ -104,6 +104,8 @@ public class AppGroup {
         guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { return }
         guard messageInfo.appName != thisApp else { return }
         guard messageInfo.message == message else { print("LASTMESSAGE.MESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))"); return }
+
+        load()
 
         switch message {
         case .modifiedObjects:

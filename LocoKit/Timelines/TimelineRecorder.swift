@@ -262,6 +262,9 @@ public class TimelineRecorder {
         // don't muck about with recording state if it's been explicitly turned off
         if loco.recordingState == .off { return }
 
+        // don't be fiddling when someone else is responsible for recording
+        if loco.recordingState == .standby { return }
+
         // sleep mode requires currentItem to be a keeper visit
         guard let currentVisit = currentVisit, currentVisit.isWorthKeeping else {
             loco.useLowPowerSleepModeWhileStationary = false
