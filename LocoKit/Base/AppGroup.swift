@@ -51,7 +51,7 @@ public class AppGroup {
     }
 
     public var isTheCurrentRecorder: Bool {
-        return currentRecorder?.appName == thisApp
+        return currentAppState.recordingState.isCurrentRecorder
     }
 
     public func becameCurrentRecorder() {
