@@ -136,7 +136,7 @@ public class AppGroup {
     }
 
     private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
-        print("[\(by)] modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0)")
+        print("modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0) by: \(by)")
         if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
             let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
             NotificationCenter.default.post(note)
