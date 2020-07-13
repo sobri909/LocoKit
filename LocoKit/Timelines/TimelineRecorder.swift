@@ -50,6 +50,9 @@ public class TimelineRecorder {
         notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { [weak self] _ in
             self?.updateSleepModeAcceptability()
         }
+        notes.addObserver(forName: .tookOverRecording, object: nil, queue: nil) { [weak self] _ in
+            self?.updateCurrentItem()
+        }
 
         // keep currentItem sane after merges
         notes.addObserver(forName: .mergedTimelineItems, object: nil, queue: nil) { [weak self] note in
