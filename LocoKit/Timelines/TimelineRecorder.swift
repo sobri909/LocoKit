@@ -52,6 +52,7 @@ public class TimelineRecorder {
         }
         notes.addObserver(forName: .tookOverRecording, object: nil, queue: nil) { [weak self] _ in
             self?.updateCurrentItem()
+            LocomotionManager.highlander.resetLocationFilter() // reset the Kalmans
         }
 
         // keep currentItem sane after merges
