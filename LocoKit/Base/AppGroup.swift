@@ -152,7 +152,7 @@ public class AppGroup {
         public var recordingState: RecordingState
         public var updated: Date
 
-        public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration }
+        public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2 }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
     }
 
