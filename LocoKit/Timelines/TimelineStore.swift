@@ -20,8 +20,9 @@ public extension NSNotification.Name {
 open class TimelineStore {
 
     public init() {
+        connectToDatabase()
         migrateDatabases()
-        pool.add(transactionObserver: itemsObserver)
+        pool?.add(transactionObserver: itemsObserver)
 
         let center = NotificationCenter.default
         center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
@@ -93,13 +94,20 @@ open class TimelineStore {
         return config
     }()
 
-    public lazy var pool: DatabasePool = {
-        return try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
-    }()
+    public private(set) var pool: DatabasePool?
 
     public lazy var auxiliaryPool: DatabasePool = {
         return try! DatabasePool(path: self.auxiliaryDbUrl.path, configuration: self.poolConfig)
     }()
+
+    public func connectToDatabase() {
+        guard pool == nil else { return }
+        pool = try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
+    }
+
+    public func disconnectFromDatabase() {
+        pool = nil
+    }
 
     // MARK: - Object creation
 
@@ -205,6 +213,7 @@ open class TimelineStore {
     }
 
     public func item(for query: String, arguments: StatementArguments = StatementArguments()) -> TimelineItem? {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return item(for: row)
@@ -212,6 +221,7 @@ open class TimelineStore {
     }
 
     public func items(for query: String, arguments: StatementArguments = StatementArguments()) -> [TimelineItem] {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             var items: [TimelineItem] = []
             let itemRows = try Row.fetchCursor(db, sql: query, arguments: arguments)
@@ -245,6 +255,7 @@ open class TimelineStore {
     }
 
     public func sample(for query: String, arguments: StatementArguments = StatementArguments()) -> PersistentSample? {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return sample(for: row)
@@ -252,6 +263,7 @@ open class TimelineStore {
     }
 
     public func samples(for query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         let rows = try! pool.read { db in
             return try Row.fetchAll(db, sql: query, arguments: arguments)
         }
@@ -322,12 +334,14 @@ open class TimelineStore {
     // MARK: - Counting
 
     public func countItems(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM TimelineItem WHERE " + query, arguments: arguments)!
         }
     }
 
     public func countSamples(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
         }
@@ -353,6 +367,8 @@ open class TimelineStore {
     }
 
     open func save() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+
         var savingItems: Set<TimelineItem> = []
         var savingSamples: Set<PersistentSample> = []
 
@@ -409,6 +425,7 @@ open class TimelineStore {
     }
 
     public func saveOne(_ object: TimelineObject) {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         do {
             try pool.write { db in
                 object.transactionDate = Date()
@@ -457,6 +474,7 @@ open class TimelineStore {
     // MARK: - Database housekeeping
 
     open func hardDeleteSoftDeletedObjects() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         let deadline = Date(timeIntervalSinceNow: -keepDeletedObjectsFor)
         do {
             try pool.write { db in
@@ -487,6 +505,8 @@ open class TimelineStore {
     public var auxiliaryDbMigrator = DatabaseMigrator()
 
     open func migrateDatabases() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+
         registerMigrations()
         try! migrator.migrate(pool)
 
@@ -495,7 +515,7 @@ open class TimelineStore {
 
         delay(10, onQueue: DispatchQueue.global()) {
             self.registerDelayedMigrations()
-            try! self.migrator.migrate(self.pool)
+            try! self.migrator.migrate(pool)
         }
     }
 

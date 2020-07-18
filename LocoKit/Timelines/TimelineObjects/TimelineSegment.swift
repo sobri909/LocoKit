@@ -60,7 +60,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
         self.query = "SELECT * FROM TimelineItem WHERE " + query
         self.arguments = arguments ?? StatementArguments()
         self.onUpdate = onUpdate
-        store.pool.add(transactionObserver: self)
+        store.pool?.add(transactionObserver: self)
     }
 
     public func startUpdating() {
