@@ -6,6 +6,7 @@
 //
 
 import os.log
+import GRDB
 
 public class TimelineProcessor {
 
@@ -53,9 +54,20 @@ public class TimelineProcessor {
 
     private static var lastCleansedSamples: Set<LocomotionSample> = []
 
-    public static func process(_ items: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
-        guard let store = items.first?.store else { return }
+    public static func process(_ givenItems: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
+        guard let store = givenItems.first?.store else { return }
         store.process {
+            var items = givenItems
+
+            // sanitise the store in the items date range
+            if let start = items.compactMap({ $0.startDate }).min(), let end = items.compactMap({ $0.startDate }).max() {
+                let dateRange = DateInterval(start: start, end: end)
+                sanitise(store: store, inRange: dateRange)
+
+                // use all timeline items in the range, not just the given ones (might be new ones from sanitise)
+                items = store.items(where: "startDate >= ? AND endDate <= ?", arguments: [start, end])
+            }
+
             var merges: Set<Merge> = []
             var itemsToSanitise = Set(items)
 
@@ -510,14 +522,21 @@ public class TimelineProcessor {
 
     // MARK: - Database sanitising
 
-    public static func sanitise(store: TimelineStore) {
-        orphanSamplesFromDeadParents(in: store)
-        adoptOrphanedSamples(in: store)
-        detachDeadmenEdges(in: store)
+    public static func sanitise(store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        orphanSamplesFromDeadParents(in: store, inRange: dateRange)
+        adoptOrphanedSamples(in: store, inRange: dateRange)
+        detachDeadmenEdges(in: store, inRange: dateRange)
     }
 
-    private static func adoptOrphanedSamples(in store: TimelineStore) {
-        let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
+    private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        var query = "timelineItemId IS NULL AND deleted = 0"
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND date >= ? AND date <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let orphans = store.samples(where: query + " ORDER BY date DESC", arguments: StatementArguments(arguments))
 
         if orphans.isEmpty { return }
 
@@ -554,12 +573,19 @@ public class TimelineProcessor {
         }
     }
 
-    private static func orphanSamplesFromDeadParents(in store: TimelineStore) {
-        let orphans = store.samples(for: """
+    private static func orphanSamplesFromDeadParents(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        var query = """
                 SELECT LocomotionSample.* FROM LocomotionSample
                     JOIN TimelineItem ON timelineItemId = TimelineItem.itemId
                 WHERE TimelineItem.deleted = 1
-                """)
+                """
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND date >= ? AND date <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let orphans = store.samples(for: query, arguments: StatementArguments(arguments))
 
         if orphans.isEmpty { return }
 
@@ -572,8 +598,15 @@ public class TimelineProcessor {
         store.save()
     }
 
-    private static func detachDeadmenEdges(in store: TimelineStore) {
-        let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
+    private static func detachDeadmenEdges(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        var query = "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)"
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND startDate >= ? AND endDate <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let deadmen = store.items(where: query, arguments: StatementArguments(arguments))
 
         if deadmen.isEmpty { return }
 
