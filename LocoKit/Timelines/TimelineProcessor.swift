@@ -46,7 +46,7 @@ public class TimelineProcessor {
             // recurse until no remaining possible merges
             process(items) { results in
                 if let kept = results?.kept {
-                    delay(0.2) { process(from: kept) }
+                    delay(0.4) { process(from: kept) }
                 }
             }
         }
