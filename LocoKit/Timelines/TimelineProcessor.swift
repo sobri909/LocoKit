@@ -69,7 +69,7 @@ public class TimelineProcessor {
             }
 
             var merges: Set<Merge> = []
-            var itemsToSanitise = Set(items)
+            var itemsToSanitise = Set(items.prefix(10)) // limit to 10 items, to avoid massive processing loops
 
             /** collate all the potential merges **/
 
