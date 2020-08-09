@@ -46,6 +46,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     open var isMergeLocked: Bool {
         if isCurrentItem && !isWorthKeeping { return true }
+        if invalidated { return true }
         return false
     }
 
