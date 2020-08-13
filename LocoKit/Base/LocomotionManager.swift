@@ -105,7 +105,7 @@ import LocoKitCore
     public var coordinateAssessor: TrustAssessor?
     public var appGroup: AppGroup?
 
-    public var applicationState: UIApplication.State = .active
+    public var applicationState: UIApplication.State = .background
     
     // MARK: The Singleton
     
