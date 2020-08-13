@@ -130,12 +130,18 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var previousItemId: UUID? {
         didSet {
             if previousItemId == itemId { fatalError("Can't link to self") }
+            if previousItemId == nextItemId {
+                fatalError("Can't set previousItem and nextItem to the same item")
+            }
             if oldValue != previousItemId { hasChanges = true; save() }
         }
     }
     public var nextItemId: UUID? {
         didSet {
             if nextItemId == itemId { fatalError("Can't link to self") }
+            if previousItemId == nextItemId {
+                fatalError("Can't set previousItem and nextItem to the same item")
+            }
             if oldValue != nextItemId { hasChanges = true; save() }
         }
     }
