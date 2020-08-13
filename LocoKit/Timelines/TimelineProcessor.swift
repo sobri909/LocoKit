@@ -56,15 +56,22 @@ public class TimelineProcessor {
 
     public static func process(_ givenItems: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
         guard let store = givenItems.first?.store else { return }
+
+        let startDate = givenItems.compactMap({ $0.startDate }).min()
+        let endDate = givenItems.compactMap({ $0.startDate }).max()
+
+        // sanitise the store in the items date range
+        if let start = startDate, let end = endDate {
+            store.process {
+                sanitise(store: store, inRange: DateInterval(start: start, end: end))
+            }
+        }
+
         store.process {
             var items = givenItems
 
-            // sanitise the store in the items date range
-            if let start = items.compactMap({ $0.startDate }).min(), let end = items.compactMap({ $0.startDate }).max() {
-                let dateRange = DateInterval(start: start, end: end)
-                sanitise(store: store, inRange: dateRange)
-
-                // use all timeline items in the range, not just the given ones (might be new ones from sanitise)
+            // use all timeline items in the range, not just the given ones (might be new ones from sanitise, or local cache might be invalid)
+            if let start = startDate, let end = endDate {
                 items = store.items(where: "startDate >= ? AND endDate <= ?", arguments: [start, end])
             }
 
