@@ -19,8 +19,17 @@ internal class Merge: Hashable, CustomStringConvertible {
     var deadman: TimelineItem
 
     var isValid: Bool {
-        if keeper.isMergeLocked || deadman.isMergeLocked || betweener?.isMergeLocked == true { return false }
         if keeper.deleted || deadman.deleted || betweener?.deleted == true { return false }
+
+        // check for dupes (which should be impossible, but weird stuff happens)
+        var itemIds: Set<UUID> = [keeper.itemId, deadman.itemId]
+        if let betweener = betweener {
+            itemIds.insert(betweener.itemId)
+            if itemIds.count != 3 { return false }
+        } else {
+            if itemIds.count != 2 { return false }
+        }
+
         if let betweener = betweener {
             // keeper -> betweener -> deadman
             if keeper.nextItem == betweener, betweener.nextItem == deadman { return true }
@@ -32,10 +41,12 @@ internal class Merge: Hashable, CustomStringConvertible {
             // deadman -> keeper
             if deadman.nextItem == keeper { return true }
         }
+
         return false
     }
 
     lazy var score: MergeScore = {
+        if keeper.isMergeLocked || deadman.isMergeLocked || betweener?.isMergeLocked == true { return .impossible }
         guard isValid else { return .impossible }
         return self.keeper.scoreForConsuming(item: self.deadman)
     }()
