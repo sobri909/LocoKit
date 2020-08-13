@@ -566,7 +566,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         var madeChanges = false
         mutex.sync {
             _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
-            for sample in samples where sample.timelineItem != self {
+            for sample in samples where sample.timelineItem != self || sample.timelineItemId != self.itemId {
                 sample.timelineItem = self
                 madeChanges = true
             }
