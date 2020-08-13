@@ -138,6 +138,17 @@ public class TimelineProcessor {
             // infinite loop breakers, for the next processing cycle
             lastCleansedSamples = allMoved
 
+
+            // check for invalid merges
+            for merge in merges {
+                if !merge.isValid {
+                    print("INVALID MERGE. BREAKING EDGES")
+                    merge.keeper.breakEdges()
+                    merge.betweener?.breakEdges()
+                    merge.deadman.breakEdges()
+                }
+            }
+
             /** sort the merges by highest to lowest score **/
 
             let sortedMerges = merges.sorted { $0.score.rawValue > $1.score.rawValue }
