@@ -586,6 +586,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         if madeChanges { samplesChanged() }
     }
 
+    public func breakEdges() {
+        previousItemId = nil
+        nextItemId = nil
+    }
+
     open func sampleTypesChanged() {
         _segments = nil
         _segmentsByActivityType = nil
