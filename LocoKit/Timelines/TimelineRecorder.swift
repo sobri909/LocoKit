@@ -53,8 +53,6 @@ public class TimelineRecorder {
             self?.updateSleepModeAcceptability()
             if loco.recordingState.isCurrentRecorder {
                 store.connectToDatabase()
-            } else {
-                store.disconnectFromDatabase()
             }
         }
         notes.addObserver(forName: .tookOverRecording, object: nil, queue: nil) { [weak self] _ in
