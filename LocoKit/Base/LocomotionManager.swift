@@ -491,8 +491,17 @@ import LocoKitCore
         return manager
     }()
     
-    // because there can be only one highlander
-    private override init() {}
+    // private because there can be only one highlander
+    private override init() {
+        super.init()
+        let center = NotificationCenter.default
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .active
+        }
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .background
+        }
+    }
 
     // MARK: - Sleep mode management
 
