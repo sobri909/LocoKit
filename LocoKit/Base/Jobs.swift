@@ -102,6 +102,14 @@ public class Jobs {
                 self.logParallelQueueState()
             })
         }
+
+        let center = NotificationCenter.default
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.didBecomeActive()
+        }
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+            self?.didEnterBackground()
+        }
     }
 
     private func logSerialQueueState() {
@@ -131,9 +139,7 @@ public class Jobs {
 
     // MARK: - Queue State Management
 
-    public func didEnterBackground() {
-        LocomotionManager.highlander.applicationState = .background
-
+    private func didEnterBackground() {
         let queues = managedQueues + [primaryQueue]
 
         // secondary queue goes serial in background
@@ -151,9 +157,7 @@ public class Jobs {
         }
     }
 
-    public func didBecomeActive() {
-        LocomotionManager.highlander.applicationState = .active
-
+    private func didBecomeActive() {
         let queues = [primaryQueue] + managedQueues
 
         // secondary queue goes mildly parallel in foreground
