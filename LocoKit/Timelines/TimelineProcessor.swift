@@ -418,6 +418,20 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let endDate = brokenItem.endDate else { return }
 
+        if let overlapper = store.item(
+            where: """
+            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted && !overlapper.isMergeLocked
+        {
+            overlapper.add(brokenItem.samples)
+            brokenItem.delete()
+            return
+        }
+
         if let nearest = store.item(
             where: "startDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
             arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
@@ -426,6 +440,9 @@ public class TimelineProcessor {
         {
             // nearest is already this item's edge? eh?
             if nearest.previousItemId == brokenItem.itemId { return }
+
+            // nearest is already this item's other edge? wtf no
+            if brokenItem.previousItemId == nearest.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -447,20 +464,6 @@ public class TimelineProcessor {
                 }
             }
         }
-
-        if let overlapper = store.item(
-            where: """
-            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
-            """,
-            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
-        }
     }
 
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
@@ -468,6 +471,20 @@ public class TimelineProcessor {
         if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let startDate = brokenItem.startDate else { return }
+
+        if let overlapper = store.item(
+            where: """
+            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted && !overlapper.isMergeLocked
+        {
+            overlapper.add(brokenItem.samples)
+            brokenItem.delete()
+            return
+        }
 
         if let nearest = store.item(
             where: "endDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
@@ -477,6 +494,9 @@ public class TimelineProcessor {
         {
             // nearest is already this item's edge? eh?
             if nearest.nextItemId == brokenItem.itemId { return }
+
+            // nearest is already this item's other edge? wtf no
+            if brokenItem.nextItemId == nearest.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -497,20 +517,6 @@ public class TimelineProcessor {
                     return
                 }
             }
-        }
-
-        if let overlapper = store.item(
-            where: """
-            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
-            """,
-            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
         }
     }
 
