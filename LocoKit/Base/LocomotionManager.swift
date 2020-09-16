@@ -107,7 +107,7 @@ import LocoKitCore
 
     public var applicationState: UIApplication.State = .background
     
-    // MARK: The Singleton
+    // MARK: - The Singleton
     
     /// The LocomotionManager singleton instance, through which all actions should be performed.
     @objc public static let highlander = LocomotionManager()
@@ -161,7 +161,7 @@ import LocoKitCore
      */
     @objc public var locationManagerDelegate: CLLocationManagerDelegate?
 
-    // MARK: Core Motion Settings
+    // MARK: - Core Motion Settings
 
     /**
      Whether or not to record pedometer events. If this option is enabled, `LocomotionSample.stepHz` will be set with
@@ -188,7 +188,7 @@ import LocoKitCore
      */
     @objc public var recordCoreMotionActivityTypeEvents: Bool = true
 
-    // MARK: Sleep Mode Settings
+    // MARK: - Sleep Mode Settings
 
     /**
      Whether LocomotionManager should enter a low power "sleep mode" while stationary, in order to reduce energy
@@ -241,7 +241,7 @@ import LocoKitCore
 
     @objc public var standbyCycleDuration: TimeInterval = 60 * 2
 
-    // MARK: Raw, Filtered, and Smoothed Data
+    // MARK: - Raw, Filtered, and Smoothed Data
     
     /**
      The most recently received unmodified CLLocation.
@@ -276,7 +276,7 @@ import LocoKitCore
         return LocomotionSample(from: ActivityBrain.highlander.presentSample)
     }
     
-    // MARK: Current Moving State
+    // MARK: - Current Moving State
     
     /**
      The `MovingState` of the current `LocomotionSample`.
