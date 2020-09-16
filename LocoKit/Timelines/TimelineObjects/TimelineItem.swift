@@ -112,6 +112,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         return _floorsDescended
     }
 
+    open var title: String {
+        fatalError()
+    }
+
+    // MARK: - Relationships
+
     private var _samples: [PersistentSample]?
     open var samples: [PersistentSample] {
         return mutex.sync {
@@ -127,8 +133,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             return _samples!
         }
     }
-
-    // MARK: - Relationships
 
     public var previousItemId: UUID? {
         didSet {

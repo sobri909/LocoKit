@@ -34,6 +34,11 @@ open class Visit: TimelineItem {
     public required init(in store: TimelineStore) {
         super.init(in: store)
     }
+
+    open override var title: String {
+        if isWorthKeeping { return "Visit" }
+        return "Brief Stop"
+    }
     
     // MARK: - Item validity
 

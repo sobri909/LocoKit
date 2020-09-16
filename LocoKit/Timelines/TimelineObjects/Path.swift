@@ -47,6 +47,13 @@ open class Path: TimelineItem, CustomStringConvertible {
         super.init(in: store)
     }
 
+    // MARK: -
+
+    open override var title: String {
+        if isDataGap { return "Data Gap" }
+        return activityType?.displayName.capitalized ?? "Unknown"
+    }
+
     // MARK: - Item validity
 
     open override var isValid: Bool {
