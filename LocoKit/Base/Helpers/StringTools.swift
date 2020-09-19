@@ -32,7 +32,7 @@ public extension String {
         formatter.maximumUnitCount = maximumUnits
         formatter.unitsStyle = style
 
-        if alwaysIncludeSeconds || duration < 60 * 2 {
+        if alwaysIncludeSeconds || duration < 60 * 3 {
             formatter.allowedUnits = [.second, .minute, .hour, .day, .month]
         } else {
             formatter.allowedUnits = [.minute, .hour, .day, .month]
