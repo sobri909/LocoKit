@@ -15,6 +15,7 @@ public class AppGroup {
 
     public let thisApp: AppName
     public let suiteName: String
+    public var timelineRecorder: TimelineRecorder?
 
     public private(set) var apps: [AppName: AppState] = [:]
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
@@ -88,7 +89,11 @@ public class AppGroup {
     }
 
     var currentAppState: AppState {
-        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, updated: Date())
+        if let currentItem = timelineRecorder?.currentItem {
+            return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
+                            currentItemId: currentItem.itemId, currentItemTitle: currentItem.title)
+        }
+        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState)
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {
@@ -142,9 +147,11 @@ public class AppGroup {
     public enum AppName: String, CaseIterable, Codable { case arcV3, arcMini, arcV4 }
 
     public struct AppState: Codable {
-        public var appName: AppName
-        public var recordingState: RecordingState
-        public var updated: Date
+        public let appName: AppName
+        public let recordingState: RecordingState
+        public var currentItemId: UUID?
+        public var currentItemTitle: String?
+        public var updated = Date()
 
         public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2 }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
