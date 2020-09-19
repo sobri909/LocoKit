@@ -373,10 +373,10 @@ open class TimelineStore {
         var savingSamples: Set<PersistentSample> = []
 
         mutex.sync {
-            savingItems = itemsToSave.filter { $0.needsSave }
+            savingItems = itemsToSave.filter { $0.needsSave && !$0.invalidated }
             itemsToSave = []
 
-            savingSamples = samplesToSave.filter { $0.needsSave }
+            savingSamples = samplesToSave.filter { $0.needsSave && !$0.invalidated }
             samplesToSave = []
         }
 
