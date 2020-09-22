@@ -122,11 +122,21 @@ public class AppGroup {
 
         switch message {
         case .updatedState:
-            print("RECEIVED: .updatedState, from: \(messageInfo.appName)") // load() is already called above, so this is just logging to raise awareness
+            appStateUpdated(by: messageInfo.appName)
         case .modifiedObjects:
             objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
         case .tookOverRecording:
             recordingWasTakenOver(by: messageInfo.appName, messageInfo: messageInfo)
+        }
+    }
+    
+    private func appStateUpdated(by: AppName) {
+        print("RECEIVED: .updatedState, from: \(by)")
+        guard let currentRecorder = currentRecorder else { print("wtf. no currentRecorder"); return }
+        guard let currentItemId = currentRecorder.currentItemId else { print("wtf. no currentItemId"); return }
+        if currentAppState.currentItemId != currentItemId {
+            print("need to update local currentItem (mine: \(currentAppState.currentItemId), theirs: \(currentItemId)")
+            timelineRecorder?.updateCurrentItem()
         }
     }
 
