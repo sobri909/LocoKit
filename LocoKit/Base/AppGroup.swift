@@ -86,6 +86,7 @@ public class AppGroup {
         apps[thisApp] = currentAppState
         guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
         groupDefaults?.set(data, forKey: thisApp.rawValue)
+        send(message: .updatedState)
     }
 
     var currentAppState: AppState {
@@ -120,6 +121,8 @@ public class AppGroup {
         load()
 
         switch message {
+        case .updatedState:
+            print("RECEIVED: .updatedState, from: \(messageInfo.appName)") // load() is already called above, so this is just logging to raise awareness
         case .modifiedObjects:
             objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
         case .tookOverRecording:
@@ -158,6 +161,7 @@ public class AppGroup {
     }
 
     public enum Message: String, CaseIterable, Codable {
+        case updatedState
         case modifiedObjects
         case tookOverRecording
         func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
@@ -172,9 +176,13 @@ public class AppGroup {
 
 }
 
+// MARK: -
+
 extension NSNotification.Name {
     static let receivedAppGroupMessage = Notification.Name("receivedAppGroupMessage")
 }
+
+// MARK: -
 
 // https://stackoverflow.com/a/58188965/790036
 final public class AppGroupTalk: NSObject {
