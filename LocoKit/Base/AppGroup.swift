@@ -135,7 +135,7 @@ public class AppGroup {
         guard let currentRecorder = currentRecorder else { print("wtf. no currentRecorder"); return }
         guard let currentItemId = currentRecorder.currentItemId else { print("wtf. no currentItemId"); return }
         if currentAppState.currentItemId != currentItemId {
-            print("need to update local currentItem (mine: \(currentAppState.currentItemId), theirs: \(currentItemId)")
+            print("need to update local currentItem (mine: \(currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
             timelineRecorder?.store.connectToDatabase()
             timelineRecorder?.updateCurrentItem()
         }
