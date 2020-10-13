@@ -117,6 +117,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     }
 
     // MARK: - Relationships
+    
+    public var includeSamplesWhenEncoding = true
 
     private var _samples: [PersistentSample]?
     open var samples: [PersistentSample] {
@@ -820,23 +822,29 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        
         try container.encode(itemId, forKey: .itemId)
         try container.encode(self is Visit, forKey: .isVisit)
         if deleted { try container.encode(deleted, forKey: .deleted) }
         if previousItemId != nil { try container.encode(previousItemId, forKey: .previousItemId) }
         if nextItemId != nil { try container.encode(nextItemId, forKey: .nextItemId) }
-        try container.encode(startDate, forKey: .startDate)
-        try container.encode(endDate, forKey: .endDate)
-        try container.encode(center?.coordinate, forKey: .center)
-        try container.encode(radius, forKey: .radius)
-        if altitude != nil { try container.encode(altitude, forKey: .altitude) }
         if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
-        if self is Path {
-            if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
-        }
         if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
         if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
-        try container.encode(samples, forKey: .samples)
+        
+        let range = _dateRange ?? dateRange
+        if let range = range {
+            try container.encode(range.start, forKey: .startDate)
+            try container.encode(range.end, forKey: .endDate)
+        }
+
+        if includeSamplesWhenEncoding {
+            try container.encode(samples, forKey: .samples)
+            if altitude != nil { try container.encode(altitude, forKey: .altitude) }
+
+        } else {
+            if let _altitude = _altitude { try container.encode(_altitude, forKey: .altitude) }
+        }
     }
 
     internal enum CodingKeys: String, CodingKey {

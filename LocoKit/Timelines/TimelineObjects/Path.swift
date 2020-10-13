@@ -286,6 +286,14 @@ open class Path: TimelineItem, CustomStringConvertible {
         container["distance"] = _distance
         container["activityType"] = _modeMovingActivityType?.rawValue
     }
+    
+    // MARK: - Encodable
+    
+    open override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
+        try super.encode(to: encoder)
+    }
 
     // MARK: - CustomStringConvertible
 
