@@ -513,7 +513,7 @@ open class TimelineStore {
         registerAuxiliaryDbMigrations()
         try! auxiliaryDbMigrator.migrate(auxiliaryPool)
 
-        delay(10, onQueue: DispatchQueue.global()) {
+        delay(20, onQueue: DispatchQueue.global()) {
             self.registerDelayedMigrations()
             try! self.migrator.migrate(pool)
         }
