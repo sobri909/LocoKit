@@ -73,7 +73,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             return
         }
         guard samples.isEmpty else {
-            fatalError("Can't delete an item that has samples. Assign the samples to another item first.")
+            os_log(.debug, "Can't delete an item that has samples. Assign the samples to another item first.")
+            return
         }
         deleted = true
         previousItem = nil
