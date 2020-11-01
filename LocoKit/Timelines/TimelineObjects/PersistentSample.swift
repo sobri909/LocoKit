@@ -88,17 +88,23 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: PersistentCodingKeys.self)
         self.timelineItemId = try? container.decode(UUID.self, forKey: .timelineItemId)
+        self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
+        if let deleted = try? container.decode(Bool.self, forKey: .deleted) { self.deleted = deleted }
         try super.init(from: decoder)
     }
 
     open override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: PersistentCodingKeys.self)
         if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
+        try container.encode(lastSaved, forKey: .lastSaved)
+        if deleted { try container.encode(deleted, forKey: .deleted) }
         try super.encode(to: encoder)
     }
 
     private enum PersistentCodingKeys: String, CodingKey {
         case timelineItemId
+        case lastSaved
+        case deleted
     }
 
     // MARK: - Relationships

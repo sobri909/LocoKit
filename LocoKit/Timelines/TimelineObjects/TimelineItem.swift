@@ -801,6 +801,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         self.itemId = (try? container.decode(UUID.self, forKey: .itemId)) ?? UUID()
         self.deleted = (try? container.decode(Bool.self, forKey: .deleted)) ?? false
+        self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
         self.previousItemId = try? container.decode(UUID.self, forKey: .previousItemId)
         self.nextItemId = try? container.decode(UUID.self, forKey: .nextItemId)
 
@@ -827,6 +828,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         try container.encode(itemId, forKey: .itemId)
         try container.encode(self is Visit, forKey: .isVisit)
         if deleted { try container.encode(deleted, forKey: .deleted) }
+        if lastSaved != nil { try container.encode(lastSaved, forKey: .lastSaved) }
         if previousItemId != nil { try container.encode(previousItemId, forKey: .previousItemId) }
         if nextItemId != nil { try container.encode(nextItemId, forKey: .nextItemId) }
         if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
@@ -856,7 +858,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         case nextItemId
         case startDate
         case endDate
-        case lastModified
+        case lastSaved
         case center
         case radius
         case altitude
