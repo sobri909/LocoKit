@@ -553,6 +553,8 @@ public class TimelineProcessor {
     }
 
     private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
         var query = "timelineItemId IS NULL AND deleted = 0"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
@@ -598,6 +600,8 @@ public class TimelineProcessor {
     }
 
     private static func orphanSamplesFromDeadParents(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
         var query = """
                 SELECT LocomotionSample.* FROM LocomotionSample
                     JOIN TimelineItem ON timelineItemId = TimelineItem.itemId
@@ -623,6 +627,8 @@ public class TimelineProcessor {
     }
 
     private static func detachDeadmenEdges(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
         var query = "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
