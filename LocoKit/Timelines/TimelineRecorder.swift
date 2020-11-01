@@ -79,10 +79,10 @@ public class TimelineRecorder {
 
     public func startRecording() {
         if isRecording { return }
+        store.connectToDatabase()
         if LocomotionManager.highlander.appGroup?.currentRecorder == nil {
             addDataGapItem()
         }
-        store.connectToDatabase()
         LocomotionManager.highlander.startRecording()
     }
 
