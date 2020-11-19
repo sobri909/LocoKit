@@ -415,17 +415,33 @@ open class TimelineStore {
             }
         }
         if !savingSamples.isEmpty {
-            try! pool.write { db in
-                let now = Date()
-                for case let sample as TimelineObject in savingSamples {
-                    sample.transactionDate = now
-                    do { try sample.save(in: db) }
-                    catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
-                    savedObjectIds.insert(sample.objectId)
+            do {
+                try pool.write { db in
+                    let now = Date()
+                    for case let sample as TimelineObject in savingSamples {
+                        sample.transactionDate = now
+                        do { try sample.save(in: db) }
+                        catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                        catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+                            // break the edge and put it back in the queue
+                            (sample as? PersistentSample)?.timelineItem = nil
+                            save(sample, immediate: false)
+                            
+                        } catch {
+                            os_log("%@", type: .error, String(describing: error))
+                            save(sample, immediate: false)
+                        }
+                        savedObjectIds.insert(sample.objectId)
+                    }
+                    db.afterNextTransactionCommit { db in
+                        for case let sample as TimelineObject in savingSamples where !sample.hasChanges {
+                            sample.lastSaved = sample.transactionDate
+                        }
+                    }
                 }
-                db.afterNextTransactionCommit { db in
-                    for case let sample as TimelineObject in savingSamples { sample.lastSaved = sample.transactionDate }
-                }
+                
+            } catch {
+                os_log("%@", type: .error, String(describing: error))
             }
         }
 
