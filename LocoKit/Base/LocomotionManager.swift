@@ -74,10 +74,10 @@ import LocoKitCore
      */
     public private(set) var recordingState: RecordingState = .off {
         didSet(oldValue) {
+            appGroup?.save()
             if recordingState != oldValue || recordingState == .standby {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
             }
-            appGroup?.save()
         }
     }
 
