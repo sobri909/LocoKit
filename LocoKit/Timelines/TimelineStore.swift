@@ -7,7 +7,6 @@
 //
 
 import os.log
-import LocoKitCore
 import CoreLocation
 import GRDB
 

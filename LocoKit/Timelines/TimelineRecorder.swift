@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 29/04/18.
 //
 
-import LocoKitCore
 import CoreLocation
 
 public extension NSNotification.Name {

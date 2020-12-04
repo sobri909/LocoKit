@@ -7,7 +7,6 @@
 //
 
 import GRDB
-import LocoKitCore
 import CoreLocation
 
 open class PersistentSample: LocomotionSample, TimelineObject {

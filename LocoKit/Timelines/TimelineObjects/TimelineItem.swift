@@ -8,7 +8,6 @@
 
 import os.log
 import GRDB
-import LocoKitCore
 import CoreLocation
 import CoreMotion
 import Combine

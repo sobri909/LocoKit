@@ -6,8 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import LocoKitCore
-
 #if canImport(Reachability)
 import Reachability
 #endif
