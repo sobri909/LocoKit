@@ -53,6 +53,9 @@ public extension DateInterval {
 }
 
 public extension Date {
+    var age: TimeInterval { return -timeIntervalSinceNow }
+    var startOfDay: Date { return Calendar.current.startOfDay(for: self) }
+    var sinceStartOfDay: TimeInterval { return self.timeIntervalSince(self.startOfDay) }
     func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
     func isSameMonthAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, equalTo: self, toGranularity: .month) }
 }
@@ -66,3 +69,8 @@ public extension TimeInterval {
     static var oneYear: TimeInterval { return oneDay * 365 }
 }
 
+extension Data {
+    var hexString: String {
+        return map { String(format: "%02.2hhx", $0) }.joined()
+    }
+}

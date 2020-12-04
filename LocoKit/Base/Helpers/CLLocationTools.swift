@@ -7,6 +7,7 @@
 //
 
 import CoreLocation
+import CoreMotion
 
 public typealias Radians = Double
 
@@ -36,6 +37,10 @@ public struct Radius: Codable {
 public extension CLLocationDegrees {
     var radiansValue: Radians {
         return self * Double.pi / 180.0
+    }
+    
+    var nonNegativeValue: CLLocationDegrees {
+        return self >= 0 ? self : self + 360
     }
 }
 
@@ -85,6 +90,10 @@ public extension CLLocationCoordinate2D {
     var isNullIsland: Bool { return isNull }
     var isNull: Bool { return latitude == 0 && longitude == 0 }
     var isValid: Bool { return CLLocationCoordinate2DIsValid(self) }
+    
+    func isEqual(to other: CLLocationCoordinate2D) -> Bool {
+        return self.latitude == other.latitude && self.longitude == other.longitude
+    }
 }
 
 extension CLLocationCoordinate2D: Hashable {
@@ -232,32 +241,63 @@ public extension CLLocation {
         self.init(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude,
                   horizontalAccuracy: horizontalAccuracy, verticalAccuracy: verticalAccuracy, timestamp: timestamp)
     }
-}
-
-public extension CLLocation {
+    
     convenience init(from codable: CodableLocation) {
         self.init(coordinate: CLLocationCoordinate2D(latitude: codable.latitude, longitude: codable.longitude),
                   altitude: codable.altitude, horizontalAccuracy: codable.horizontalAccuracy,
                   verticalAccuracy: codable.verticalAccuracy, course: codable.course, speed: codable.speed,
                   timestamp: codable.timestamp)
     }
+    
+    // MARK: -
+    
     var codable: CodableLocation {
         return CodableLocation(location: self)
     }
-}
-
-public extension CLLocation {
+    
     var isNolo: Bool {
         return !hasUsableCoordinate
     }
     var hasUsableCoordinate: Bool {
         return horizontalAccuracy >= 0 && coordinate.isUsable
     }
+    
+    func course(to location: CLLocation) -> Double? {
+        if let radians = radiansCourse(to: location) { return radians.degreesValue.nonNegativeValue }
+        return nil
+    }
+    
+    func radiansCourse(to location: CLLocation) -> Radians? {
+        if self.coordinate.isEqual(to: location.coordinate) { return nil }
+        
+        let lat1 = self.coordinate.latitude.radiansValue
+        let lon1 = self.coordinate.longitude.radiansValue
+        
+        let lat2 = location.coordinate.latitude.radiansValue
+        let lon2 = location.coordinate.longitude.radiansValue
+        
+        let dLon = lon2 - lon1
+        
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        
+        return atan2(y, x)
+    }
 }
 
-public extension CLLocation {
-    var localTimeZone: TimeZone? {
-        return nil
+// source: http://stackoverflow.com/a/8006783/790036
+extension CMDeviceMotion {
+    var userAccelerationInReferenceFrame: CMAcceleration {
+        let acc = userAcceleration
+        let rot = attitude.rotationMatrix
+        
+        var accRef = CMAcceleration()
+        
+        accRef.x = acc.x*rot.m11 + acc.y*rot.m12 + acc.z*rot.m13
+        accRef.y = acc.x*rot.m21 + acc.y*rot.m22 + acc.z*rot.m23
+        accRef.z = acc.x*rot.m31 + acc.y*rot.m32 + acc.z*rot.m33
+        
+        return accRef
     }
 }
 
@@ -290,6 +330,11 @@ extension Array where Element: CLLocation {
             previousLocation = location
         }
         return distance
+    }
+    
+    public var dateInterval: DateInterval? {
+        guard let first = first, let last = last else { return nil }
+        return DateInterval(start: first.timestamp, end: last.timestamp)
     }
 
     func radius(from center: CLLocation) -> Radius {
@@ -349,5 +394,38 @@ extension Array where Element: CLLocation {
         }
 
         return totalAltitude / totalWeight
+    }
+    
+    var courseVariance: Double? {
+        if self.isEmpty { return nil }
+        guard self.count > 2 else { return 1 }
+        
+        var xvalues: [Double] = [], yvalues: [Double] = []
+        
+        var previousLocation: CLLocation?
+        for location in self {
+            guard let previous = previousLocation else {
+                previousLocation = location
+                continue
+            }
+            
+            guard let course = previous.radiansCourse(to: location) else {
+                continue
+            }
+           
+            xvalues.append(cos(course))
+            yvalues.append(sin(course))
+
+            previousLocation = location
+        }
+        
+        if xvalues.count < 4 { return 1 }
+        
+        let meanx = xvalues.mean
+        let meany = yvalues.mean
+
+        let radius = (pow(meanx, 2) + pow(meany, 2)).squareRoot()
+        
+        return 1.0 - radius
     }
 }

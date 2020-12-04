@@ -34,6 +34,11 @@ open class Visit: TimelineItem {
     public required init(in store: TimelineStore) {
         super.init(in: store)
     }
+
+    open override var title: String {
+        if isWorthKeeping { return "Visit" }
+        return "Brief Stop"
+    }
     
     // MARK: - Item validity
 
@@ -197,6 +202,20 @@ open class Visit: TimelineItem {
         super.encode(to: &container)
         container["isVisit"] = true
     }
+    
+    // MARK: - Encodable
+    
+    open override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        if let center = center { try container.encode(center.coordinate, forKey: .center) }
+        if includeSamplesWhenEncoding {
+            try container.encode(radius, forKey: .radius)
+        } else {
+            if let _radius = _radius { try container.encode(_radius, forKey: .radius) }
+        }
+        try super.encode(to: encoder)
+    }
+
 }
 
 extension Visit: CustomStringConvertible {

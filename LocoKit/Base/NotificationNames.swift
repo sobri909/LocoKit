@@ -66,7 +66,9 @@ public extension NSNotification.Name {
      */
     static let wentFromSleepModeToRecording = Notification.Name("wentFromSleepModeToRecording")
 
-    static let backgroundTaskExpired = Notification.Name("backgroundTaskExpired")
+    static let concededRecording = Notification.Name("concededRecording")
+    static let tookOverRecording = Notification.Name("tookOverRecording")
+    static let timelineObjectsExternallyModified = Notification.Name("timelineObjectsExternallyModified")
 
     // broadcasted CLLocationManagerDelegate events
     static let didChangeAuthorizationStatus = Notification.Name("didChangeAuthorizationStatus")

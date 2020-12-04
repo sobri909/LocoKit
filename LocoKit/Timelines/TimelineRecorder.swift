@@ -35,6 +35,8 @@ public class TimelineRecorder {
         store.recorder = self
         self.classifier = classifier
 
+        let loco = LocomotionManager.highlander
+
         let notes = NotificationCenter.default
         notes.addObserver(forName: .locomotionSampleUpdated, object: nil, queue: nil) { [weak self] _ in
             self?.recordSample()
@@ -49,6 +51,13 @@ public class TimelineRecorder {
         }
         notes.addObserver(forName: .recordingStateChanged, object: nil, queue: nil) { [weak self] _ in
             self?.updateSleepModeAcceptability()
+            if loco.recordingState.isCurrentRecorder {
+                store.connectToDatabase()
+            }
+        }
+        notes.addObserver(forName: .tookOverRecording, object: nil, queue: nil) { [weak self] _ in
+            self?.updateCurrentItem()
+            loco.resetLocationFilter() // reset the Kalmans
         }
 
         // keep currentItem sane after merges
@@ -70,7 +79,10 @@ public class TimelineRecorder {
 
     public func startRecording() {
         if isRecording { return }
-        addDataGapItem()
+        store.connectToDatabase()
+        if LocomotionManager.highlander.appGroup?.currentRecorder == nil {
+            addDataGapItem()
+        }
         LocomotionManager.highlander.startRecording()
     }
 
@@ -259,6 +271,9 @@ public class TimelineRecorder {
 
         // don't muck about with recording state if it's been explicitly turned off
         if loco.recordingState == .off { return }
+
+        // don't be fiddling when someone else is responsible for recording
+        if loco.recordingState == .standby { return }
 
         // sleep mode requires currentItem to be a keeper visit
         guard let currentVisit = currentVisit, currentVisit.isWorthKeeping else {

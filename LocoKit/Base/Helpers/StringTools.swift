@@ -32,7 +32,7 @@ public extension String {
         formatter.maximumUnitCount = maximumUnits
         formatter.unitsStyle = style
 
-        if alwaysIncludeSeconds || duration < 60 * 2 {
+        if alwaysIncludeSeconds || duration < 60 * 3 {
             formatter.allowedUnits = [.second, .minute, .hour, .day, .month]
         } else {
             formatter.allowedUnits = [.minute, .hour, .day, .month]
@@ -92,6 +92,11 @@ public extension String {
             formatter.numberFormatter.maximumFractionDigits = 0
         }
         self.init(format: formatter.string(from: mps.speedMeasurement))
+    }
+
+    func deletingPrefix(_ prefix: String) -> String {
+        guard self.hasPrefix(prefix) else { return self }
+        return String(self.dropFirst(prefix.count))
     }
 
 }

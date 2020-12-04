@@ -20,8 +20,9 @@ public extension NSNotification.Name {
 open class TimelineStore {
 
     public init() {
+        connectToDatabase()
         migrateDatabases()
-        pool.add(transactionObserver: itemsObserver)
+        pool?.add(transactionObserver: itemsObserver)
 
         let center = NotificationCenter.default
         center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
@@ -29,6 +30,10 @@ open class TimelineStore {
         }
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
             self?.didEnterBackground()
+        }
+        center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
+            guard let objectIds = note.userInfo?["objectIds"] as? Set<UUID> else { return }
+            self?.invalidate(objectIds: objectIds)
         }
     }
     
@@ -64,20 +69,22 @@ open class TimelineStore {
         return ItemsObserver(store: self)
     }()
 
+    open lazy var dbDir: URL = {
+        return try! FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+    }()
+
     open lazy var dbUrl: URL = {
-        return try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("LocoKit.sqlite")
+        return dbDir.appendingPathComponent("LocoKit.sqlite")
     }()
 
     open lazy var auxiliaryDbUrl: URL = {
-        return try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("LocoKitAuxiliary.sqlite")
+        return dbDir.appendingPathComponent("LocoKitAuxiliary.sqlite")
     }()
 
     public lazy var poolConfig: Configuration = {
         var config = Configuration()
+        config.busyMode = .timeout(30)
+        config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
         if sqlDebugLogging {
             config.trace = {
@@ -87,13 +94,20 @@ open class TimelineStore {
         return config
     }()
 
-    public lazy var pool: DatabasePool = {
-        return try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
-    }()
+    public private(set) var pool: DatabasePool?
 
     public lazy var auxiliaryPool: DatabasePool = {
         return try! DatabasePool(path: self.auxiliaryDbUrl.path, configuration: self.poolConfig)
     }()
+
+    public func connectToDatabase() {
+        guard pool == nil else { return }
+        pool = try! DatabasePool(path: self.dbUrl.path, configuration: self.poolConfig)
+    }
+
+    public func disconnectFromDatabase() {
+        pool = nil
+    }
 
     // MARK: - Object creation
 
@@ -154,10 +168,10 @@ open class TimelineStore {
 
     // MARK: - Object fetching
 
-    public func object(for objectId: UUID) -> TimelineObject? {
+    open func object(for objectId: UUID) -> TimelineObject? {
         return mutex.sync {
-            if let item = itemMap.object(forKey: objectId as NSUUID) { return item }
-            if let sample = sampleMap.object(forKey: objectId as NSUUID) { return sample }
+            if let item = itemMap.object(forKey: objectId as NSUUID), !item.invalidated { return item }
+            if let sample = sampleMap.object(forKey: objectId as NSUUID), !sample.invalidated { return sample }
             return nil
         }
     }
@@ -166,6 +180,7 @@ open class TimelineStore {
         return mutex.sync {
             guard let enumerator = itemMap.objectEnumerator() else { return nil }
             for case let item as TimelineItem in enumerator {
+                if item.invalidated { continue }
                 if matching(item) { return item }
             }
             return nil
@@ -198,6 +213,7 @@ open class TimelineStore {
     }
 
     public func item(for query: String, arguments: StatementArguments = StatementArguments()) -> TimelineItem? {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return item(for: row)
@@ -205,6 +221,7 @@ open class TimelineStore {
     }
 
     public func items(for query: String, arguments: StatementArguments = StatementArguments()) -> [TimelineItem] {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             var items: [TimelineItem] = []
             let itemRows = try Row.fetchCursor(db, sql: query, arguments: arguments)
@@ -238,6 +255,7 @@ open class TimelineStore {
     }
 
     public func sample(for query: String, arguments: StatementArguments = StatementArguments()) -> PersistentSample? {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return sample(for: row)
@@ -245,6 +263,7 @@ open class TimelineStore {
     }
 
     public func samples(for query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         let rows = try! pool.read { db in
             return try Row.fetchAll(db, sql: query, arguments: arguments)
         }
@@ -268,6 +287,10 @@ open class TimelineStore {
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return model(for: row)
         }
+    }
+
+    public func models(where query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
+        return models(for: "SELECT * FROM ActivityTypeModel WHERE " + query, arguments: arguments)
     }
 
     public func models(for query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
@@ -311,12 +334,14 @@ open class TimelineStore {
     // MARK: - Counting
 
     public func countItems(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM TimelineItem WHERE " + query, arguments: arguments)!
         }
     }
 
     public func countSamples(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
         }
@@ -342,53 +367,92 @@ open class TimelineStore {
     }
 
     open func save() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+
         var savingItems: Set<TimelineItem> = []
         var savingSamples: Set<PersistentSample> = []
 
         mutex.sync {
-            savingItems = itemsToSave.filter { $0.needsSave }
-            itemsToSave.removeAll(keepingCapacity: true)
+            savingItems = itemsToSave.filter { $0.needsSave && !$0.invalidated }
+            itemsToSave = []
 
-            savingSamples = samplesToSave.filter { $0.needsSave }
-            samplesToSave.removeAll(keepingCapacity: true)
+            savingSamples = samplesToSave.filter { $0.needsSave && !$0.invalidated }
+            samplesToSave = []
         }
 
+        var savedObjectIds: Set<UUID> = []
+
         if !savingItems.isEmpty {
-            try! pool.write { db in
-                let now = Date()
-                for case let item as TimelineObject in savingItems {
-                    item.transactionDate = now
-                    do { try item.save(in: db) }
-                    catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
-                    catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
-                        // constraint fails (linked list inconsistencies) are non fatal
-                        // so let's break the edges and put the item back in the queue
-                        (item as? TimelineItem)?.previousItemId = nil
-                        (item as? TimelineItem)?.nextItemId = nil
-                        save(item, immediate: false)
+            do {
+                try pool.write { db in
+                    let now = Date()
+                    for case let item as TimelineObject in savingItems {
+                        item.transactionDate = now
+                        do { try item.save(in: db) }
+                        catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                        catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+                            // constraint fails (linked list inconsistencies) are non fatal
+                            // so let's break the edges and put the item back in the queue
+                            (item as? TimelineItem)?.previousItemId = nil
+                            (item as? TimelineItem)?.nextItemId = nil
+                            save(item, immediate: false)
+                            
+                        } catch {
+                            os_log("%@", type: .error, String(describing: error))
+                            save(item, immediate: false)
+                        }
+                        savedObjectIds.insert(item.objectId)
+                    }
+                    db.afterNextTransactionCommit { db in
+                        for case let item as TimelineObject in savingItems where !item.hasChanges {
+                            item.lastSaved = item.transactionDate
+                        }
                     }
                 }
-                db.afterNextTransactionCommit { db in
-                    for case let item as TimelineObject in savingItems { item.lastSaved = item.transactionDate }
-                }
+
+            } catch {
+                os_log("%@", type: .error, String(describing: error))
             }
         }
         if !savingSamples.isEmpty {
-            try! pool.write { db in
-                let now = Date()
-                for case let sample as TimelineObject in savingSamples {
-                    sample.transactionDate = now
-                    do { try sample.save(in: db) }
-                    catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+            do {
+                try pool.write { db in
+                    let now = Date()
+                    for case let sample as TimelineObject in savingSamples {
+                        sample.transactionDate = now
+                        do { try sample.save(in: db) }
+                        catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                        catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
+                            // break the edge and put it back in the queue
+                            (sample as? PersistentSample)?.timelineItem = nil
+                            save(sample, immediate: false)
+                            
+                        } catch {
+                            os_log("%@", type: .error, String(describing: error))
+                            save(sample, immediate: false)
+                        }
+                        savedObjectIds.insert(sample.objectId)
+                    }
+                    db.afterNextTransactionCommit { db in
+                        for case let sample as TimelineObject in savingSamples where !sample.hasChanges {
+                            sample.lastSaved = sample.transactionDate
+                        }
+                    }
                 }
-                db.afterNextTransactionCommit { db in
-                    for case let sample as TimelineObject in savingSamples { sample.lastSaved = sample.transactionDate }
-                }
+                
+            } catch {
+                os_log("%@", type: .error, String(describing: error))
             }
+        }
+
+        // tell the app group about db objects that've changed
+        if !savedObjectIds.isEmpty {
+            LocomotionManager.highlander.appGroup?.notifyObjectChanges(objectIds: savedObjectIds)
         }
     }
 
     public func saveOne(_ object: TimelineObject) {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         do {
             try pool.write { db in
                 object.transactionDate = Date()
@@ -400,6 +464,14 @@ open class TimelineStore {
             }
         } catch {
             os_log("%@", type: .error, error.localizedDescription)
+        }
+    }
+
+    // MARK: - Object invalidation
+
+    open func invalidate(objectIds: Set<UUID>) {
+        for objectId in objectIds {
+            object(for: objectId)?.invalidate()
         }
     }
 
@@ -429,6 +501,7 @@ open class TimelineStore {
     // MARK: - Database housekeeping
 
     open func hardDeleteSoftDeletedObjects() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         let deadline = Date(timeIntervalSinceNow: -keepDeletedObjectsFor)
         do {
             try pool.write { db in
@@ -459,15 +532,17 @@ open class TimelineStore {
     public var auxiliaryDbMigrator = DatabaseMigrator()
 
     open func migrateDatabases() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+
         registerMigrations()
         try! migrator.migrate(pool)
 
         registerAuxiliaryDbMigrations()
         try! auxiliaryDbMigrator.migrate(auxiliaryPool)
 
-        delay(10, onQueue: DispatchQueue.global()) {
+        delay(20, onQueue: DispatchQueue.global()) {
             self.registerDelayedMigrations()
-            try! self.migrator.migrate(self.pool)
+            try! self.migrator.migrate(pool)
         }
     }
 

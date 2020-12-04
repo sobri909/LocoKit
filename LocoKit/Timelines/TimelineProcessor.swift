@@ -6,6 +6,7 @@
 //
 
 import os.log
+import GRDB
 
 public class TimelineProcessor {
 
@@ -45,7 +46,7 @@ public class TimelineProcessor {
             // recurse until no remaining possible merges
             process(items) { results in
                 if let kept = results?.kept {
-                    delay(0.2) { process(from: kept) }
+                    delay(0.3) { process(from: kept) }
                 }
             }
         }
@@ -53,11 +54,29 @@ public class TimelineProcessor {
 
     private static var lastCleansedSamples: Set<LocomotionSample> = []
 
-    public static func process(_ items: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
-        guard let store = items.first?.store else { return }
+    public static func process(_ givenItems: [TimelineItem], completion: ((MergeResult?) -> Void)? = nil) {
+        guard let store = givenItems.first?.store else { return }
+
+        let startDate = givenItems.compactMap({ $0.startDate }).min()
+        let endDate = givenItems.compactMap({ $0.startDate }).max()
+
+        // sanitise the store in the items date range
+        if let start = startDate, let end = endDate {
+            store.process {
+                sanitise(store: store, inRange: DateInterval(start: start, end: end))
+            }
+        }
+
         store.process {
+            var items = givenItems
+
+            // use all timeline items in the range, not just the given ones (might be new ones from sanitise, or local cache might be invalid)
+            if let start = startDate, let end = endDate {
+                items = store.items(where: "startDate >= ? AND endDate <= ?", arguments: [start, end])
+            }
+
             var merges: Set<Merge> = []
-            var itemsToSanitise = Set(items)
+            var itemsToSanitise = Set(items.prefix(10)) // limit to 10 items, to avoid massive processing loops
 
             /** collate all the potential merges **/
 
@@ -118,6 +137,17 @@ public class TimelineProcessor {
 
             // infinite loop breakers, for the next processing cycle
             lastCleansedSamples = allMoved
+
+
+            // check for invalid merges
+            for merge in merges {
+                if !merge.isValid {
+                    print("INVALID MERGE. BREAKING EDGES")
+                    merge.keeper.breakEdges()
+                    merge.betweener?.breakEdges()
+                    merge.deadman.breakEdges()
+                }
+            }
 
             /** sort the merges by highest to lowest score **/
 
@@ -227,7 +257,7 @@ public class TimelineProcessor {
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {
                 if overlapper.isMergeLocked {
-                    print("An overlapper is merge locked. Aborting extraction.")
+                    os_log("An overlapper is merge locked. Aborting extraction.", type: .debug)
                     completion?(nil)
                     return
                 }
@@ -276,7 +306,7 @@ public class TimelineProcessor {
                 guard let intersection = overlapperRange.intersection(with: newItemRange) else { continue }
                 guard intersection.duration < overlapper.duration else { continue }
 
-                print("Splitting an overlapping item in two")
+                os_log("Splitting an overlapping item in two", type: .debug)
 
                 // get all samples from overlapper up to the point of overlap
                 let samplesToExtract = overlapper.samples.prefix { $0.date < newItemRange.start }
@@ -344,8 +374,6 @@ public class TimelineProcessor {
             return
         }
 
-        print("Extracting a path between visits")
-
         extractItem(for: pathSegment, in: store)
     }
 
@@ -377,7 +405,6 @@ public class TimelineProcessor {
                             "itemId": brokenItem.itemId.uuidString]),
                 !overlapper.deleted && !overlapper.isMergeLocked
             {
-                print("healEdges(of: \(brokenItem.itemId.shortString)) MERGED INTO CONTAINING ITEM")
                 overlapper.add(brokenItem.samples)
                 brokenItem.delete()
                 return
@@ -391,15 +418,31 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let endDate = brokenItem.endDate else { return }
 
+        if let overlapper = store.item(
+            where: """
+            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted && !overlapper.isMergeLocked
+        {
+            overlapper.add(brokenItem.samples)
+            brokenItem.delete()
+            return
+        }
+
         if let nearest = store.item(
-            where: "startDate >= :endDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
+            where: "startDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
             arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": endDate.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
-            if nearest.previousItemId == brokenItem.itemId {
-                return
-            }
+            // nearest is already this item's edge? eh?
+            if nearest.previousItemId == brokenItem.itemId { return }
+
+            // nearest is already this item's other edge? wtf no
+            if brokenItem.previousItemId == nearest.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -421,20 +464,6 @@ public class TimelineProcessor {
                 }
             }
         }
-
-        if let overlapper = store.item(
-            where: """
-            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
-            """,
-            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
-        }
     }
 
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
@@ -443,15 +472,31 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let startDate = brokenItem.startDate else { return }
 
+        if let overlapper = store.item(
+            where: """
+            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            """,
+            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
+                        "itemId": brokenItem.itemId.uuidString]),
+            !overlapper.deleted && !overlapper.isMergeLocked
+        {
+            overlapper.add(brokenItem.samples)
+            brokenItem.delete()
+            return
+        }
+
         if let nearest = store.item(
-            where: "endDate <= :startDate AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
+            where: "endDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
             arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
                         "timestamp": startDate.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
-            if nearest.nextItemId == brokenItem.itemId {
-                return
-            }
+            // nearest is already this item's edge? eh?
+            if nearest.nextItemId == brokenItem.itemId { return }
+
+            // nearest is already this item's other edge? wtf no
+            if brokenItem.nextItemId == nearest.itemId { return }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -473,20 +518,6 @@ public class TimelineProcessor {
                 }
             }
         }
-
-        if let overlapper = store.item(
-            where: """
-            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
-            """,
-            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
-        }
     }
 
     // MARK: - Data gap insertion
@@ -496,7 +527,7 @@ public class TimelineProcessor {
         store.process {
             guard !newerItem.isDataGap && !olderItem.isDataGap else { return }
 
-            guard let gap = newerItem.timeInterval(from: olderItem), gap > 60 * 5 else { print("TOO CLOSE"); return }
+            guard let gap = newerItem.timeInterval(from: olderItem), gap > 60 * 5 else { return }
 
             guard let startDate = olderItem.endDate else { return }
             guard let endDate = newerItem.startDate else { return }
@@ -515,14 +546,23 @@ public class TimelineProcessor {
 
     // MARK: - Database sanitising
 
-    public static func sanitise(store: TimelineStore) {
-        orphanSamplesFromDeadParents(in: store)
-        adoptOrphanedSamples(in: store)
-        detachDeadmenEdges(in: store)
+    public static func sanitise(store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        orphanSamplesFromDeadParents(in: store, inRange: dateRange)
+        adoptOrphanedSamples(in: store, inRange: dateRange)
+        detachDeadmenEdges(in: store, inRange: dateRange)
     }
 
-    private static func adoptOrphanedSamples(in store: TimelineStore) {
-        let orphans = store.samples(where: "timelineItemId IS NULL AND deleted = 0 ORDER BY date DESC")
+    private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
+        var query = "timelineItemId IS NULL AND deleted = 0"
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND date >= ? AND date <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let orphans = store.samples(where: query + " ORDER BY date DESC", arguments: StatementArguments(arguments))
 
         if orphans.isEmpty { return }
 
@@ -559,34 +599,50 @@ public class TimelineProcessor {
         }
     }
 
-    private static func orphanSamplesFromDeadParents(in store: TimelineStore) {
-        let orphans = store.samples(for: """
+    private static func orphanSamplesFromDeadParents(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
+        var query = """
                 SELECT LocomotionSample.* FROM LocomotionSample
                     JOIN TimelineItem ON timelineItemId = TimelineItem.itemId
                 WHERE TimelineItem.deleted = 1
-                """)
+                """
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND date >= ? AND date <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let orphans = store.samples(for: query, arguments: StatementArguments(arguments))
 
         if orphans.isEmpty { return }
 
-        print("Samples holding onto dead parents: \(orphans.count)")
+        os_log("Samples holding onto dead parents: %d", type: .debug, orphans.count)
 
         for orphan in orphans where orphan.timelineItemId != nil {
-            print("Detaching an orphan from dead parent.")
             orphan.timelineItemId = nil
         }
 
         store.save()
     }
 
-    private static func detachDeadmenEdges(in store: TimelineStore) {
-        let deadmen = store.items(where: "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)")
+    private static func detachDeadmenEdges(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
+        store.connectToDatabase()
+
+        var query = "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)"
+        var arguments: [DatabaseValueConvertible] = []
+        if let dateRange = dateRange {
+            query += " AND startDate >= ? AND endDate <= ?"
+            arguments = [dateRange.start, dateRange.end]
+        }
+
+        let deadmen = store.items(where: query, arguments: StatementArguments(arguments))
 
         if deadmen.isEmpty { return }
 
-        print("Deadmen to edge detach: \(deadmen.count)")
+        os_log("Deadmen to edge detach: %d", type: .debug, deadmen.count)
 
         for deadman in deadmen {
-            print("Detaching edges of a deadman.")
             deadman.previousItemId = nil
             deadman.nextItemId = nil
         }

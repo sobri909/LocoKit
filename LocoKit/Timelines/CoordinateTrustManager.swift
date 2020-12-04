@@ -36,9 +36,7 @@ public class CoordinateTrustManager: TrustAssessor {
             try CoordinateTrust.fetchOne($0, sql: "SELECT * FROM CoordinateTrust WHERE latitude = ? AND longitude = ?",
                                          arguments: [rounded.latitude, rounded.longitude])
         }) {
-            if let model = model {
-                cache.setObject(model, forKey: rounded)
-            }
+            cache.setObject(model, forKey: rounded)
             return model
         }
 

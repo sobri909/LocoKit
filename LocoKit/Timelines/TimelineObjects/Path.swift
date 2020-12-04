@@ -7,7 +7,6 @@
 //
 
 import GRDB
-import Upsurge
 import CoreLocation
 
 open class Path: TimelineItem, CustomStringConvertible {
@@ -46,6 +45,13 @@ open class Path: TimelineItem, CustomStringConvertible {
 
     public required init(in store: TimelineStore) {
         super.init(in: store)
+    }
+
+    // MARK: -
+
+    open override var title: String {
+        if isDataGap { return "Data Gap" }
+        return activityType?.displayName.capitalized ?? "Unknown"
     }
 
     // MARK: - Item validity
@@ -223,7 +229,7 @@ open class Path: TimelineItem, CustomStringConvertible {
         if otherPath.mps > 0 {
             speeds.append(otherPath.mps)
         }
-        return CLLocationDistance(mean(speeds) * timeSeparation * 4)
+        return CLLocationDistance(speeds.mean * timeSeparation * 4)
     }
 
     internal override func cleanseEdge(with otherPath: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {
@@ -279,6 +285,14 @@ open class Path: TimelineItem, CustomStringConvertible {
         container["isVisit"] = false
         container["distance"] = _distance
         container["activityType"] = _modeMovingActivityType?.rawValue
+    }
+    
+    // MARK: - Encodable
+    
+    open override func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
+        try super.encode(to: encoder)
     }
 
     // MARK: - CustomStringConvertible

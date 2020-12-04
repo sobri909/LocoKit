@@ -11,11 +11,16 @@ import GRDB
 import LocoKitCore
 import CoreLocation
 import CoreMotion
+import Combine
 
 /// The abstract base class for timeline items.
-open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
+open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifiable, ObservableObject {
 
-    // MARK: TimelineObject
+    // MARK: - Identifiable
+
+    public var id: UUID { return objectId }
+
+    // MARK: - TimelineObject
 
     public var objectId: UUID { return itemId }
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
@@ -31,8 +36,17 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public var source: String = "LocoKit"
 
+    private var _invalidated = false
+    public var invalidated: Bool { return _invalidated }
+    public func invalidate() { _invalidated = true }
+
+    public var isVisit: Bool {
+        return self is Visit
+    }
+
     open var isMergeLocked: Bool {
         if isCurrentItem && !isWorthKeeping { return true }
+        if invalidated { return true }
         return false
     }
 
@@ -54,6 +68,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     public private(set) var deleted = false
     open func delete() {
+        if isMergeLocked {
+            os_log(.debug, "Can't delete (TimelineItem.isMergeLocked).")
+            return
+        }
+        guard samples.isEmpty else {
+            os_log(.debug, "Can't delete an item that has samples. Assign the samples to another item first.")
+            return
+        }
         deleted = true
         previousItem = nil
         nextItem = nil
@@ -91,6 +113,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         return _floorsDescended
     }
 
+    open var title: String {
+        fatalError()
+    }
+
+    // MARK: - Relationships
+    
+    public var includeSamplesWhenEncoding = true
+
     private var _samples: [PersistentSample]?
     open var samples: [PersistentSample] {
         return mutex.sync {
@@ -107,17 +137,21 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         }
     }
 
-    // MARK: - Relationships
-
     public var previousItemId: UUID? {
         didSet {
             if previousItemId == itemId { fatalError("Can't link to self") }
+            if previousItemId != nil, previousItemId == nextItemId {
+                fatalError("Can't set previousItem and nextItem to the same item")
+            }
             if oldValue != previousItemId { hasChanges = true; save() }
         }
     }
     public var nextItemId: UUID? {
         didSet {
             if nextItemId == itemId { fatalError("Can't link to self") }
+            if nextItemId != nil, previousItemId == nextItemId {
+                fatalError("Can't set previousItem and nextItem to the same item")
+            }
             if oldValue != nextItemId { hasChanges = true; save() }
         }
     }
@@ -135,6 +169,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         set(newValue) {
             if newValue == self { os_log("Can't link to self", type: .error); return }
             if newValue?.deleted == true { os_log("Can't link to a deleted item", type: .error); return }
+            if newValue != nil, newValue?.itemId == nextItemId { os_log("Can't set previousItem and nextItem to the same item", type: .error); return }
             mutex.sync {
                 let oldValue = self.previousItem
 
@@ -171,6 +206,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         set(newValue) {
             if newValue == self { os_log("Can't link to self", type: .error); return }
             if newValue?.deleted == true { os_log("Can't link to a deleted item", type: .error); return }
+            if newValue != nil, newValue?.itemId == previousItemId { os_log("Can't set previousItem and nextItem to the same item", type: .error); return }
             mutex.sync {
                 let oldValue = self.nextItem
 
@@ -542,7 +578,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         var madeChanges = false
         mutex.sync {
             _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
-            for sample in samples where sample.timelineItem != self {
+            for sample in samples where sample.timelineItem != self || sample.timelineItemId != self.itemId {
                 sample.timelineItem = self
                 madeChanges = true
             }
@@ -560,6 +596,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             }
         }
         if madeChanges { samplesChanged() }
+    }
+
+    public func breakEdges() {
+        previousItemId = nil
+        nextItemId = nil
     }
 
     open func sampleTypesChanged() {
@@ -589,6 +630,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
         onMain {
             NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+            self.objectWillChange.send()
         }
     }
 
@@ -649,6 +691,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
             if madeChanges {
                 onMain {
                     NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
+                    self.objectWillChange.send()
                 }
             }
         }
@@ -760,6 +803,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
         self.itemId = (try? container.decode(UUID.self, forKey: .itemId)) ?? UUID()
         self.deleted = (try? container.decode(Bool.self, forKey: .deleted)) ?? false
+        self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
         self.previousItemId = try? container.decode(UUID.self, forKey: .previousItemId)
         self.nextItemId = try? container.decode(UUID.self, forKey: .nextItemId)
 
@@ -782,23 +826,30 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
 
     open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        
         try container.encode(itemId, forKey: .itemId)
         try container.encode(self is Visit, forKey: .isVisit)
         if deleted { try container.encode(deleted, forKey: .deleted) }
+        if lastSaved != nil { try container.encode(lastSaved, forKey: .lastSaved) }
         if previousItemId != nil { try container.encode(previousItemId, forKey: .previousItemId) }
         if nextItemId != nil { try container.encode(nextItemId, forKey: .nextItemId) }
-        try container.encode(startDate, forKey: .startDate)
-        try container.encode(endDate, forKey: .endDate)
-        try container.encode(center?.coordinate, forKey: .center)
-        try container.encode(radius, forKey: .radius)
-        if altitude != nil { try container.encode(altitude, forKey: .altitude) }
         if stepCount != nil { try container.encode(stepCount, forKey: .stepCount) }
-        if self is Path {
-            if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
-        }
         if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
         if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
-        try container.encode(samples, forKey: .samples)
+        
+        let range = _dateRange ?? dateRange
+        if let range = range {
+            try container.encode(range.start, forKey: .startDate)
+            try container.encode(range.end, forKey: .endDate)
+        }
+
+        if includeSamplesWhenEncoding {
+            try container.encode(samples, forKey: .samples)
+            if altitude != nil { try container.encode(altitude, forKey: .altitude) }
+
+        } else {
+            if let _altitude = _altitude { try container.encode(_altitude, forKey: .altitude) }
+        }
     }
 
     internal enum CodingKeys: String, CodingKey {
@@ -809,7 +860,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         case nextItemId
         case startDate
         case endDate
-        case lastModified
+        case lastSaved
         case center
         case radius
         case altitude
@@ -819,6 +870,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable {
         case floorsDescended
         case samples
     }
+
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
+
 }
 
 internal enum DecodeError: Error {

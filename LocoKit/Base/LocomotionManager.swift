@@ -74,7 +74,8 @@ import LocoKitCore
      */
     public private(set) var recordingState: RecordingState = .off {
         didSet(oldValue) {
-            if recordingState != oldValue {
+            appGroup?.save()
+            if recordingState != oldValue || recordingState == .standby {
                 NotificationCenter.default.post(Notification(name: .recordingStateChanged, object: self, userInfo: nil))
             }
         }
@@ -90,9 +91,8 @@ import LocoKitCore
     
     internal var fallbackUpdateTimer: Timer?
     internal var wakeupTimer: Timer?
+    internal var standbyTimer: Timer?
     internal var lastLocationManagerCreated: Date?
-
-    internal var backgroundTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
 
     internal lazy var wigglesQueue: OperationQueue = {
         return OperationQueue()
@@ -103,8 +103,11 @@ import LocoKitCore
     }()
 
     public var coordinateAssessor: TrustAssessor?
+    public var appGroup: AppGroup?
+
+    public var applicationState: UIApplication.State = .background
     
-    // MARK: The Singleton
+    // MARK: - The Singleton
     
     /// The LocomotionManager singleton instance, through which all actions should be performed.
     @objc public static let highlander = LocomotionManager()
@@ -137,7 +140,7 @@ import LocoKitCore
      alone, without engaging GPS, thus reducing energy consumption. Wifi triangulation is typically more energy
      efficient than GPS.
      */
-    @objc public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 30
+    @objc public var maximumDesiredLocationAccuracy: CLLocationAccuracy = 10
 
     /**
      Whether LocomotionManager should dynamically adjust the internal CLLocationManager's `desiredAccuracy` to best
@@ -158,7 +161,7 @@ import LocoKitCore
      */
     @objc public var locationManagerDelegate: CLLocationManagerDelegate?
 
-    // MARK: Core Motion Settings
+    // MARK: - Core Motion Settings
 
     /**
      Whether or not to record pedometer events. If this option is enabled, `LocomotionSample.stepHz` will be set with
@@ -185,7 +188,7 @@ import LocoKitCore
      */
     @objc public var recordCoreMotionActivityTypeEvents: Bool = true
 
-    // MARK: Sleep Mode Settings
+    // MARK: - Sleep Mode Settings
 
     /**
      Whether LocomotionManager should enter a low power "sleep mode" while stationary, in order to reduce energy
@@ -236,7 +239,9 @@ import LocoKitCore
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
 
-    // MARK: Raw, Filtered, and Smoothed Data
+    @objc public var standbyCycleDuration: TimeInterval = 60 * 2
+
+    // MARK: - Raw, Filtered, and Smoothed Data
     
     /**
      The most recently received unmodified CLLocation.
@@ -271,7 +276,7 @@ import LocoKitCore
         return LocomotionSample(from: ActivityBrain.highlander.presentSample)
     }
     
-    // MARK: Current Moving State
+    // MARK: - Current Moving State
     
     /**
      The `MovingState` of the current `LocomotionSample`.
@@ -317,9 +322,6 @@ import LocoKitCore
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.startUpdatingLocation()
 
-        // start a background task, to keep iOS happy
-        startBackgroundTask()
-
         // start the motion gimps
         startCoreMotion()
         
@@ -364,9 +366,6 @@ import LocoKitCore
         locationManager.stopMonitoringVisits()
         locationManager.stopMonitoringSignificantLocationChanges()
 
-        // allow the app to suspend and terminate cleanly
-        endBackgroundTask()
-        
         recordingState = .off
     }
     
@@ -377,6 +376,16 @@ import LocoKitCore
     public func resetLocationFilter() {
         ActivityBrain.highlander.resetKalmans()
     }
+
+    public func becomeTheActiveRecorder() {
+        guard let appGroup = appGroup else { return }
+        if appGroup.isAnActiveRecorder { return }
+        startRecording()
+        NotificationCenter.default.post(Notification(name: .tookOverRecording, object: self, userInfo: nil))
+        appGroup.becameCurrentRecorder()
+    }
+
+    // MARK: -
 
     /**
      This method is temporarily public because the only way to request Core Motion permission is to just go ahead and
@@ -395,7 +404,7 @@ import LocoKitCore
         stopTheWiggles()
     }
     
-    // MARK: Misc Helpers and Convenience Wrappers
+    // MARK: - Misc Helpers and Convenience Wrappers
     
     /// A convenience wrapper for `CLLocationManager.locationServicesEnabled()`
     public var locationServicesAreOn: Bool {
@@ -482,8 +491,17 @@ import LocoKitCore
         return manager
     }()
     
-    // because there can be only one highlander
-    private override init() {}
+    // private because there can be only one highlander
+    private override init() {
+        super.init()
+        let center = NotificationCenter.default
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .active
+        }
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .background
+        }
+    }
 
     // MARK: - Sleep mode management
 
@@ -496,7 +514,7 @@ import LocoKitCore
         // notify that we're going to sleep
         NotificationCenter.default.post(Notification(name: .willStartSleepMode, object: self, userInfo: nil))
 
-        // kill the gimps
+        // stop the gimps
         stopCoreMotion()
 
         // set the location manager to ask for nothing and ignore everything
@@ -557,9 +575,7 @@ import LocoKitCore
         // stop the timers
         stopTheWakeupTimer()
         stopTheUpdateTimer()
-
-        // allow the app to suspend and terminate cleanly
-        endBackgroundTask()
+        stopTheStandbyTimer()
 
         recordingState = .deepSleeping
     }
@@ -578,13 +594,20 @@ import LocoKitCore
         locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
         locationManager.distanceFilter = kCLDistanceFilterNone
 
+        // if in standby, do standby specific checks then exit early
+        if recordingState == .standby {
+            if let appGroup = appGroup, appGroup.shouldBeTheRecorder {
+                becomeTheActiveRecorder()
+            } else {
+                startStandby()
+            }
+            return
+        }
+
         // location recording needs to be turned on?
         if recordingState == .off || recordingState == .deepSleeping {
             locationManager.allowsBackgroundLocationUpdates = true
             locationManager.startUpdatingLocation()
-
-            // start a background task, to keep iOS happy
-            startBackgroundTask()
         }
 
         // need to be able to detect nolos
@@ -593,9 +616,31 @@ import LocoKitCore
         recordingState = .wakeup
     }
 
+    public func startStandby() {
+
+        // stop the gimps
+        stopCoreMotion()
+
+        // set the location manager to ask for almost nothing and ignore everything
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+        locationManager.distanceFilter = kCLDistanceFilterNone
+
+        // make sure the location manager is alive
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.startUpdatingLocation()
+
+        // no fallback updates while in standby
+        stopTheUpdateTimer()
+
+        // reset the standby timer
+        restartTheStandbyTimer()
+
+        recordingState = .standby
+    }
+
     private func touchTheRecordingState() {
         switch recordingState {
-        case .off:
+        case .off, .standby:
             return
 
         case .wakeup:
@@ -625,7 +670,9 @@ import LocoKitCore
             }
 
         case .recording, .sleeping, .deepSleeping:
-            if needToBeRecording {
+            if let appGroup = appGroup, appGroup.isAnActiveRecorder, !appGroup.shouldBeTheRecorder {
+                startStandby()
+            } else if needToBeRecording {
                 startRecording()
             } else {
                 startSleeping()
@@ -634,6 +681,10 @@ import LocoKitCore
     }
 
     private var needToBeRecording: Bool {
+        if let thisApp = appGroup?.thisApp, let currentRecorder = appGroup?.currentRecorder, currentRecorder.appName != thisApp {
+            return false
+        }
+
         if movingState == .moving {
             return true
         }
@@ -656,29 +707,6 @@ import LocoKitCore
         }
 
         return false
-    }
-
-    // MARK: - Background management
-
-    private func startBackgroundTask() {
-        guard backgroundTaskId == UIBackgroundTaskIdentifier.invalid else { return }
-        os_log("Starting LocoKit background task.", type: .debug)
-        backgroundTaskId = UIApplication.shared.beginBackgroundTask(withName: "LocoKitBackground") {
-            os_log("LocoKit background task expired.", type: .error)
-
-            // tell people that the task expired, thus the app will be suspended soon
-            let note = Notification(name: .backgroundTaskExpired, object: self, userInfo: nil)
-            NotificationCenter.default.post(note)
-            
-            self.endBackgroundTask()
-        }
-    }
-
-    private func endBackgroundTask() {
-        guard backgroundTaskId != UIBackgroundTaskIdentifier.invalid else { return }
-        os_log("Ending LocoKit background task.", type: .debug)
-        UIApplication.shared.endBackgroundTask(backgroundTaskId)
-        backgroundTaskId = UIBackgroundTaskIdentifier.invalid
     }
 
     // MARK: - iOS bug workaround
@@ -785,7 +813,7 @@ import LocoKitCore
         
         wiggles.startDeviceMotionUpdates(to: wigglesQueue) { motion, error in
             if let error = error {
-                os_log("error: %@", String(describing: error))
+                os_log(.error, "%@", String(describing: error))
                 
             } else if let motion = motion {
                 self.coreMotionPermission = true
@@ -831,10 +859,26 @@ import LocoKitCore
         }
     }
 
+    private func restartTheStandbyTimer() {
+        onMain {
+            self.standbyTimer?.invalidate()
+            self.standbyTimer = Timer.scheduledTimer(timeInterval: self.standbyCycleDuration, target: self,
+                                                    selector: #selector(self.startWakeup), userInfo: nil,
+                                                    repeats: false)
+        }
+    }
+
     private func stopTheWakeupTimer() {
         onMain {
             self.wakeupTimer?.invalidate()
             self.wakeupTimer = nil
+        }
+    }
+
+    private func stopTheStandbyTimer() {
+        onMain {
+            self.standbyTimer?.invalidate()
+            self.standbyTimer = nil
         }
     }
 
@@ -881,6 +925,9 @@ import LocoKitCore
 
         // notify everyone about the updated sample
         NotificationCenter.default.post(Notification(name: .locomotionSampleUpdated, object: self, userInfo: nil))
+
+        // keep the AppGroup state fresh
+        appGroup?.save()
     }
     
     private func updateDesiredAccuracy() {

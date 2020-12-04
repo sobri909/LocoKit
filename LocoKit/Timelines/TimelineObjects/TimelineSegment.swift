@@ -7,12 +7,13 @@
 
 import os.log
 import GRDB
+import Combine
 
 public extension NSNotification.Name {
     static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
 }
 
-public class TimelineSegment: TransactionObserver, Encodable, Hashable {
+public class TimelineSegment: TransactionObserver, Encodable, Hashable, ObservableObject {
 
     // MARK: -
 
@@ -46,7 +47,9 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
     private var updateTimer: Timer?
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
-    private var pendingChanges = false
+    private var pendingChanges = false {
+        willSet(haveChanges) { if haveChanges { onMain { self.objectWillChange.send() } } }
+    }
     private var updatingEnabled = true
 
     // MARK: -
@@ -57,7 +60,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
         self.query = "SELECT * FROM TimelineItem WHERE " + query
         self.arguments = arguments ?? StatementArguments()
         self.onUpdate = onUpdate
-        store.pool.add(transactionObserver: self)
+        store.pool?.add(transactionObserver: self)
     }
 
     public func startUpdating() {
@@ -137,7 +140,13 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
             for sample in item.samples where sample.confirmedType == nil {
 
                 // don't reclassify samples if they've been done within the past few months
-                if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneMonth * 3 { continue }
+                if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneMonth * 6 { continue }
+               
+                if sample._classifiedType == nil {
+                    print("Classifying sample: \(sample.date), segment.dateRange: \(dateRange)")
+                } else {
+                    print("Reclassifying sample: \(sample.date), segment.dateRange: \(dateRange)")
+                }
 
                 let oldClassifiedType = sample._classifiedType
                 sample._classifiedType = nil
@@ -251,6 +260,10 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable {
         formatter.dateFormat = "yyyy"
         return formatter.string(from: dateRange.middle)
     }
+
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
 
     // MARK: - Encodable
 
