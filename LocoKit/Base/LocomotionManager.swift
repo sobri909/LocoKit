@@ -582,7 +582,7 @@ import LocoKitCore
 
     public var canDeepSleep: Bool {
         guard haveBackgroundLocationPermission else { return false }
-        guard UIApplication.shared.backgroundRefreshStatus == .available else { return false }
+//        guard UIApplication.shared.backgroundRefreshStatus == .available else { return false }
         return true
     }
 
