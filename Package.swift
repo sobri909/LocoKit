@@ -8,14 +8,14 @@ let package = Package(
     products: [
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/alejandro-isaza/Upsurge.git", from: "0.11.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "4.0.0")
+    ],
     targets: [
         .target(
             name: "LocoKit",
-            dependencies: [
-                .package(url: "https://github.com/alejandro-isaza/Upsurge", from: "0.11.0"),
-                .package(url: "https://github.com/groue/GRDB.swift", from: "4.0.0")
-            ], 
+            dependencies: ["Upsurge", "GRDB"], 
             path: "LocoKit"
         )
     ]
