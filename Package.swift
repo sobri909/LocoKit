@@ -10,7 +10,13 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        .target(name: "LocoKit", dependencies: [], path: "LocoKit")
-        .binaryTarget(name: "LocoKitCore", path: "LocoKitCore.framework.zip")
+        .target(
+            name: "LocoKit",
+            dependencies: [
+                .package(url: "https://github.com/alejandro-isaza/Upsurge", from: "0.11.0")
+                .package(url: "https://github.com/groue/GRDB.swift", from: "4.0.0")
+            ], 
+            path: "LocoKit"
+        )
     ]
 )
