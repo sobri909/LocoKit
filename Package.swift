@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "LocoKit",
+    platforms: [.iOS(.v12)],
     products: [
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
