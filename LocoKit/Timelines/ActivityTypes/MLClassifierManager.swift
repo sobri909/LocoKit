@@ -7,7 +7,6 @@
 
 import os.log
 import Upsurge
-import LocoKitCore
 import CoreLocation
 
 #if canImport(Reachability)

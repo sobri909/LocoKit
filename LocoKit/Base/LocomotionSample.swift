@@ -4,7 +4,6 @@
 //
 
 import CoreLocation
-import LocoKitCore
 
 /**
  A composite, high level representation of the device's location, motion, and activity states over a brief

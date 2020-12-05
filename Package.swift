@@ -5,12 +5,19 @@ import PackageDescription
 
 let package = Package(
     name: "LocoKit",
+    platforms: [.iOS(.v13)],
     products: [
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/alejandro-isaza/Upsurge.git", from: "0.11.0"),
+        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "4.0.0")
+    ],
     targets: [
-        .target(name: "LocoKit", dependencies: [], path: "LocoKit")
-        .binaryTarget(name: "LocoKitCore", path: "LocoKitCore.framework.zip")
+        .target(
+            name: "LocoKit",
+            dependencies: ["Upsurge", "GRDB"], 
+            path: "LocoKit"
+        )
     ]
 )

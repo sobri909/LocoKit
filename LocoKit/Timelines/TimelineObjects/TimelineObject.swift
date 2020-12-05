@@ -7,6 +7,7 @@
 //
 
 import os.log
+import Foundation
 import GRDB
 
 public protocol TimelineObject: class, Encodable, PersistableRecord {

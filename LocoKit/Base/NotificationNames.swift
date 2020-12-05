@@ -5,6 +5,8 @@
 //  Created by Matt Greenfield on 5/11/18.
 //
 
+import Foundation
+
 /**
  Custom notification events that the `LocomotionManager`` may send.
  */

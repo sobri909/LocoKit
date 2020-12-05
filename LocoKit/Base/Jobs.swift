@@ -6,6 +6,8 @@
 //
 
 import os.log
+import UIKit
+import Foundation
 
 public class Jobs {
 

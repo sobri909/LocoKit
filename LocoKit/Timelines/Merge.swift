@@ -4,6 +4,7 @@
 //
 
 import os.log
+import Foundation
 
 public extension NSNotification.Name {
     static let mergedTimelineItems = Notification.Name("mergedTimelineItems")

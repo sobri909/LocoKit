@@ -6,6 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+import Foundation
+
 public enum ClassifierResultScoreGroup: Int {
     case perfect = 5
     case veryGood = 4

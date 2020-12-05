@@ -5,6 +5,7 @@
 //  Created by Matt Greenfield on 11/9/18.
 //
 
+import Foundation
 import os.log
 import GRDB
 

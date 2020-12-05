@@ -4,9 +4,9 @@
 //
 
 import os.log
+import UIKit
 import CoreMotion
 import CoreLocation
-import LocoKitCore
 
 /**
  The central class for interacting with LocoKit location and motion recording. All actions should be performed on

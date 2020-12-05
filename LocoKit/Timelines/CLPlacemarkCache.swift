@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 29/7/18.
 //
 
-import LocoKitCore
 import CoreLocation
 
 public class CLPlacemarkCache {
