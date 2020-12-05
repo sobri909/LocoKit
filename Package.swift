@@ -15,7 +15,7 @@ let package = Package(
     targets: [
         .target(
             name: "LocoKit",
-            dependencies: ["Upsurge", "GRDB"], 
+            dependencies: ["Combine", "Upsurge", "GRDB"], 
             path: "LocoKit"
         )
     ]
