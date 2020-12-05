@@ -4,6 +4,7 @@
 //
 
 import os.log
+import UIKit
 import CoreMotion
 import CoreLocation
 

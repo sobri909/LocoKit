@@ -6,6 +6,7 @@
 //
 
 import os.log
+import Foundation
 import GRDB
 
 public class TimelineProcessor {

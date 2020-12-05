@@ -6,6 +6,8 @@
 //  Copyright © 2020 Big Paua. All rights reserved.
 //
 
+import Foundation
+
 public class AppGroup {
 
     private static let encoder = JSONEncoder()

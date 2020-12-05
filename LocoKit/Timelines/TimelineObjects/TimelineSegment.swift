@@ -6,8 +6,9 @@
 //
 
 import os.log
-import GRDB
+import Foundation
 import Combine
+import GRDB
 
 public extension NSNotification.Name {
     static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
