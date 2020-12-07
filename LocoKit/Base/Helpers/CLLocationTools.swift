@@ -143,12 +143,8 @@ public extension CLLocation {
 
         guard let accuracyRange = locations.horizontalAccuracyRange else { return nil }
 
-        if locations.count == 1, let location = locations.first {
-            self.init(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
-            return
-        }
-
         var sumx: Double = 0, sumy: Double = 0, sumz: Double = 0, totalWeight: Double = 0
+        var totalTimeInterval: TimeInterval = 0
 
         for location in locations where location.hasUsableCoordinate {
             let lat = location.coordinate.latitude.radiansValue
@@ -158,6 +154,8 @@ public extension CLLocation {
             sumx += (cos(lat) * cos(lng)) * weight
             sumy += (cos(lat) * sin(lng)) * weight
             sumz += sin(lat) * weight
+            totalTimeInterval += location.timestamp.timeIntervalSinceReferenceDate * weight
+
             totalWeight += weight
         }
 
@@ -167,15 +165,32 @@ public extension CLLocation {
         let meany = sumy / totalWeight
         let meanz = sumz / totalWeight
 
-        self.init(x: meanx, y: meany, z: meanz)
-    }
+        let timestamp = Date(timeIntervalSinceReferenceDate: totalTimeInterval / totalWeight)
+        let altitude = locations.weightedMeanAltitude
+        let horizontalAccuracy = locations.horizontalAccuracy
+        let verticalAccuracy = locations.verticalAccuracy
 
-    func horizontalAccuracyWeight(inRange range: AccuracyRange) -> Double {
-        return 1.0 - (horizontalAccuracy / (range.worst + 1.0))
+        self.init(x: meanx, y: meany, z: meanz, altitude: altitude, horizontalAccuracy: horizontalAccuracy,
+                  verticalAccuracy: verticalAccuracy, timestamp: timestamp)
     }
+    
+    convenience init(x: Radians, y: Radians, z: Radians, altitude: CLLocationDistance? = nil,
+                     horizontalAccuracy: CLLocationAccuracy? = nil, verticalAccuracy: CLLocationAccuracy? = nil,
+                     timestamp: Date? = nil) {
+        let lng: Radians = atan2(y, x)
+        let hyp = (x * x + y * y).squareRoot()
+        let lat: Radians = atan2(z, hyp)
 
-    func verticalAccuracyWeight(inRange range: AccuracyRange) -> Double {
-        return 1.0 - (verticalAccuracy / (range.worst + 1.0))
+        if let altitude = altitude, let horizontalAccuracy = horizontalAccuracy,
+            let verticalAccuracy = verticalAccuracy, let timestamp = timestamp
+        {
+            self.init(coordinate: CLLocationCoordinate2D(latitude: lat.degreesValue, longitude: lng.degreesValue),
+                      altitude: altitude, horizontalAccuracy: horizontalAccuracy, verticalAccuracy: verticalAccuracy,
+                      timestamp: timestamp)
+
+        } else {
+            self.init(latitude: lat.degreesValue, longitude: lng.degreesValue)
+        }
     }
 
     // The unweighted centre of an array of locations
@@ -251,6 +266,14 @@ public extension CLLocation {
     
     // MARK: -
     
+    func horizontalAccuracyWeight(inRange range: AccuracyRange) -> Double {
+        return 1.0 - (horizontalAccuracy / (range.worst + 1.0))
+    }
+
+    func verticalAccuracyWeight(inRange range: AccuracyRange) -> Double {
+        return 1.0 - (verticalAccuracy / (range.worst + 1.0))
+    }
+
     var codable: CodableLocation {
         return CodableLocation(location: self)
     }
