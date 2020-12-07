@@ -93,8 +93,13 @@ public class AppGroup {
 
     var currentAppState: AppState {
         if let currentItem = timelineRecorder?.currentItem {
-            return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                            currentItemId: currentItem.itemId, currentItemTitle: currentItem.title)
+            if currentRecorder?.appName == thisApp {
+                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
+                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title)
+            } else {
+                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
+                                currentItemId: currentItem.itemId)
+            }
         }
         return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState)
     }
