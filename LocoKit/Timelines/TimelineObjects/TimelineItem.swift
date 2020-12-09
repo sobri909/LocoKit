@@ -42,6 +42,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var isVisit: Bool {
         return self is Visit
     }
+    
+    public var isPath: Bool {
+        return !isVisit && !isDataGap
+    }
 
     open var isMergeLocked: Bool {
         if isCurrentItem && !isWorthKeeping { return true }
