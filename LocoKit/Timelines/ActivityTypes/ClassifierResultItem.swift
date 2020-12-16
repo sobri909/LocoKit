@@ -20,7 +20,9 @@ public enum ClassifierResultScoreGroup: Int {
 /**
  An individual result row in a `ClassifierResults` instance, for a single activity type.
  */
-public struct ClassifierResultItem: Equatable {
+public struct ClassifierResultItem: Equatable, Identifiable {
+    
+    public var id: String { return name.rawValue }
 
     /**
      The activity type name for the result.

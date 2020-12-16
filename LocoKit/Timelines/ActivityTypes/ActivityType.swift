@@ -8,7 +8,7 @@ import CoreMotion
 import CoreLocation
 import GRDB
 
-open class ActivityType: MLModel, PersistableRecord {
+open class ActivityType: MLModel, PersistableRecord, Identifiable {
 
     public static let currentVersion = 700000
 
@@ -475,5 +475,9 @@ open class ActivityType: MLModel, PersistableRecord {
     public static func ==(lhs: ActivityType, rhs: ActivityType) -> Bool {
         return lhs.hashValue == rhs.hashValue
     }
+    
+    // MARK: - Identifiable
+    
+    public var id: String { return geoKey }
     
 }

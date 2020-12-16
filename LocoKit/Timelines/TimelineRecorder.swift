@@ -6,13 +6,14 @@
 //
 
 import CoreLocation
+import Combine
 
 public extension NSNotification.Name {
     static let newTimelineItem = Notification.Name("newTimelineItem")
     static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
 }
 
-public class TimelineRecorder {
+public class TimelineRecorder: ObservableObject {
 
     // MARK: - Settings
 
@@ -25,7 +26,9 @@ public class TimelineRecorder {
 
     private(set) public var store: TimelineStore
     private(set) public var classifier: MLCompositeClassifier?
-    private(set) public var lastClassifierResults: ClassifierResults?
+    private(set) public var lastClassifierResults: ClassifierResults? {
+        didSet { objectWillChange.send() }
+    }
 
     // MARK: - Recorder creation
 
@@ -131,11 +134,13 @@ public class TimelineRecorder {
         }
         set(newValue) {
             _currentItem = newValue
+            onMain { self.objectWillChange.send() }
         }
     }
 
     public func updateCurrentItem() {
         _currentItem = store.mostRecentItem
+        onMain { self.objectWillChange.send() }
     }
 
     public var currentVisit: Visit? { return currentItem as? Visit }
@@ -306,5 +311,9 @@ public class TimelineRecorder {
             NotificationCenter.default.post(note)
         }
     }
+    
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
 
 }
