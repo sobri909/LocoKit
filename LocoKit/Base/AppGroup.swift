@@ -92,16 +92,20 @@ public class AppGroup {
     }
 
     var currentAppState: AppState {
+        var deepSleepUntil: Date?
+        if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
+            deepSleepUntil = until
+        }
         if let currentItem = timelineRecorder?.currentItem {
             if currentRecorder?.appName == thisApp {
                 return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title)
+                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title, deepSleepingUntil: deepSleepUntil)
             } else {
                 return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId)
+                                currentItemId: currentItem.itemId, deepSleepingUntil: deepSleepUntil)
             }
         }
-        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState)
+        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: deepSleepUntil)
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {
@@ -172,10 +176,18 @@ public class AppGroup {
         public let recordingState: RecordingState
         public var currentItemId: UUID?
         public var currentItemTitle: String?
+        public var deepSleepingUntil: Date?
         public var updated = Date()
 
-        public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2 }
+        public var isAlive: Bool {
+            if let until = deepSleepingUntil { return until.age > 0 }
+            return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2
+        }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
+        public var isDeepSleeping: Bool {
+            guard let until = deepSleepingUntil else { return false }
+            return until.age > 0
+        }
     }
 
     public enum Message: String, CaseIterable, Codable {
