@@ -93,7 +93,7 @@ public class AppGroup {
 
     var currentAppState: AppState {
         var deepSleepUntil: Date?
-        if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
+        if let until = LocoKitService.requestedWakeupCall, until.age > 0 {
             deepSleepUntil = until
         }
         if let currentItem = timelineRecorder?.currentItem {
@@ -180,13 +180,13 @@ public class AppGroup {
         public var updated = Date()
 
         public var isAlive: Bool {
-            if let until = deepSleepingUntil { return until.age > 0 }
+            if isDeepSleeping { return true }
             return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2
         }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
         public var isDeepSleeping: Bool {
             guard let until = deepSleepingUntil else { return false }
-            return until.age > 0
+            return until.age < 0
         }
     }
 
