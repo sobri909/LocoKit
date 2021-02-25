@@ -12,7 +12,7 @@ import GRDB
 public class TimelineProcessor {
 
     public static var debugLogging = false
-    public static var maximumItemsInProcessingLoop = 9
+    public static var maximumItemsInProcessingLoop = 21
 
     // MARK: - Sequential item processing
 
@@ -22,7 +22,7 @@ public class TimelineProcessor {
         // collect items before fromItem, up to two keepers
         var keeperCount = 0
         var workingItem = fromItem
-        while keeperCount < 2, let previous = workingItem.previousItem {
+        while keeperCount < 2, items.count < TimelineProcessor.maximumItemsInProcessingLoop, let previous = workingItem.previousItem {
             items.append(previous)
             if previous.isWorthKeeping { keeperCount += 1 }
             workingItem = previous
