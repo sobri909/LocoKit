@@ -93,7 +93,7 @@ public class AppGroup {
 
     var currentAppState: AppState {
         var deepSleepUntil: Date?
-        if let until = LocoKitService.requestedWakeupCall, until.age > 0 {
+        if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
             deepSleepUntil = until
         }
         if let currentItem = timelineRecorder?.currentItem {
