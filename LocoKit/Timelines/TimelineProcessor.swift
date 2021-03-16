@@ -22,7 +22,7 @@ public class TimelineProcessor {
         // collect items before fromItem, up to two keepers
         var keeperCount = 0
         var workingItem = fromItem
-        while keeperCount < 2, items.count < TimelineProcessor.maximumItemsInProcessingLoop, let previous = workingItem.previousItem {
+        while keeperCount < 2, items.count < maximumItemsInProcessingLoop, let previous = workingItem.previousItem {
             items.append(previous)
             if previous.isWorthKeeping { keeperCount += 1 }
             workingItem = previous
@@ -31,7 +31,7 @@ public class TimelineProcessor {
         // collect items after fromItem, up to two keepers
         keeperCount = 0
         workingItem = fromItem
-        while keeperCount < 2, items.count < TimelineProcessor.maximumItemsInProcessingLoop, let next = workingItem.nextItem {
+        while keeperCount < 2, items.count < maximumItemsInProcessingLoop, let next = workingItem.nextItem {
             items.append(next)
             if next.isWorthKeeping { keeperCount += 1 }
             workingItem = next
@@ -69,7 +69,7 @@ public class TimelineProcessor {
         }
 
         store.process {
-            var items = givenItems
+            var items = Array(givenItems.prefix(maximumItemsInProcessingLoop))
 
             // use all timeline items in the range, not just the given ones (might be new ones from sanitise, or local cache might be invalid)
             if let start = startDate, let end = endDate {
