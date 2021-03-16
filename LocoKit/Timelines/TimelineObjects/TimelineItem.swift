@@ -880,6 +880,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
 }
 
-internal enum DecodeError: Error {
+public enum DecodeError: Error {
     case runtimeError(String)
 }
