@@ -19,7 +19,10 @@ open class PersistentSample: LocomotionSample, TimelineObject {
 
     private var _invalidated = false
     public var invalidated: Bool { return _invalidated }
-    public func invalidate() { _invalidated = true }
+    public func invalidate() {
+        _invalidated = true
+        timelineItem?.samplesChanged()
+    }
 
     internal override var _classifiedType: ActivityTypeName? {
         didSet { if oldValue != _classifiedType { hasChanges = true; save() } }
