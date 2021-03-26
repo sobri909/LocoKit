@@ -41,7 +41,7 @@ import CoreLocation
  LocoKit's data regions are roughly 100 kilometres by 100 kilometres squared (0.1 by 0.1 degrees), or about the size of
  a small town, or a single neighbourhood in a larger city.
 
- Larger cities might encompass anywhere from four to ten or more classifier regions, thus allowing the classifers to
+ Larger cities might encompass anywhere from four to ten or more classifier regions, thus allowing the classifiers to
  accurately detect activity type differences within different areas of a single city.
 
  ## Determining Regional Coverage

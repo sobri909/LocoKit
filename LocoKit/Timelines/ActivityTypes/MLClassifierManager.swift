@@ -103,7 +103,7 @@ extension MLClassifierManager {
 
         for sample in samples {
             if let timeout = timeout, start.age >= timeout {
-                os_log("Classifer reached timeout limit", type: .debug)
+                os_log("Classifier reached timeout limit", type: .debug)
                 moreComing = true
                 break
             }
