@@ -236,7 +236,9 @@ open class Path: TimelineItem, CustomStringConvertible {
         if self.isMergeLocked || otherPath.isMergeLocked { return nil }
         if self.isDataGap || otherPath.isDataGap { return nil }
         if self.deleted || otherPath.deleted { return nil }
-        if otherPath.samples.isEmpty { return nil }
+
+        // edge cleansing isn't allowed to push a path into invalid state
+        guard otherPath.samples.count > Path.minimumValidSamples else { return nil }
 
         // fail out if separation distance is too much
         guard withinMergeableDistance(from: otherPath) else { return nil }

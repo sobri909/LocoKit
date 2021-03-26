@@ -13,6 +13,7 @@ public class TimelineProcessor {
 
     public static var debugLogging = false
     public static var maximumItemsInProcessingLoop = 21
+    public static var maximumPotentialMergesInProcessingLoop = 10
 
     // MARK: - Sequential item processing
 
@@ -69,19 +70,25 @@ public class TimelineProcessor {
         }
 
         store.process {
-            var items = Array(givenItems.prefix(maximumItemsInProcessingLoop))
+            var items = givenItems
 
-            // use all timeline items in the range, not just the given ones (might be new ones from sanitise, or local cache might be invalid)
+            // look for all timeline items in the range, not just the given ones (might be new ones from sanitise or cache might be invalid)
             if let start = startDate, let end = endDate {
                 items = store.items(where: "startDate >= ? AND endDate <= ?", arguments: [start, end])
             }
 
             var merges: Set<Merge> = []
-            var itemsToSanitise = Set(items.prefix(10)) // limit to 10 items, to avoid massive processing loops
+            var itemsToSanitise: Set<TimelineItem> = []
 
             /** collate all the potential merges **/
 
             for workingItem in items {
+                // if there's at least one possible merge, stop collating more once we're at the limit
+                if merges.count >= maximumPotentialMergesInProcessingLoop, merges.first(where: { $0.score != .impossible }) != nil {
+                    break
+                }
+                
+                itemsToSanitise.insert(workingItem)
 
                 // add in the merges for one step forward
                 if let next = workingItem.nextItem {
@@ -135,15 +142,16 @@ public class TimelineProcessor {
                 let moved = $0.sanitiseEdges(excluding: lastCleansedSamples)
                 allMoved.formUnion(moved)
             }
+            
+            if debugLogging, !allMoved.isEmpty { os_log("Moved %d samples between item edges", type: .debug, allMoved.count) }
 
             // infinite loop breakers, for the next processing cycle
             lastCleansedSamples = allMoved
 
-
             // check for invalid merges
             for merge in merges {
                 if !merge.isValid {
-                    print("INVALID MERGE. BREAKING EDGES")
+                    if debugLogging { os_log("Invalid merge. Breaking edges.", type: .debug) }
                     merge.keeper.breakEdges()
                     merge.betweener?.breakEdges()
                     merge.deadman.breakEdges()
@@ -417,14 +425,14 @@ public class TimelineProcessor {
         guard let store = brokenItem.store else { return }
         if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenNextItemEdge else { return }
-        guard let endDate = brokenItem.endDate else { return }
+        guard let dateRange = brokenItem.dateRange else { return }
 
         if let overlapper = store.item(
             where: """
             startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
             AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
             """,
-            arguments: ["endDate1": endDate, "endDate2": endDate, "isVisit": brokenItem is Visit,
+            arguments: ["endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
             !overlapper.deleted && !overlapper.isMergeLocked
         {
@@ -432,18 +440,25 @@ public class TimelineProcessor {
             brokenItem.delete()
             return
         }
-
+        
         if let nearest = store.item(
-            where: "startDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', startDate) - :timestamp)",
-            arguments: ["endDate": endDate, "itemId": brokenItem.itemId.uuidString,
-                        "timestamp": endDate.timeIntervalSince1970]),
+            for: """
+            SELECT *, ABS(strftime('%s', startDate) - :timestamp) AS gap FROM TimelineItem
+            WHERE startDate IS NOT NULL AND startDate > :startDate AND gap < 86400 AND deleted = 0 AND itemId != :itemId
+            ORDER BY gap
+            """,
+            arguments: ["startDate": dateRange.start, "itemId": brokenItem.itemId.uuidString,
+                        "timestamp": dateRange.end.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
             // nearest is already this item's edge? eh?
             if nearest.previousItemId == brokenItem.itemId { return }
 
             // nearest is already this item's other edge? wtf no
-            if brokenItem.previousItemId == nearest.itemId { return }
+            if brokenItem.previousItemId == nearest.itemId {
+                brokenItem.previousItem = nil
+                return
+            }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
@@ -471,14 +486,14 @@ public class TimelineProcessor {
         guard let store = brokenItem.store else { return }
         if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
-        guard let startDate = brokenItem.startDate else { return }
+        guard let dateRange = brokenItem.dateRange else { return }
 
         if let overlapper = store.item(
             where: """
             startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
             AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
             """,
-            arguments: ["startDate1": startDate, "startDate2": startDate, "isVisit": brokenItem is Visit,
+            arguments: ["startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
             !overlapper.deleted && !overlapper.isMergeLocked
         {
@@ -488,16 +503,23 @@ public class TimelineProcessor {
         }
 
         if let nearest = store.item(
-            where: "endDate IS NOT NULL AND deleted = 0 AND itemId != :itemId ORDER BY ABS(strftime('%s', endDate) - :timestamp)",
-            arguments: ["startDate": startDate, "itemId": brokenItem.itemId.uuidString,
-                        "timestamp": startDate.timeIntervalSince1970]),
+            for: """
+            SELECT *, ABS(strftime('%s', endDate) - :timestamp) AS gap FROM TimelineItem
+            WHERE endDate IS NOT NULL AND endDate < :endDate AND gap < 86400 AND deleted = 0 AND itemId != :itemId
+            ORDER BY gap
+            """,
+            arguments: ["endDate": dateRange.end, "itemId": brokenItem.itemId.uuidString,
+                        "timestamp": dateRange.start.timeIntervalSince1970]),
             !nearest.deleted && !nearest.isMergeLocked
         {
             // nearest is already this item's edge? eh?
             if nearest.nextItemId == brokenItem.itemId { return }
 
             // nearest is already this item's other edge? wtf no
-            if brokenItem.nextItemId == nearest.itemId { return }
+            if brokenItem.nextItemId == nearest.itemId {
+                brokenItem.nextItem = nil
+                return
+            }
 
             if let gap = nearest.timeInterval(from: brokenItem) {
 
