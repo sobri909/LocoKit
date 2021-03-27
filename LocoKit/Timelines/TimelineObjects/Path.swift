@@ -276,8 +276,8 @@ open class Path: TimelineItem, CustomStringConvertible {
     }
 
     override open func samplesChanged() {
-        super.samplesChanged()
         _distance = nil
+        super.samplesChanged()
     }
 
     // MARK: - PersistableRecord
