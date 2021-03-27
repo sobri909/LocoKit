@@ -543,6 +543,66 @@ public class TimelineProcessor {
         }
     }
 
+    // MARK: - Visit sample pruning
+    
+    /**
+     * these return true if changes were made, ie sample(s) deleted
+     */
+
+    @discardableResult
+    public static func pruneSamples(for visit: Visit) -> Bool {
+        return pruneSamples(visit.samples)
+    }
+    
+    @discardableResult
+    public static func pruneSamples(for segment: ItemSegment) -> Bool {
+        return pruneSamples(segment.samples)
+    }
+    
+    public static func pruneSamples(_ samples: [PersistentSample]) -> Bool {
+        guard let endDate = samples.map({ $0.date }).max() else { return false }
+        
+        // collect the contiguous sleep & stationary samples from the end
+        let edgeSamples = samples.reversed().prefix {
+            RecordingState.sleepStates.contains($0.recordingState) || $0.activityType == .stationary
+        }
+        
+        os_log("pruneSamples()   edgeSamples: %d", type: .debug, edgeSamples.count)
+
+        /** settings **/
+        let keeperBoundary: TimeInterval = .oneMinute * 20 // keep all samples within the most recent X minutes
+        let durationBetween: TimeInterval = .oneMinute * 4 // beyond that, keep only one sample per X minutes
+
+        var lastKept: PersistentSample? = edgeSamples.last
+        var samplesToKill: [PersistentSample] = []
+
+        for sample in edgeSamples.reversed() {
+            // sample younger than the time window? then we done
+            if endDate.timeIntervalSince(sample.date) < keeperBoundary { break }
+
+            // always keep the newest sample
+            if sample == edgeSamples.first { break }
+
+            // always keep the oldest sample
+            if sample == edgeSamples.last { continue }
+
+            // sample is too close to the previously kept one?
+            if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
+                samplesToKill.append(sample)
+                continue
+            }
+
+            // must've kept it
+            lastKept = sample
+        }
+
+        os_log("pruneSamples() samplesToKill: %d", type: .debug, samplesToKill.count)
+
+        samplesToKill.forEach { $0.delete() }
+        
+        return !samplesToKill.isEmpty
+    }
+
     // MARK: - Data gap insertion
 
     public static func insertDataGapBetween(newer newerItem: TimelineItem, older olderItem: TimelineItem) {
