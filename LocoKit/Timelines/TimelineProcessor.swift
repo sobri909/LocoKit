@@ -578,10 +578,10 @@ public class TimelineProcessor {
 
         for sample in edgeSamples.reversed() {
             // sample within the "don't touch" end boundary? then we done
-            if sample.date > dateRange.end - keeperBoundary { print("stopping at: \(sample.date)"); break }
+            if sample.date > dateRange.end - keeperBoundary { break }
             
             // sample within the "don't touch" start boundary? skip it
-            if sample.date < dateRange.start + keeperBoundary { print("skipping early: \(sample.date)"); continue }
+            if sample.date < dateRange.start + keeperBoundary { continue }
 
             // sample is too close to the previously kept one?
             if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
