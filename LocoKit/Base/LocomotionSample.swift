@@ -336,9 +336,13 @@ extension LocomotionSample: Hashable {
 }
 
 public extension Array where Element: LocomotionSample {
+    var dateRange: DateInterval? {
+        guard let end = self.map({ $0.date }).max() else { return nil }
+        guard let start = self.map({ $0.date }).min() else { return nil }
+        return DateInterval(start: start, end: end)
+    }
     var duration: TimeInterval {
-        guard let firstDate = first?.date, let lastDate = last?.date else { return 0 }
-        return lastDate.timeIntervalSince(firstDate)
+        return dateRange?.duration ?? 0
     }
     var distance: CLLocationDistance {
         return compactMap { $0.hasUsableCoordinate ? $0.location : nil }.distance
