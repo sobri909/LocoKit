@@ -593,7 +593,8 @@ public class TimelineProcessor {
             if !samplesToKill.isEmpty {
                 let slimmedCount = edgeSamples.count - samplesToKill.count
                 let savings = 1.0 - Double(slimmedCount) / Double(edgeSamples.count)
-                os_log("pruneSamples() %2.0f%% reduction, %4d -> %4d (endDate: %@)", type: .debug, savings * 100, edgeSamples.count, slimmedCount, String(describing: dateRange.end))
+                os_log("pruneSamples() %2.0f%% reduction, %4d -> %4d (samples.startDate: %@)", type: .debug,
+                       savings * 100, edgeSamples.count, slimmedCount, String(describing: dateRange.start))
             }
             
             samplesToKill.forEach { $0.delete() }
@@ -650,7 +651,7 @@ public class TimelineProcessor {
 
         var newParents: [TimelineItem] = []
 
-        for orphan in orphans where orphan.timelineItem == nil {
+        for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
             if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
                                      arguments: [orphan.date, orphan.date]) {
                 os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
