@@ -112,6 +112,16 @@ public class AppGroup {
         let messageInfo = MessageInfo(date: Date(), message: .modifiedObjects, appName: thisApp, modifiedObjectIds: objectIds)
         send(message: .modifiedObjects, messageInfo: messageInfo)
     }
+    
+    // MARK: - Shared settings
+    
+    public func get(setting key: String) -> Any? {
+        return groupDefaults?.value(forKey: "sharedSetting." + key) as Any?
+    }
+    
+    public func set(setting key: String, value: Any?) {
+        groupDefaults?.set(value, forKey: "sharedSetting." + key)
+    }
 
     // MARK: - Private
 
