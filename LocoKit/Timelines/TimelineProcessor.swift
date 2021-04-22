@@ -139,6 +139,9 @@ public class TimelineProcessor {
             /** sanitise the edges **/
             var allMoved: Set<LocomotionSample> = []
             itemsToSanitise.forEach {
+                for segment in $0.segments where segment.activityType == .stationary {
+                    pruneSamples(segment.samples)
+                }
                 let moved = $0.sanitiseEdges(excluding: lastCleansedSamples)
                 allMoved.formUnion(moved)
             }
@@ -550,55 +553,58 @@ public class TimelineProcessor {
      */
 
     public static func pruneSamples(for visit: Visit) {
-        pruneSamples(visit.samples)
+        visit.samples.first?.store?.process {
+            pruneSamples(visit.samples)
+        }
     }
     
     public static func pruneSamples(for segment: ItemSegment) {
-        pruneSamples(segment.samples)
+        segment.samples.first?.store?.process {
+            pruneSamples(segment.samples)
+        }
     }
     
-    public static func pruneSamples(_ samples: [PersistentSample]) {
-        samples.first?.store?.process {
-            guard let dateRange = samples.dateRange else { return }
-            
-            // collect the contiguous sleep & stationary samples from the end
-            let edgeSamples = samples.reversed().prefix {
-                RecordingState.sleepStates.contains($0.recordingState) || $0.activityType == .stationary
-            }
-            
-            /** settings **/
-            let keeperBoundary: TimeInterval = .oneMinute * 30 // keep all samples within the first and last X minutes
-            let durationBetween: TimeInterval = .oneMinute * 3 // beyond that, keep only one sample per X minutes
-            
-            var lastKept: PersistentSample? = edgeSamples.last
-            var samplesToKill: [PersistentSample] = []
-            
-            for sample in edgeSamples.reversed() {
-                // sample within the "don't touch" end boundary? then we done
-                if sample.date > dateRange.end - keeperBoundary { break }
-                
-                // sample within the "don't touch" start boundary? skip it
-                if sample.date < dateRange.start + keeperBoundary { continue }
-                
-                // sample is too close to the previously kept one?
-                if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
-                    samplesToKill.append(sample)
-                    continue
-                }
-                
-                // must've kept it
-                lastKept = sample
-            }
-            
-            if !samplesToKill.isEmpty {
-                let slimmedCount = edgeSamples.count - samplesToKill.count
-                let savings = 1.0 - Double(slimmedCount) / Double(edgeSamples.count)
-                os_log("pruneSamples() %2.0f%% reduction, %4d -> %4d (samples.startDate: %@)", type: .debug,
-                       savings * 100, edgeSamples.count, slimmedCount, String(describing: dateRange.start))
-            }
-            
-            samplesToKill.forEach { $0.delete() }
+    private static func pruneSamples(_ samples: [PersistentSample]) {
+        guard samples.count >= 4 else { return }
+        guard let dateRange = samples.dateRange else { return }
+        
+        // collect the contiguous sleep & stationary samples from the end
+        let edgeSamples = samples.reversed().prefix {
+            RecordingState.sleepStates.contains($0.recordingState) || $0.activityType == .stationary
         }
+        
+        /** settings **/
+        let keeperBoundary: TimeInterval = .oneMinute * 30 // keep all samples within the first and last X minutes
+        let durationBetween: TimeInterval = .oneMinute * 3 // beyond that, keep only one sample per X minutes
+        
+        var lastKept: PersistentSample? = edgeSamples.last
+        var samplesToKill: [PersistentSample] = []
+        
+        for sample in edgeSamples.reversed() {
+            // sample within the "don't touch" end boundary? then we done
+            if sample.date > dateRange.end - keeperBoundary { break }
+            
+            // sample within the "don't touch" start boundary? skip it
+            if sample.date < dateRange.start + keeperBoundary { continue }
+            
+            // sample is too close to the previously kept one?
+            if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
+                samplesToKill.append(sample)
+                continue
+            }
+            
+            // must've kept it
+            lastKept = sample
+        }
+        
+        if !samplesToKill.isEmpty {
+            let slimmedCount = edgeSamples.count - samplesToKill.count
+            let savings = 1.0 - Double(slimmedCount) / Double(edgeSamples.count)
+            os_log("pruneSamples() %2.0f%% reduction, %4d -> %4d (samples.startDate: %@)", type: .debug,
+                   savings * 100, edgeSamples.count, slimmedCount, String(describing: dateRange.start))
+        }
+        
+        samplesToKill.forEach { $0.delete() }
     }
 
     // MARK: - Data gap insertion

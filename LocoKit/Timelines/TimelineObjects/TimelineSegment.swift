@@ -97,9 +97,6 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
             if self.shouldReprocessOnUpdate {
                 self.timelineItems.forEach {
                     TimelineProcessor.healEdges(of: $0)
-                    if let visit = $0 as? Visit {
-                        TimelineProcessor.pruneSamples(for: visit)
-                    }
                 }
             }
             
