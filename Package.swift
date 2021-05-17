@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "LocoKit",
+    defaultLocalization: "en",
     platforms: [.iOS(.v13)],
     products: [
         .library(name: "LocoKit", targets: ["LocoKit"])
@@ -17,7 +18,8 @@ let package = Package(
         .target(
             name: "LocoKit",
             dependencies: ["Upsurge", "GRDB"], 
-            path: "LocoKit"
+            path: "LocoKit",
+            resources: [.process("Base/Strings")]
         )
     ]
 )
