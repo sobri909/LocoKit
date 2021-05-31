@@ -86,11 +86,11 @@ open class TimelineStore {
         config.busyMode = .timeout(30)
         config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
-        if sqlDebugLogging {
-            config.trace = {
-                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
-            }
-        }
+//        if sqlDebugLogging {
+//            config.trace = {
+//                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
+//            }
+//        }
         return config
     }()
 

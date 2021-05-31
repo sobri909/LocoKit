@@ -1,40 +1,39 @@
 PODS:
-  - Anchorage (4.4.0)
-  - GRDB.swift (4.11.0):
-    - GRDB.swift/standard (= 4.11.0)
-  - GRDB.swift/standard (4.11.0)
-  - LocoKit (7.0.0):
-    - LocoKit/Base (= 7.0.0)
-  - LocoKit/Base (7.0.0):
-    - GRDB.swift (~> 4)
-    - LocoKitCore (= 7.0.0)
+  - Anchorage (4.5.0)
+  - GRDB.swift (5.8.0):
+    - GRDB.swift/standard (= 5.8.0)
+  - GRDB.swift/standard (5.8.0)
+  - LocoKit (7.1.0):
+    - LocoKit/Base (= 7.1.0)
+  - LocoKit/Base (7.1.0):
+    - GRDB.swift (~> 5)
     - Upsurge (~> 0.10)
-  - LocoKitCore (7.0.0)
   - SwiftNotes (1.1.0)
   - Upsurge (0.10.2)
 
 DEPENDENCIES:
   - Anchorage
-  - LocoKit
+  - LocoKit (from `./LocoKit.podspec`)
   - SwiftNotes
 
 SPEC REPOS:
   trunk:
     - Anchorage
     - GRDB.swift
-    - LocoKit
-    - LocoKitCore
     - SwiftNotes
     - Upsurge
 
+EXTERNAL SOURCES:
+  LocoKit:
+    :path: "./LocoKit.podspec"
+
 SPEC CHECKSUMS:
-  Anchorage: d7f02c4f9425b537053237aab11ae97e59b55f36
-  GRDB.swift: 22e9d04cb732dfa9fa4440bc0bbb069ee8195183
-  LocoKit: 8a06074e90dfd24ee10e94c9f5274e300f6b9d2f
-  LocoKitCore: 30cff6a1e4ac5a32eefe232c19e24fd79485661d
+  Anchorage: 1961bc81c84aeed54ad7ffc697c50cd9de748ba6
+  GRDB.swift: 9b9beec114435e1d852ad68c136cff4c71134627
+  LocoKit: 9489c2a343cd52e92334dc4135fe84b9fe3784a8
   SwiftNotes: 51d71568d7515c5c82aa791b88900cf8059b8beb
   Upsurge: 5866beadc3da27f91c5df4ac795deb3f3238d678
 
-PODFILE CHECKSUM: c9cb1714b431c31888efb12c1a62351506e334e2
+PODFILE CHECKSUM: d23f62ec1844f27a2f6d55d08a500736368f6c1b
 
-COCOAPODS: 1.9.0
+COCOAPODS: 1.10.1

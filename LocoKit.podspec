@@ -16,6 +16,6 @@ Pod::Spec.new do |s|
   s.subspec 'Base' do |sp|
     sp.source_files = 'LocoKit/Base/**/*', 'LocoKit/Timelines/**/*'
     sp.dependency 'Upsurge', '~> 0.10'
-    sp.dependency 'GRDB.swift', '~> 4'
+    sp.dependency 'GRDB.swift', '~> 5'
   end
 end
