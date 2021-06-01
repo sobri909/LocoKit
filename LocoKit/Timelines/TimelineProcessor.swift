@@ -575,7 +575,7 @@ public class TimelineProcessor {
         
         /** settings **/
         let keeperBoundary: TimeInterval = .oneMinute * 30 // keep all samples within the first and last X minutes
-        let durationBetween: TimeInterval = .oneMinute * 3 // beyond that, keep only one sample per X minutes
+        let durationBetween: TimeInterval = .oneMinute * 2 // beyond that, keep only one sample per X minutes
         
         var lastKept: PersistentSample? = edgeSamples.last
         var samplesToKill: [PersistentSample] = []
