@@ -37,7 +37,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     private var _invalidated = false
     public var invalidated: Bool { return _invalidated }
-    public func invalidate() {
+    open func invalidate() {
         _invalidated = true
         samplesChanged()
     }
