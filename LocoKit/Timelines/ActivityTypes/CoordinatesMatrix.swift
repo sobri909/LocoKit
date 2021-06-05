@@ -8,6 +8,7 @@
 
 import os.log
 import CoreLocation
+import FlatBuffers
 
 open class CoordinatesMatrix: CustomStringConvertible {
     
@@ -20,6 +21,28 @@ open class CoordinatesMatrix: CustomStringConvertible {
     public let latRange: (min: Double, max: Double)
     public let pseudoCount: UInt16
    
+    // load from FlatBuffers data
+    public convenience init?(data: Data) {
+        let bb = ByteBuffer(data: data)
+        let fbBins = CoordinateBins.getRootAsCoordinateBins(bb: bb)
+
+        let latRange = (min: fbBins.latMin, max: fbBins.latMax)
+        let lngRange = (min: fbBins.lonMin, max: fbBins.lonMax)
+        let lngBinWidth = (lngRange.max - lngRange.min) / Double(fbBins.lonBinsCount)
+        let latBinWidth = (latRange.max - latRange.min) / Double(fbBins.latBinsCount)
+        
+        var bins = Array(repeating: Array<UInt16>(repeating: fbBins.pseudoCount, count: Int(fbBins.lonBinsCount)), count: Int(fbBins.latBinsCount))
+        
+        for i in 0..<fbBins.latBinsCount {
+            guard let fbRow = fbBins.latBins(at: i) else { print("shit"); continue }
+            let lonBins = fbRow.lonBins
+            bins[Int(i)] = lonBins
+        }
+        
+        self.init(bins: bins, latBinWidth: latBinWidth, lngBinWidth: lngBinWidth, latRange: latRange,
+                  lngRange: lngRange, pseudoCount: fbBins.pseudoCount)
+    }
+    
     // used for loading from serialised strings
     public convenience init?(string: String) {
         let lines = string.split(separator: ";", omittingEmptySubsequences: false)
@@ -179,6 +202,23 @@ open class CoordinatesMatrix: CustomStringConvertible {
         }
         
         return result
+    }
+    
+    public var serialisedData: Data {
+        var builder = FlatBufferBuilder(initialSize: 1)
+        var fbRows: [Offset<UOffset>] = []
+        for row in bins {
+            let vector = builder.createVector(row)
+            let fbRow = BinsRow.createBinsRow(&builder, vectorOfLonBins: vector)
+            fbRows.append(fbRow)
+        }
+        let rowsVector = builder.createVector(ofOffsets: fbRows)
+        let fbBins = CoordinateBins.createCoordinateBins(&builder, pseudoCount: pseudoCount,
+                                                         latMin: latRange.min, latMax: latRange.max,
+                                                         lonBinsCount: UInt16(bins[0].count), lonMin: lngRange.min, lonMax: lngRange.max,
+                                                         vectorOfLatBins: rowsVector)
+        builder.finish(offset: fbBins)
+        return builder.data
     }
     
     // MARK: - CustomStringConvertible

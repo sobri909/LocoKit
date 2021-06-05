@@ -198,7 +198,8 @@ internal extension TimelineStore {
                 table.column("xyAccelerationHistogram", .text)
                 table.column("zAccelerationHistogram", .text)
                 table.column("horizontalAccuracyHistogram", .text)
-                table.column("coordinatesMatrix", .text)
+                table.column("coordinatesMatrix", .text) // deprecated
+                table.column("coordinatesMatrixBlob", .blob)
                 table.column("previousSampleActivityTypeScores", .text)
             }
         }
@@ -209,6 +210,12 @@ internal extension TimelineStore {
                 table.column("longitude", .double).notNull()
                 table.primaryKey(["latitude", "longitude"])
                 table.column("trustFactor", .double).notNull()
+            }
+        }
+        
+        auxiliaryDbMigrator.registerMigration("ActivityTypeModel FlatBuffers") { db in
+            try? db.alter(table: "ActivityTypeModel") { table in
+                table.add(column: "coordinatesMatrixBlob", .blob)
             }
         }
     }

@@ -57,8 +57,12 @@ open class ActivityType: MLModel, PersistableRecord, Identifiable {
     var altitudeHistogram: Histogram?
     var timeOfDayHistogram: Histogram?
     var serialisedCoordinatesMatrix: String?
+    var serialisedCoordinatesMatrixData: Data?
     
     lazy var coordinatesMatrix: CoordinatesMatrix? = {
+        if let data = self.serialisedCoordinatesMatrixData {
+            return CoordinatesMatrix(data: data)
+        }
         if let string = self.serialisedCoordinatesMatrix {
             return CoordinatesMatrix(string: string)
         }
@@ -196,6 +200,7 @@ open class ActivityType: MLModel, PersistableRecord, Identifiable {
         }
 
         serialisedCoordinatesMatrix = dict["coordinatesMatrix"] as? String
+        serialisedCoordinatesMatrixData = dict["coordinatesMatrixBlob"] as? Data
 
         var cmTypeScoreDoubles: [Double]?
         if let cmTypeScores = dict["coreMotionTypeScores"] as? String {
@@ -463,7 +468,8 @@ open class ActivityType: MLModel, PersistableRecord, Identifiable {
         container["xyAccelerationHistogram"] = xyAccelerationHistogram?.serialised
         container["zAccelerationHistogram"] = zAccelerationHistogram?.serialised
         container["horizontalAccuracyHistogram"] = horizontalAccuracyHistogram?.serialised
-        container["coordinatesMatrix"] = coordinatesMatrix?.serialised
+        container["coordinatesMatrixBlob"] = coordinatesMatrix?.serialisedData
+        container["coordinatesMatrix"] = nil
     }
     
     // MARK: - Equatable

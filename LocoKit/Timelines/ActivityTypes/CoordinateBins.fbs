@@ -1,0 +1,19 @@
+table CoordinateBins {
+    pseudo_count: uint16;
+    
+    lat_min: double;
+    lat_max: double;
+
+    lon_bins_count: uint16;
+    lon_min: double;
+    lon_max: double;
+    
+    lat_bins: [BinsRow];
+}
+
+table BinsRow {
+    lon_bins: [uint16];
+}
+
+root_type CoordinateBins;
+
