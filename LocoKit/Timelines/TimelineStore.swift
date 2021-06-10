@@ -87,9 +87,9 @@ open class TimelineStore {
         config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
         if sqlDebugLogging {
-            config.trace = {
-                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
-            }
+//            config.trace = {
+//                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
+//            }
         }
         return config
     }()
