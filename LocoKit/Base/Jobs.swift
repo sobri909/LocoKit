@@ -35,7 +35,7 @@ public class Jobs {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
         queue.qualityOfService = loco.applicationState == .active ? .utility : .background
-        queue.maxConcurrentOperationCount = loco.applicationState == .active ? OperationQueue.defaultMaxConcurrentOperationCount : 1
+        queue.maxConcurrentOperationCount = loco.applicationState == .active ? 4 : 1
         return queue
     }()
 
