@@ -76,6 +76,15 @@ public extension String {
         }
         self.init(format: formatter.string(from: metres.measurement))
     }
+    
+    init(paceForSpeed mps: CLLocationSpeed) {
+        let totalSeconds = TimeInterval(1000.0 / mps)
+        let minutes = floor(totalSeconds / 60)
+        let remainderSeconds = totalSeconds - (minutes * 60)
+        print("mps: \(mps), totalSeconds: \(totalSeconds), minutes: \(minutes), remainderSeconds: \(remainderSeconds)")
+
+        self.init(format: "%.0f'%.0f\"", minutes, remainderSeconds)
+    }
 
     init(speed: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {
         self.init(metresPerSecond: speed, style: style)
