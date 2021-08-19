@@ -7,9 +7,10 @@
 
 import os.log
 import UIKit
+import Combine
 import Foundation
 
-public class Jobs {
+public class Jobs: ObservableObject {
 
     // MARK: - PUBLIC
 
@@ -87,6 +88,11 @@ public class Jobs {
             if self.primaryQueue.operationCount == 0, self.resumeWorkItem == nil {
                 self.resumeManagedQueues()
             }
+            onMain { self.objectWillChange.send() }
+        })
+        
+        observers.append(secondaryQueue.observe(\.operationCount) { _, _ in
+            onMain { self.objectWillChange.send() }
         })
 
         // debug observers
@@ -216,6 +222,10 @@ public class Jobs {
             }
         }
     }
+    
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
 
 }
 
