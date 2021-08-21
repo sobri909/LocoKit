@@ -14,9 +14,9 @@ public class ActivityBrain {
     internal static let worstAllowedPastSampleRadius: CLLocationDistance = 65 // small enough for slow walking to be detected
 
     internal static let maximumSampleAge: TimeInterval = 60
-    internal static let minimumWakeupConfidenceN = 10
+    internal static let minimumWakeupConfidenceN = 9
     internal static let minimumConfidenceN = 6
-    internal static let minimumRequiredN = 10
+    internal static let minimumRequiredN = 9
     internal static let maximumRequiredN = 60
     internal static let speedSampleN: Int = 4
 
@@ -174,7 +174,7 @@ public extension ActivityBrain {
     // slower speed means higher required (zero speed == max required)
     var speedRequiredN: Double {
         let maxSpeedReq: Double = 10
-        let speedReqKmh: Double = 10
+        let speedReqKmh: Double = 9
 
         let kmh = presentSample.speed * 3.6
 
