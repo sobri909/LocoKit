@@ -31,7 +31,7 @@ extension MLClassifierManager {
 
     public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
         if let coordinate = coordinate { mutex.sync { updateTheSampleClassifier(for: coordinate) } }
-        return mutex.sync { sampleClassifier } != nil
+        return sampleClassifier != nil
     }
 
     public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults? = nil) -> ClassifierResults? {
