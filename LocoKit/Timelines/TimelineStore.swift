@@ -318,7 +318,7 @@ open class TimelineStore {
 
     public func segment(where query: String, arguments: StatementArguments? = nil) -> TimelineSegment {
         var hasher = Hasher()
-        hasher.combine("SELECT * FROM TimelineItem WHERE " + query)
+        hasher.combine("SELECT * FROM TimelineSegment WHERE " + query)
         if let arguments = arguments { hasher.combine(arguments.description) }
         let hashValue = hasher.finalize()
 
