@@ -32,7 +32,7 @@ open class TimelineStore {
             self?.didEnterBackground()
         }
         center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
-            guard let objectIds = note.userInfo?["objectIds"] as? Set<UUID> else { return }
+            guard let objectIds = note.userInfo?["modifiedObjectIds"] as? Set<UUID> else { return }
             self?.invalidate(objectIds: objectIds)
         }
     }
