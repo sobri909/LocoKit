@@ -128,7 +128,7 @@ public class TimelineRecorder: ObservableObject {
     private var _currentItem: TimelineItem?
     public private(set) var currentItem: TimelineItem? {
         get {
-            if let item = _currentItem { return item }
+            if let item = _currentItem, !item.invalidated { return item }
             _currentItem = store.mostRecentItem
             return _currentItem
         }
