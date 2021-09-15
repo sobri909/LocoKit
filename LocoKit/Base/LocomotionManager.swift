@@ -4,7 +4,9 @@
 //
 
 import os.log
+#if canImport(UIKit)
 import UIKit
+#endif
 import CoreMotion
 import CoreLocation
 
@@ -980,16 +982,15 @@ import CoreLocation
     
     // MARK: - CLLocationManagerDelegate
 
-    public func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
-
+    public func locationManager(_ manager: CLLocationManager, didRange beacons: [CLBeacon], satisfying beaconConstraint: CLBeaconIdentityConstraint) {
         // broadcast a notification
         let note = Notification(name: .didRangeBeacons, object: self, userInfo: ["beacons": beacons])
         NotificationCenter.default.post(note)
 
         // forward the delegate event
-        locationManagerDelegate?.locationManager?(manager, didRangeBeacons: beacons, in: region)
+        locationManagerDelegate?.locationManager?(manager, didRange: beacons, satisfying: beaconConstraint)
     }
-
+    
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
 
         // broadcast a notification
@@ -1032,7 +1033,6 @@ import CoreLocation
         // see if the visit should trigger a recording start
         startWakeup()
     }
-
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 
         // broadcast a notification

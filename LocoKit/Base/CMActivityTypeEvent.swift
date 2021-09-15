@@ -45,6 +45,9 @@ internal struct CMActivityTypeEvent: Equatable {
             result = 0.66
         case .high:
             result = 1.00
+        @unknown default:
+          assertionFailure("New value in CMMotionActivityConfidence")
+          result = 0
         }
         
         if name == .stationary {

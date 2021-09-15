@@ -7,7 +7,9 @@
 //
 
 import os.log
+#if canImport(UIKit)
 import UIKit
+#endif
 import CoreLocation
 import GRDB
 
@@ -25,10 +27,10 @@ open class TimelineStore {
         pool?.add(transactionObserver: itemsObserver)
 
         let center = NotificationCenter.default
-        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.didBecomeActive()
         }
-        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
             self?.didEnterBackground()
         }
         center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
@@ -87,9 +89,7 @@ open class TimelineStore {
         config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
         if sqlDebugLogging {
-            config.trace = {
-                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
-            }
+          // there was logging
         }
         return config
     }()

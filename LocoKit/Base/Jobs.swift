@@ -6,7 +6,9 @@
 //
 
 import os.log
+#if canImport(UIKit)
 import UIKit
+#endif
 import Foundation
 
 public class Jobs {

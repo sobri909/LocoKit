@@ -6,13 +6,13 @@ import PackageDescription
 let package = Package(
     name: "LocoKit",
     defaultLocalization: "en",
-    platforms: [.iOS(.v13)],
+    platforms: [.iOS(.v13), .macOS(.v10_15)],
     products: [
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
     dependencies: [
         .package(url: "https://github.com/alejandro-isaza/Upsurge.git", from: "0.11.0"),
-        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "4.0.0")
+        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "5.0.0")
     ],
     targets: [
         .target(
