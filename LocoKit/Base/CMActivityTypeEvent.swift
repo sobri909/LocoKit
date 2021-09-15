@@ -3,7 +3,9 @@
 // Copyright (c) 2015 Big Paua. All rights reserved.
 //
 
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 internal struct CMActivityTypeEvent: Equatable {
 

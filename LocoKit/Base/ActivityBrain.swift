@@ -5,7 +5,9 @@
 
 import os.log
 import CoreLocation
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 public class ActivityBrain {
 
@@ -215,7 +217,8 @@ public extension ActivityBrain {
     func add(deviceMotion: CMDeviceMotion) {
         presentSample.addDeviceMotion(deviceMotion)
     }
-
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     func add(cmMotionActivity activity: CMMotionActivity) {
         for name in CoreMotionActivityTypeName.allTypes {
             if let boolValue = activity.value(forKey: name.rawValue) as? Bool, boolValue == true {

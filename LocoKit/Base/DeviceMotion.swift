@@ -6,7 +6,9 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 internal class DeviceMotion {
     

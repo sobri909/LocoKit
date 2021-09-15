@@ -9,6 +9,8 @@
 import os.log
 #if canImport(UIKit)
 import UIKit
+#else
+import AppKit
 #endif
 import CoreLocation
 import GRDB
@@ -30,9 +32,15 @@ open class TimelineStore {
         center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.didBecomeActive()
         }
-        center.addObserver(forName: AppKitOrUIKitApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
-            self?.didEnterBackground()
+        #if !os(macOS)
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+          self?.didEnterBackground()
         }
+        #else
+        center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: nil) { [weak self] note in
+          self?.didEnterBackground()
+        }
+        #endif
         center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
             guard let objectIds = note.userInfo?["objectIds"] as? Set<UUID> else { return }
             self?.invalidate(objectIds: objectIds)

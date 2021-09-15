@@ -4,7 +4,9 @@
 //
 
 import os.log
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 import CoreLocation
 import GRDB
 

@@ -74,3 +74,23 @@ extension Data {
         return map { String(format: "%02.2hhx", $0) }.joined()
     }
 }
+
+#if os(iOS) || os(tvOS)
+
+import UIKit
+
+typealias AppKitOrUIKitApplication = UIApplication
+#endif
+
+#if os(macOS)
+
+import AppKit
+
+public typealias AppKitOrUIKitApplication = NSApplication
+#endif
+
+enum ApplicationState {
+  case active
+  case inactive
+  case background
+}
