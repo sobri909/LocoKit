@@ -55,6 +55,7 @@ import CoreLocation
  either from the `movingState` property on the LocomotionManager, or on the latest `locomotionSample`. See the
  `movingState` documentation for further details.
  */
+@available(iOS 13.0, watchOS 6.0, *)
 @objc public class LocomotionManager: NSObject, CLLocationManagerDelegate {
    
     // internal settings
@@ -67,12 +68,11 @@ import CoreLocation
     public static let miminumDeepSleepDuration: TimeInterval = 60 * 15
 
     public let pedometer = CMPedometer()
+  
     @available(macOS, unavailable)
-    @available(iOS 13.0, watchOS 6.0, *)
     private let activityManager = CMMotionActivityManager()
 
     @available(macOS, unavailable)
-    @available(iOS 13.0, watchOS 6.0, *)
     private lazy var wiggles: CMMotionManager = {
         let wiggles = CMMotionManager()
         wiggles.deviceMotionUpdateInterval = 1.0 / LocomotionManager.wiggleHz
