@@ -19,7 +19,7 @@ let package = Package(
             name: "LocoKit",
             dependencies: ["Upsurge", "GRDB", "FlatBuffers"], 
             path: "LocoKit",
-            exclude: ["Base/Strings"]
+            exclude: ["Base/Strings", "Timelines/ActivityTypes/CoordinateBins.fbs"]
         )
     ]
 )
