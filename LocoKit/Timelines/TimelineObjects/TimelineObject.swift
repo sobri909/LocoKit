@@ -10,7 +10,7 @@ import os.log
 import Foundation
 import GRDB
 
-public protocol TimelineObject: class, Encodable, PersistableRecord {
+public protocol TimelineObject: AnyObject, Encodable, PersistableRecord {
 
     var objectId: UUID { get }
     var source: String { get set }

@@ -8,7 +8,7 @@
 
 import CoreLocation
 
-public protocol ActivityTypeClassifiable: class {
+public protocol ActivityTypeClassifiable: AnyObject {
     
     var location: CLLocation? { get }
     var movingState: MovingState { get }

@@ -7,7 +7,7 @@
 
 import CoreLocation
 
-public protocol MLCompositeClassifier: class {
+public protocol MLCompositeClassifier: AnyObject {
 
     func canClassify(_ coordinate: CLLocationCoordinate2D?) -> Bool
     func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults?
