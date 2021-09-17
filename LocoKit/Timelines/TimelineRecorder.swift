@@ -11,6 +11,7 @@ import Combine
 public extension NSNotification.Name {
     static let newTimelineItem = Notification.Name("newTimelineItem")
     static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
+    static let currentItemChanged = Notification.Name("currentItemChanged")
 }
 
 public class TimelineRecorder: ObservableObject {
@@ -139,8 +140,12 @@ public class TimelineRecorder: ObservableObject {
     }
 
     public func updateCurrentItem() {
+        let beforeId = _currentItem?.itemId
         _currentItem = store.mostRecentItem
         onMain { self.objectWillChange.send() }
+        if beforeId != _currentItem?.itemId {
+            onMain { NotificationCenter.default.post(Notification(name: .currentItemChanged)) }
+        }
     }
 
     public var currentVisit: Visit? { return currentItem as? Visit }
