@@ -587,6 +587,12 @@ public class TimelineProcessor {
             // sample within the "don't touch" start boundary? skip it
             if sample.date < dateRange.start + keeperBoundary { continue }
             
+            // sample has confirmed non-stationary type? keep it
+            if let type = sample.confirmedType, type != .stationary {
+                lastKept = sample
+                continue
+            }
+            
             // sample is too close to the previously kept one?
             if let lastKept = lastKept, sample.date.timeIntervalSince(lastKept.date) < durationBetween {
                 samplesToKill.append(sample)
