@@ -7,8 +7,9 @@
 //
 
 import CoreLocation
+import Combine
 
-public class ItemSegment: Equatable, Identifiable {
+public class ItemSegment: Equatable, Identifiable, ObservableObject {
 
     public weak var timelineItem: TimelineItem?
 
@@ -24,6 +25,7 @@ public class ItemSegment: Equatable, Identifiable {
         set(newSamples) {
             unsortedSamples.removeAll()
             add(newSamples)
+            onMain { self.objectWillChange.send() }
         }
     }
 
@@ -51,8 +53,12 @@ public class ItemSegment: Equatable, Identifiable {
 
     private var manualStartDate: Date?
     private var manualEndDate: Date?
-    private var manualRecordingState: RecordingState?
-    public var manualActivityType: ActivityTypeName?
+    private var manualRecordingState: RecordingState? {
+        didSet { onMain { self.objectWillChange.send() } }
+    }
+    public var manualActivityType: ActivityTypeName? {
+        didSet { onMain { self.objectWillChange.send() } }
+    }
 
     public var startDate: Date? { return manualStartDate ?? samples.first?.date }
     public var endDate: Date? {
@@ -205,6 +211,7 @@ public class ItemSegment: Equatable, Identifiable {
         _radius = nil
         _distance = nil
         _classifierResults = nil
+        onMain { self.objectWillChange.send() }
     }
 
     // MARK: - Equatable
@@ -216,6 +223,10 @@ public class ItemSegment: Equatable, Identifiable {
     // MARK: - Identifiable
 
     public private(set) var id = UUID()
+    
+    // MARK: - ObservableObject
+        
+    public let objectWillChange = ObservableObjectPublisher()
     
 }
 
