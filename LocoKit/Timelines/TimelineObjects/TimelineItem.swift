@@ -842,7 +842,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         if floorsAscended != nil { try container.encode(floorsAscended, forKey: .floorsAscended) }
         if floorsDescended != nil { try container.encode(floorsDescended, forKey: .floorsDescended) }
         
-        let range = _dateRange ?? dateRange
+        let range = _dateRange ?? (includeSamplesWhenEncoding ? dateRange : nil)
         if let range = range {
             try container.encode(range.start, forKey: .startDate)
             try container.encode(range.end, forKey: .endDate)

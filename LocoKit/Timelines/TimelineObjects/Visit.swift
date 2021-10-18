@@ -207,11 +207,12 @@ open class Visit: TimelineItem {
     
     open override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        if let center = center { try container.encode(center.coordinate, forKey: .center) }
         if includeSamplesWhenEncoding {
+            if let center = center { try container.encode(center.coordinate, forKey: .center) }
             try container.encode(radius, forKey: .radius)
         } else {
-            if let _radius = _radius { try container.encode(_radius, forKey: .radius) }
+            if let center = _center { try container.encode(center.coordinate, forKey: .center) }
+            if let radius = _radius { try container.encode(_radius, forKey: .radius) }
         }
         try super.encode(to: encoder)
     }

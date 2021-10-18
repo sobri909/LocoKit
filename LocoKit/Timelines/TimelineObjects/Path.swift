@@ -293,7 +293,11 @@ open class Path: TimelineItem, CustomStringConvertible {
     
     open override func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        if modeMovingActivityType != nil { try container.encode(modeMovingActivityType, forKey: .activityType) }
+        if includeSamplesWhenEncoding {
+            if activityType != nil { try container.encode(activityType, forKey: .activityType) }
+        } else if _modeMovingActivityType != nil {
+            try container.encode(_modeMovingActivityType, forKey: .activityType)
+        }
         try super.encode(to: encoder)
     }
 
