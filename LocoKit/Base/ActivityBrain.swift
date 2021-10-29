@@ -14,9 +14,9 @@ public class ActivityBrain {
     internal static let worstAllowedPastSampleRadius: CLLocationDistance = 65 // small enough for slow walking to be detected
 
     internal static let maximumSampleAge: TimeInterval = 60
-    internal static let minimumWakeupConfidenceN = 9
+    internal static let minimumWakeupConfidenceN = 8
     internal static let minimumConfidenceN = 6
-    internal static let minimumRequiredN = 9
+    internal static let minimumRequiredN = 8
     internal static let maximumRequiredN = 60
     internal static let speedSampleN: Int = 4
 
@@ -167,18 +167,19 @@ public extension ActivityBrain {
     // MARK: -
 
     var kalmanRequiredN: Double {
+        let adjust: Double = 0.8
         let accuracy = coordinatesKalman.accuracy
-        return accuracy > 0 ? accuracy : 30
+        return accuracy > 0 ? accuracy * adjust : 30
     }
 
     // slower speed means higher required (zero speed == max required)
     var speedRequiredN: Double {
-        let maxSpeedReq: Double = 10
-        let speedReqKmh: Double = 9
+        let maxSpeedReq: Double = 8 // maximum required N for slow speeds
+        let speedReqKmh: Double = 5 // faster than this requires no extra N
 
         let kmh = presentSample.speed * 3.6
 
-        // negative speed is useless here, so fallback to max required
+        // negative speed is useless here, so fall back to max required
         guard kmh >= 0 else {
             return maxSpeedReq
         }
