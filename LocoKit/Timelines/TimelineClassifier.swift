@@ -21,7 +21,7 @@ public class TimelineClassifier: MLClassifierManager {
     public var sampleClassifier: Classifier?
 
     #if canImport(Reachability)
-    public let reachability = Reachability()!
+    public let reachability = try? Reachability()
     #endif
 
     public let mutex = PThreadMutex(type: .recursive)

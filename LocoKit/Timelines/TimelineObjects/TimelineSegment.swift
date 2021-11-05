@@ -147,10 +147,6 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
                 // don't reclassify samples if they've been done within the past few months
                 if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneMonth * 6 { continue }
                
-//                if sample._classifiedType != nil, let dateRange = dateRange {
-//                    print("Reclassifying sample: \(sample.date), segment.dateRange: \(dateRange)")
-//                }
-
                 let oldClassifiedType = sample._classifiedType
                 sample._classifiedType = nil
                 sample.classifierResults = classifier.classify(sample, previousResults: lastResults)

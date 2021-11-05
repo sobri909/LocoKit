@@ -23,6 +23,9 @@ public extension String {
             case .brief: unitStyle = .medium
             case .full: unitStyle = .long
             case .spellOut: unitStyle = .long
+            @unknown default:
+              assertionFailure("New value in Formatter.UnitStyle")
+              unitStyle = .long
             }
             self.init(String(duration: Measurement(value: duration, unit: UnitDuration.seconds), style: unitStyle))
             return

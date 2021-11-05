@@ -20,7 +20,7 @@ public protocol MLClassifierManager: MLCompositeClassifier {
     var sampleClassifier: Classifier? { get set }
 
     #if canImport(Reachability)
-    var reachability: Reachability { get }
+    var reachability: Reachability? { get }
     #endif
 
     var mutex: PThreadMutex { get }
@@ -170,7 +170,7 @@ extension MLClassifierManager {
 
         #if canImport(Reachability)
         // don't try to fetch classifiers without a network connection
-        guard reachability.connection != .none else { return }
+        guard reachability?.connection != Reachability.Connection.unavailable else { return }
         #endif
 
         // attempt to get an updated classifier

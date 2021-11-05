@@ -7,7 +7,11 @@
 //
 
 import os.log
+#if canImport(UIKit)
 import UIKit
+#else
+import AppKit
+#endif
 import CoreLocation
 import GRDB
 
@@ -25,12 +29,18 @@ open class TimelineStore {
         pool?.add(transactionObserver: itemsObserver)
 
         let center = NotificationCenter.default
-        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.didBecomeActive()
         }
+        #if !os(macOS)
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
-            self?.didEnterBackground()
+          self?.didEnterBackground()
         }
+        #else
+        center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: nil) { [weak self] note in
+          self?.didEnterBackground()
+        }
+        #endif
         center.addObserver(forName: .timelineObjectsExternallyModified, object: nil, queue: nil) { [weak self] note in
             guard let objectIds = note.userInfo?["modifiedObjectIds"] as? Set<UUID> else { return }
             self?.invalidate(objectIds: objectIds)
@@ -87,9 +97,7 @@ open class TimelineStore {
         config.defaultTransactionKind = .immediate
         config.maximumReaderCount = 12
         if sqlDebugLogging {
-//            config.trace = {
-//                if self.sqlDebugLogging { os_log("SQL: %@", type: .default, $0) }
-//            }
+          // there was logging
         }
         return config
     }()

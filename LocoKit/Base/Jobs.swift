@@ -6,8 +6,12 @@
 //
 
 import os.log
-import UIKit
 import Combine
+#if canImport(UIKit)
+import UIKit
+#else
+import AppKit
+#endif
 import Foundation
 
 public class Jobs: ObservableObject {
@@ -112,12 +116,20 @@ public class Jobs: ObservableObject {
         }
 
         let center = NotificationCenter.default
-        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.didBecomeActive()
         }
+      
+        #if !os(macOS)
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
-            self?.didEnterBackground()
+          self?.didEnterBackground()
         }
+        #else
+        center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: nil) { [weak self] note in
+          self?.didEnterBackground()
+        }
+        #endif
+
     }
 
     private func logSerialQueueState() {

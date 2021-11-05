@@ -9,7 +9,9 @@
 import os.log
 import GRDB
 import CoreLocation
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 import Combine
 
 /// The abstract base class for timeline items.
@@ -665,7 +667,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         let loco = LocomotionManager.highlander
 
         if updatingPedometerData { return }
-        guard loco.recordPedometerEvents && loco.haveCoreMotionPermission else { return }
+        guard loco.recordPedometerEvents else { return }
+        #if !os(macOS)
+        guard loco.haveCoreMotionPermission else { return }
+        #endif
         guard let dateRange = dateRange, dateRange.duration > 0 else { return }
 
         // iOS doesn't keep pedometer data older than one week

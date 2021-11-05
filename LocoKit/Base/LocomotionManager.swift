@@ -4,8 +4,14 @@
 //
 
 import os.log
+#if canImport(UIKit)
 import UIKit
+#else
+import AppKit
+#endif
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 import CoreLocation
 
 /**
@@ -49,6 +55,7 @@ import CoreLocation
  either from the `movingState` property on the LocomotionManager, or on the latest `locomotionSample`. See the
  `movingState` documentation for further details.
  */
+@available(iOS 13.0, watchOS 6.0, *)
 @objc public class LocomotionManager: NSObject, CLLocationManagerDelegate {
    
     // internal settings
@@ -61,8 +68,11 @@ import CoreLocation
     public static let miminumDeepSleepDuration: TimeInterval = 60 * 15
 
     public let pedometer = CMPedometer()
+  
+    @available(macOS, unavailable)
     private let activityManager = CMMotionActivityManager()
 
+    @available(macOS, unavailable)
     private lazy var wiggles: CMMotionManager = {
         let wiggles = CMMotionManager()
         wiggles.deviceMotionUpdateInterval = 1.0 / LocomotionManager.wiggleHz
@@ -104,8 +114,8 @@ import CoreLocation
 
     public var coordinateAssessor: TrustAssessor?
     public var appGroup: AppGroup?
-
-    public var applicationState: UIApplication.State = .background
+    
+    var applicationState: ApplicationState = .background
     
     // MARK: - The Singleton
     
@@ -321,9 +331,11 @@ import CoreLocation
         locationManager.desiredAccuracy = maximumDesiredLocationAccuracy
         locationManager.distanceFilter = kCLDistanceFilterNone
         locationManager.startUpdatingLocation()
-
+        
+        #if !os(macOS)
         // start the motion gimps
         startCoreMotion()
+        #endif
         
         // to avoid a desiredAccuracy update on first location arrival (which will have unacceptably bad accuracy)
         lastAccuracyUpdate = Date()
@@ -360,8 +372,9 @@ import CoreLocation
         locationManager.stopUpdatingLocation()
 
         // stop the motion gimps
+        #if !os(macOS)
         stopCoreMotion()
-
+        #endif
         // stop the safety nets
         locationManager.stopMonitoringVisits()
         locationManager.stopMonitoringSignificantLocationChanges()
@@ -392,12 +405,16 @@ import CoreLocation
      start using Core Motion. I will make this method private soon, and provide a more tidy way to trigger a Core
      Motion permission request modal.
      */
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     public func startCoreMotion() {
         startTheM()
         startThePedometer()
         startTheWiggles()
     }
 
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     private func stopCoreMotion() {
         stopTheM()
         stopThePedometer()
@@ -432,17 +449,15 @@ import CoreLocation
     /**
      The device authorisation state for monitoring Core Motion data.
      */
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     public var haveCoreMotionPermission: Bool {
         if coreMotionPermission {
             return true
         }
        
-        if #available(iOS 11.0, *) {
-            coreMotionPermission = CMMotionActivityManager.authorizationStatus() == .authorized
-        } else {
-            coreMotionPermission = CMSensorRecorder.isAuthorizedForRecording()
-        }
-        
+        coreMotionPermission = CMMotionActivityManager.authorizationStatus() == .authorized
+
         return coreMotionPermission
     }
     
@@ -453,7 +468,11 @@ import CoreLocation
      */
     public var haveLocationPermission: Bool {
         let status = CLLocationManager.authorizationStatus()
+        #if os(macOS)
+        return status == .authorizedAlways
+        #else
         return status == .authorizedWhenInUse || status == .authorizedAlways
+        #endif
     }
     
     /**
@@ -495,12 +514,18 @@ import CoreLocation
     private override init() {
         super.init()
         let center = NotificationCenter.default
-        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.applicationState = .active
         }
+        #if !os(macOS)
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
             self?.applicationState = .background
         }
+        #else
+        center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .background
+        }
+        #endif
     }
 
     // MARK: - Sleep mode management
@@ -515,8 +540,9 @@ import CoreLocation
         NotificationCenter.default.post(Notification(name: .willStartSleepMode, object: self, userInfo: nil))
 
         // stop the gimps
+        #if !os(macOS)
         stopCoreMotion()
-
+        #endif
         // set the location manager to ask for nothing and ignore everything
         locationManager.desiredAccuracy = Double.greatestFiniteMagnitude
         locationManager.distanceFilter = CLLocationDistanceMax
@@ -570,8 +596,10 @@ import CoreLocation
         locationManager.stopUpdatingLocation()
 
         // stop the motion gimps
+        #if !os(macOS)
         stopCoreMotion()
-
+        #endif
+        
         // stop the timers
         stopTheWakeupTimer()
         stopTheUpdateTimer()
@@ -581,9 +609,13 @@ import CoreLocation
     }
 
     public var canDeepSleep: Bool {
+        #if !os(macOS)
         guard haveBackgroundLocationPermission else { return false }
 //        guard UIApplication.shared.backgroundRefreshStatus == .available else { return false }
         return true
+        #else
+        return false
+        #endif
     }
 
     @objc public func startWakeup() {
@@ -619,8 +651,10 @@ import CoreLocation
     public func startStandby() {
 
         // stop the gimps
+        #if !os(macOS)
         stopCoreMotion()
-
+        #endif
+        
         // set the location manager to ask for almost nothing and ignore everything
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
         locationManager.distanceFilter = kCLDistanceFilterNone
@@ -665,7 +699,9 @@ import CoreLocation
                 } else {
 
                     // could be moving, so let's fire up the gimps to get a head start on the data delay
+                    #if !os(macOS)
                     startCoreMotion()
+                    #endif
                 }
             }
 
@@ -736,6 +772,8 @@ import CoreLocation
 
     // MARK: - Core Motion management
 
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     private func startTheM() {
         if watchingTheM {
             return
@@ -755,6 +793,8 @@ import CoreLocation
         }
     }
 
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     private func stopTheM() {
         if !watchingTheM {
             return
@@ -800,6 +840,8 @@ import CoreLocation
 
     // MARK: - Accelerometer
 
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     private func startTheWiggles() {
         if watchingTheWiggles {
             return
@@ -822,6 +864,8 @@ import CoreLocation
         }
     }
     
+    @available(macOS, unavailable)
+    @available(iOS 13.0, watchOS 6.0, *)
     private func stopTheWiggles() {
         if !watchingTheWiggles {
             return
@@ -980,16 +1024,15 @@ import CoreLocation
     
     // MARK: - CLLocationManagerDelegate
 
-    public func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
-
+    public func locationManager(_ manager: CLLocationManager, didRange beacons: [CLBeacon], satisfying beaconConstraint: CLBeaconIdentityConstraint) {
         // broadcast a notification
         let note = Notification(name: .didRangeBeacons, object: self, userInfo: ["beacons": beacons])
         NotificationCenter.default.post(note)
 
         // forward the delegate event
-        locationManagerDelegate?.locationManager?(manager, didRangeBeacons: beacons, in: region)
+        locationManagerDelegate?.locationManager?(manager, didRange: beacons, satisfying: beaconConstraint)
     }
-
+    
     public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
 
         // broadcast a notification
@@ -1032,7 +1075,6 @@ import CoreLocation
         // see if the visit should trigger a recording start
         startWakeup()
     }
-
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 
         // broadcast a notification

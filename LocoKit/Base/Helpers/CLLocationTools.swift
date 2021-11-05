@@ -7,7 +7,9 @@
 //
 
 import CoreLocation
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 public typealias Radians = Double
 

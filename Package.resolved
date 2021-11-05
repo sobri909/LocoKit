@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "GRDB",
+        "repositoryURL": "https://github.com/groue/GRDB.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "1acf8e4b1ea90ed314c7c477051efc7933946b22",
+          "version": "5.11.0"
+        }
+      },
+      {
+        "package": "Upsurge",
+        "repositoryURL": "https://github.com/alejandro-isaza/Upsurge.git",
+        "state": {
+          "branch": null,
+          "revision": "66c66253ab0d1a0988a6efb68f49629cf3e06a84",
+          "version": "0.11.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
