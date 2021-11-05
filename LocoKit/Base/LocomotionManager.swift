@@ -436,11 +436,7 @@ import CoreLocation
             return true
         }
        
-        if #available(iOS 11.0, *) {
-            coreMotionPermission = CMMotionActivityManager.authorizationStatus() == .authorized
-        } else {
-            coreMotionPermission = CMSensorRecorder.isAuthorizedForRecording()
-        }
+        coreMotionPermission = CMMotionActivityManager.authorizationStatus() == .authorized
         
         return coreMotionPermission
     }
