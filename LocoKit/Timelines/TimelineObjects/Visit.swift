@@ -212,7 +212,7 @@ open class Visit: TimelineItem {
             try container.encode(radius, forKey: .radius)
         } else {
             if let center = _center { try container.encode(center.coordinate, forKey: .center) }
-            if let radius = _radius { try container.encode(_radius, forKey: .radius) }
+            if let radius = _radius { try container.encode(radius, forKey: .radius) }
         }
         try super.encode(to: encoder)
     }
