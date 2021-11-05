@@ -6,7 +6,7 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
+import Foundation
 
 open class Histogram: CustomStringConvertible {
    
@@ -111,13 +111,13 @@ open class Histogram: CustomStringConvertible {
         
         let sizeLine = lines[0].split(separator: ",", omittingEmptySubsequences: false)
         guard let binCount = Int(sizeLine[0]), let pseudoCount = Int(sizeLine[1]) else {
-            os_log("BIN COUNTS FAIL")
+            logger.error("BIN COUNTS FAIL")
             return nil
         }
         
         let rangeLine = lines[1].split(separator: ",", omittingEmptySubsequences: false)
         guard let rangeMin = Double(rangeLine[0]), let rangeMax = Double(rangeLine[1]) else {
-            os_log("RANGE FAIL")
+            logger.error("RANGE FAIL")
             return nil
         }
         
@@ -133,7 +133,7 @@ open class Histogram: CustomStringConvertible {
             }
             
             guard let bin = Int(bits[0]), let value = Int(bits[1]) else {
-                os_log("Histogram bin fail: %@", bits)
+                logger.error("Histogram bin fail: \(bits)")
                 return nil
             }
             
@@ -161,8 +161,6 @@ open class Histogram: CustomStringConvertible {
             if bucket - Double(numberOfBins) < 0.001 { // return maxBucket for values ~equal to max
                 return Int(maxBucket)
             } else {
-                os_log("value: %f binWidth: %f maxBucket: %f bucket: %f range: %f - %f",
-                       value, binWidth, maxBucket, bucket, range.min, range.max)
                 return nil
             }
         }

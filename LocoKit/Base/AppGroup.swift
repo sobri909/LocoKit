@@ -137,7 +137,7 @@ public class AppGroup {
         guard let data = groupDefaults?.value(forKey: "lastMessage") as? Data else { return }
         guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { return }
         guard messageInfo.appName != thisApp else { return }
-        guard messageInfo.message == message else { print("LASTMESSAGE.MESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))"); return }
+        guard messageInfo.message == message else { logger.debug("LASTMESSAGE.MESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))"); return }
 
         load()
 
@@ -152,12 +152,12 @@ public class AppGroup {
     }
     
     private func appStateUpdated(by: AppName) {
-        print("RECEIVED: .updatedState, from: \(by)")
-        guard let currentRecorder = currentRecorder else { print("wtf. no currentRecorder"); return }
-        guard let currentItemId = currentRecorder.currentItemId else { print("wtf. no currentItemId"); return }
+        logger.debug("RECEIVED: .updatedState, from: \(by.rawValue)")
+        guard let currentRecorder = currentRecorder else { logger.error("No AppGroup.currentRecorder!"); return }
+        guard let currentItemId = currentRecorder.currentItemId else { logger.error("No AppGroup.currentItemId!"); return }
         timelineRecorder?.store.connectToDatabase()
         if !isAnActiveRecorder, currentAppState.currentItemId != currentItemId {
-            print("need to update local currentItem (mine: \(currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
+            logger.debug("Need to update local currentItem (mine: \(self.self.currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
             timelineRecorder?.updateCurrentItem()
         }
     }
@@ -170,7 +170,7 @@ public class AppGroup {
     }
 
     private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
-        print("modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0) by: \(by)")
+        logger.debug("AppGroup received modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0) by: \(by.rawValue)")
         if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
             let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
             NotificationCenter.default.post(note)

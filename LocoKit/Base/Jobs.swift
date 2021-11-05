@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 5/11/18.
 //
 
-import os.log
 import UIKit
 import Combine
 import Foundation
@@ -63,7 +62,7 @@ public class Jobs: ObservableObject {
         if dontDupe {
             for operation in highlander.secondaryQueue.operations {
                 if operation.name == name {
-                    if Jobs.debugLogging { os_log("Not adding duplicate job: %@", type: .debug, name) }
+                    if Jobs.debugLogging { logger.debug("Not adding duplicate job: \(name)") }
                     return
                 }
             }
@@ -121,25 +120,25 @@ public class Jobs: ObservableObject {
     }
 
     private func logSerialQueueState() {
-        os_log("  primaryQueue.count: %2d, suspended: %@", type: .debug, primaryQueue.operationCount,
-               String(describing: primaryQueue.isSuspended))
+        logger.debug("  primaryQueue.count: \(self.primaryQueue.operationCount, align: .right(columns: 2)), suspended: \(String(describing: self.primaryQueue.isSuspended))")
     }
 
     private func logParallelQueueState() {
-        os_log("secondaryQueue.count: %2d, suspended: %@", type: .debug, secondaryQueue.operationCount,
-               String(describing: secondaryQueue.isSuspended))
+        logger.debug("secondaryQueue.count: \(self.secondaryQueue.operationCount, align: .right(columns: 2)), suspended: \(String(describing: self.secondaryQueue.isSuspended))")
     }
 
     // MARK: - Running Operations
 
     private func runJob(_ name: String, work: () -> Void) {
         let start = Date()
-        if Jobs.debugLogging { os_log("STARTING JOB: %@", type: .debug, name) }
+        if Jobs.debugLogging { logger.debug("STARTING JOB: \(name)") }
 
         // do the job
         work()
 
-        if Jobs.debugLogging { os_log("FINISHED JOB: %@ (duration: %6.3f seconds)", type: .debug, name, start.age) }
+        if Jobs.debugLogging {
+            logger.debug("FINISHED JOB: \(name) (duration: \(start.age, format: .fixed(precision: 3), align: .right(columns: 6)) seconds)")
+        }
 
         // always pause managed queues between background jobs
         if LocomotionManager.highlander.applicationState == .background { pauseManagedQueues(for: 60) }
@@ -157,9 +156,7 @@ public class Jobs: ObservableObject {
         for queue in queues {
             if queue != primaryQueue { queue.qualityOfService = .background }
             for operation in queue.operations where operation.qualityOfService != .background {
-                if Jobs.debugLogging {
-                    os_log("DEMOTING: %@:%@", type: .debug, queue.name ?? "Unnamed", operation.name ?? "Unnamed")
-                }
+                if Jobs.debugLogging { logger.debug("DEMOTING: \(queue.name ?? "Unnamed"):\(operation.name ?? "Unnamed")") }
                 operation.qualityOfService = .background
             }
         }
@@ -175,9 +172,7 @@ public class Jobs: ObservableObject {
         for queue in queues {
             queue.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
             for operation in queue.operations where operation.qualityOfService == .background {
-                if Jobs.debugLogging {
-                    os_log("PROMOTING: %@:%@", type: .debug, queue.name ?? "Unnamed", operation.name ?? "Unnamed")
-                }
+                if Jobs.debugLogging { logger.debug("PROMOTING: \(queue.name ?? "Unnamed"):\(operation.name ?? "Unnamed")") }
                 operation.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
             }
         }
@@ -194,7 +189,7 @@ public class Jobs: ObservableObject {
 
         // pause all the secondary queues
         for queue in managedQueues where !queue.isSuspended {
-            if Jobs.debugLogging { os_log("PAUSING QUEUE: %@ (duration: %d)", queue.name ?? "Unnamed", duration ?? -1) }
+            if Jobs.debugLogging { logger.debug("PAUSING QUEUE: \(queue.name ?? "Unnamed") (duration: \(duration ?? -1))") }
             queue.isSuspended = true
         }
 
@@ -217,7 +212,7 @@ public class Jobs: ObservableObject {
 
         for queue in managedQueues {
             if queue.isSuspended {
-                if Jobs.debugLogging { os_log("RESUMING: %@", queue.name ?? "Unnamed") }
+                if Jobs.debugLogging { logger.debug("RESUMING: \(queue.name ?? "Unnamed")") }
                 queue.isSuspended = false
             }
         }

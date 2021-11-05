@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 30/04/18.
 //
 
-import os.log
 import Foundation
 import GRDB
 
@@ -146,7 +145,7 @@ public class TimelineProcessor {
                 allMoved.formUnion(moved)
             }
             
-            if debugLogging, !allMoved.isEmpty { os_log("Moved %d samples between item edges", type: .debug, allMoved.count) }
+            if debugLogging, !allMoved.isEmpty { logger.debug("Moved \(allMoved.count) samples between item edges") }
 
             // infinite loop breakers, for the next processing cycle
             lastCleansedSamples = allMoved
@@ -154,7 +153,7 @@ public class TimelineProcessor {
             // check for invalid merges
             for merge in merges {
                 if !merge.isValid {
-                    if debugLogging { os_log("Invalid merge. Breaking edges.", type: .debug) }
+                    if debugLogging { logger.debug("Invalid merge. Breaking edges.") }
                     merge.keeper.breakEdges()
                     merge.betweener?.breakEdges()
                     merge.deadman.breakEdges()
@@ -168,7 +167,7 @@ public class TimelineProcessor {
             if !sortedMerges.isEmpty {
                 var descriptions = ""
                 for merge in sortedMerges { descriptions += String(describing: merge) + "\n" }
-                if debugLogging { os_log("Considering %d merges:\n%@", type: .debug, merges.count, descriptions) }
+                if debugLogging { logger.debug("Considering \(merges.count) merges:\n\(descriptions)") }
             }
 
             /** find the highest scoring valid merge **/
@@ -269,7 +268,7 @@ public class TimelineProcessor {
             // find existing samples that fall inside the segment's range
             for overlapper in overlappers {
                 if overlapper.isMergeLocked {
-                    os_log("An overlapper is merge locked. Aborting extraction.", type: .debug)
+                    logger.debug("An overlapper is merge locked. Aborting extraction.")
                     completion?(nil)
                     return
                 }
@@ -318,7 +317,7 @@ public class TimelineProcessor {
                 guard let intersection = overlapperRange.intersection(with: newItemRange) else { continue }
                 guard intersection.duration < overlapper.duration else { continue }
 
-                os_log("Splitting an overlapping item in two", type: .debug)
+                logger.debug("Splitting an overlapping item in two")
 
                 // get all samples from overlapper up to the point of overlap
                 let samplesToExtract = overlapper.samples.prefix { $0.date < newItemRange.start }
@@ -606,8 +605,7 @@ public class TimelineProcessor {
         if !samplesToKill.isEmpty {
             let slimmedCount = edgeSamples.count - samplesToKill.count
             let savings = 1.0 - Double(slimmedCount) / Double(edgeSamples.count)
-            os_log("pruneSamples() %2.0f%% reduction, %4d -> %4d (samples.startDate: %@)", type: .debug,
-                   savings * 100, edgeSamples.count, slimmedCount, String(describing: dateRange.start))
+            logger.debug("pruneSamples() \(savings * 100, format: .fixed(precision: 0), align: .right(columns: 2)) reduction, \(edgeSamples.count, align: .right(columns: 4)) -> \(slimmedCount, align: .right(columns: 4)) (samples.startDate: \(String(describing: dateRange.start))")
         }
         
         samplesToKill.forEach { $0.delete() }
@@ -659,15 +657,14 @@ public class TimelineProcessor {
 
         if orphans.isEmpty { return }
 
-        os_log("Found orphaned samples: %d", type: .debug, orphans.count)
+        logger.debug("Found orphaned samples: \(orphans.count)")
 
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
             if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
                                      arguments: [orphan.date, orphan.date]) {
-                os_log("ADOPTED AN ORPHAN (item: %@, sample: %@, date: %@)", type: .debug, item.itemId.shortString,
-                       orphan.sampleId.shortString, String(describing: orphan.date))
+                logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), sample: \(orphan.sampleId.shortString), date: \(String(describing: orphan.date))")
                 item.add(orphan)
 
             } else { // create a new item for the orphan
@@ -676,8 +673,7 @@ public class TimelineProcessor {
                 } else {
                     newParents.append(store.createPath(from: orphan))
                 }
-                os_log("CREATED NEW PARENT FOR ORPHAN (sample: %@, date: %@)", type: .debug,
-                       orphan.sampleId.shortString, String(describing: orphan.date))
+                logger.debug("CREATED NEW PARENT FOR ORPHAN (sample: \(orphan.sampleId.shortString), date: \(String(describing: orphan.date))")
             }
         }
 
@@ -710,7 +706,7 @@ public class TimelineProcessor {
 
         if orphans.isEmpty { return }
 
-        os_log("Samples holding onto dead parents: %d", type: .debug, orphans.count)
+        logger.debug("Samples holding onto dead parents: \(orphans.count)")
 
         for orphan in orphans where orphan.timelineItemId != nil {
             orphan.timelineItemId = nil
@@ -733,7 +729,7 @@ public class TimelineProcessor {
 
         if deadmen.isEmpty { return }
 
-        os_log("Deadmen to edge detach: %d", type: .debug, deadmen.count)
+        logger.debug("Deadmen to edge detach: \(deadmen.count)")
 
         for deadman in deadmen {
             deadman.previousItemId = nil

@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 29/04/18.
 //
 
-import os.log
 import Foundation
 import Combine
 import GRDB
@@ -165,7 +164,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
             if count > 0 { item.sampleTypesChanged() }
 
             if debugLogging && count > 0 {
-                os_log("Reclassified samples: %d", type: .debug, count)
+                logger.debug("Reclassified samples: \(count)")
             }
         }
     }

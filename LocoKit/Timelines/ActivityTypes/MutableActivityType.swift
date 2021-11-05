@@ -6,7 +6,6 @@
 //  Copyright © 2016 Big Paua. All rights reserved.
 //
 
-import os.log
 import CoreLocation
 import GRDB
 

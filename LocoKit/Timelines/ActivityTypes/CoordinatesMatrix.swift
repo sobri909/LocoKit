@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
 import CoreLocation
 import FlatBuffers
 
@@ -53,19 +52,19 @@ open class CoordinatesMatrix: CustomStringConvertible {
 
         let sizeLine = lines[0].split(separator: ",", omittingEmptySubsequences: false)
         guard let latBinCount = Int(sizeLine[0]), let lngBinCount = Int(sizeLine[1]), let pseudoCount = UInt16(sizeLine[2]) else {
-            os_log("BIN COUNTS FAIL")
+            logger.error("BIN COUNTS FAIL")
             return nil
         }
         
         let latRangeLine = lines[1].split(separator: ",", omittingEmptySubsequences: false)
         guard let latMin = Double(latRangeLine[0]), let latMax = Double(latRangeLine[1]) else {
-            os_log("LAT RANGE FAIL")
+            logger.error("LAT RANGE FAIL")
             return nil
         }
         
         let lngRangeLine = lines[2].split(separator: ",", omittingEmptySubsequences: false)
         guard let lngMin = Double(lngRangeLine[0]), let lngMax = Double(lngRangeLine[1]) else {
-            os_log("LNG RANGE FAIL")
+            logger.error("LNG RANGE FAIL")
             return nil
         }
         
@@ -84,7 +83,7 @@ open class CoordinatesMatrix: CustomStringConvertible {
             }
             
             guard let latBin = Int(bits[0]), let lngBin = Int(bits[1]), var value = Int(bits[2]) else {
-                os_log("CoordinatesMatrix bin fail: %@", bits)
+                logger.error("CoordinatesMatrix bin fail: \(bits)")
                 return nil
             }
            

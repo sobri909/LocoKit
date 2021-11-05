@@ -3,7 +3,6 @@
 // Copyright (c) 2015 Big Paua. All rights reserved.
 //
 
-import os.log
 import UIKit
 import CoreMotion
 import CoreLocation
@@ -309,7 +308,7 @@ import CoreLocation
         if recordingState == .recording { return }
 
         guard haveLocationPermission else {
-            os_log("Can't start recording without location permission.")
+            logger.info("Can't start recording without location permission.")
             return
         }
 
@@ -544,14 +543,14 @@ import CoreLocation
 
         // make sure the device settings allow deep sleep
         guard canDeepSleep else {
-            os_log("Deep sleep mode is unavailable due to device settings.", type: .debug)
+            logger.debug("Deep sleep mode is unavailable due to device settings.")
             return
         }
 
         let deepSleepDuration = wakeupTime.timeIntervalSinceNow
 
         guard deepSleepDuration >= LocomotionManager.miminumDeepSleepDuration else {
-            os_log("Requested deep sleep duration is too short.", type: .debug)
+            logger.debug("Requested deep sleep duration is too short.")
             return
         }
 
@@ -731,7 +730,7 @@ import CoreLocation
         locationManager.stopUpdatingLocation()
         locationManager = freshManager
 
-        os_log("Recreated the LocationManager", type: .fault)
+        logger.fault("Recreated the LocationManager")
     }
 
     // MARK: - Core Motion management
@@ -780,7 +779,7 @@ import CoreLocation
         
         pedometer.startUpdates(from: Date()) { pedoData, error in
             if let error = error {
-                os_log("error: %@", String(describing: error))
+                logger.error("\(String(describing: error))")
                 
             } else if let pedoData = pedoData {
                 ActivityBrain.highlander.add(pedoData: pedoData)
@@ -813,7 +812,7 @@ import CoreLocation
         
         wiggles.startDeviceMotionUpdates(to: wigglesQueue) { motion, error in
             if let error = error {
-                os_log(.error, "%@", String(describing: error))
+                logger.error("\(String(describing: error))")
                 
             } else if let motion = motion {
                 self.coreMotionPermission = true

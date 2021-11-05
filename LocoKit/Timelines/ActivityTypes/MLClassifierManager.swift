@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 3/04/18.
 //
 
-import os.log
 import Upsurge
 import CoreLocation
 
@@ -103,7 +102,7 @@ extension MLClassifierManager {
 
         for sample in samples {
             if let timeout = timeout, start.age >= timeout {
-                os_log("Classifier reached timeout limit", type: .debug)
+                logger.debug("Classifier reached timeout limit")
                 moreComing = true
                 break
             }

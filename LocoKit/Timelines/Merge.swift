@@ -3,7 +3,6 @@
 // Copyright (c) 2016 Big Paua. All rights reserved.
 //
 
-import os.log
 import Foundation
 
 public extension NSNotification.Name {
@@ -63,7 +62,7 @@ internal class Merge: Hashable, CustomStringConvertible {
 
     @discardableResult func doIt() -> MergeResult {
         let description = String(describing: self)
-        if TimelineProcessor.debugLogging { os_log("Doing:\n%@", type: .debug, description) }
+        if TimelineProcessor.debugLogging { logger.debug("Doing:\n\(description)") }
 
         merge(deadman, into: keeper)
 
@@ -83,7 +82,7 @@ internal class Merge: Hashable, CustomStringConvertible {
     }
 
     private func merge(_ deadman: TimelineItem, into keeper: TimelineItem) {
-        guard isValid else { os_log("Invalid merge", type: .error); return }
+        guard isValid else { logger.error("Invalid merge"); return }
         
         // deadman is previous
         if keeper.previousItem == deadman || (betweener != nil && keeper.previousItem == betweener) {

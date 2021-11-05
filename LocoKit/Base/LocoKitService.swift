@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
 import CoreLocation
 
 /**
@@ -45,7 +44,7 @@ public struct LocoKitService {
         get { return _apiKey }
         set(key) {
             if _apiKey != nil {
-                os_log("LocoKitService.apiKey cannot be set more than once.", type: .debug)
+                logger.debug("LocoKitService.apiKey cannot be set more than once")
                 return
             }
             _apiKey = key
@@ -66,26 +65,26 @@ public struct LocoKitService {
         /** API key validity checks **/
 
         guard let apiKey = apiKey else {
-            os_log("ERROR: Missing LocoKitService.apiKey.", type: .error)
+            logger.error("ERROR: Missing LocoKitService.apiKey")
             return false
         }
         guard let bundleId = Bundle.main.bundleIdentifier else {
-            os_log("ERROR: Missing bundleIdentifier.", type: .error)
+            logger.error("ERROR: Missing bundleIdentifier")
             return false
         }
         if apiKeyDenied {
-            os_log("ERROR: LocoKitService.apiKey is invalid or denied.", type: .error)
+            logger.error("ERROR: LocoKitService.apiKey is invalid or denied")
             return false
         }
 
         /** wakeup call request validity checks **/
 
         guard let deviceToken = deviceToken else {
-            os_log("Can't request a wakeup call without a deviceToken.", type: .error)
+            logger.error("Can't request a wakeup call without a deviceToken")
             return false
         }
         if let existing = requestedWakeupCall, existing.timeIntervalSinceNow > 60 * 2, abs(requestedDate.timeIntervalSince(existing)) < 60 * 60 {
-            os_log("Ignoring wakeup call request too close to the previous request.", type: .debug)
+            logger.debug("Ignoring wakeup call request too close to the previous request")
             return false
         }
 
@@ -100,9 +99,9 @@ public struct LocoKitService {
 
         requestingWakeupCall = true
 
-        os_log("requestWakeup(at: %@)", type: .debug, String(describing: wakeupDate))
+        logger.debug("requestWakeup(at: \(String(describing: wakeupDate))")
 
-        if useStaging { os_log("USING STAGING", type: .debug) }
+        if useStaging { logger.debug("USING STAGING") }
 
         let query = String(format: "%@/wakeupcall", apiUrl)
         guard let url = URL(string: query) else {
@@ -130,7 +129,7 @@ public struct LocoKitService {
             requestingWakeupCall = false
 
             if let error = error {
-                os_log("LocoKit API error: %@", type: .error, error.localizedDescription)
+                logger.error("LocoKit API error: \(error.localizedDescription)")
                 return
             }
 
@@ -144,7 +143,7 @@ public struct LocoKitService {
 
             if statusCode == 401 {
                 self.apiKeyDenied = true
-                os_log("ERROR: LocoKitService.apiKey is invalid or denied.", type: .error)
+                logger.error("ERROR: LocoKitService.apiKey is invalid or denied")
                 return
             }
 
@@ -170,15 +169,15 @@ public struct LocoKitService {
 
     public static func fetchModelsFor(coordinate: CLLocationCoordinate2D, depth: Int, completion: @escaping ([String: Any]?) -> Void) {
         guard let apiKey = apiKey else {
-            os_log("ERROR: Missing LocoKitService.apiKey.", type: .error)
+            logger.error("ERROR: Missing LocoKitService.apiKey")
             return
         }
         guard let bundleId = Bundle.main.bundleIdentifier else {
-            os_log("ERROR: Missing bundleIdentifier.", type: .error)
+            logger.error("ERROR: Missing bundleIdentifier")
             return
         }
         if apiKeyDenied {
-            os_log("ERROR: LocoKitService.apiKey is invalid or denied.", type: .error)
+            logger.error("ERROR: LocoKitService.apiKey is invalid or denied")
             return
         }
 
@@ -207,7 +206,7 @@ public struct LocoKitService {
         }
         guard !alreadyFetching else { return }
 
-        if useStaging { os_log("USING STAGING", type: .debug) }
+        if useStaging { logger.debug("USING STAGING") }
 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             self.mutex.sync { self.fetchingQueries.remove(query) }
@@ -225,12 +224,12 @@ public struct LocoKitService {
                 if let response = response as? HTTPURLResponse {
                     if response.statusCode == 401 {
                         LocoKitService.apiKeyDenied = true
-                        os_log("ERROR: LocoKitService.apiKey is invalid or denied.", type: .error)
+                        logger.error("ERROR: LocoKitService.apiKey is invalid or denied")
                     } else {
-                        os_log("LocoKit API error (statusCode: %d)", type: .error, response.statusCode)
+                        logger.error("LocoKit API error (statusCode: \(response.statusCode)")
                     }
                 } else {
-                    os_log("ERROR: Unknown LocoKitService error", type: .error)
+                    logger.error("ERROR: Unknown LocoKitService error")
                 }
             }
         }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import os.log
 import GRDB
 
 class ItemsObserver: TransactionObserver {
@@ -72,7 +71,7 @@ class ItemsObserver: TransactionObserver {
             }
 
         } catch {
-            os_log("SQL Exception: %@", error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
         }
     }
 

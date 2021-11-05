@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 30/6/19.
 //
 
-import os.log
 import CoreLocation
 
 public class CoordinateTrustManager: TrustAssessor {
@@ -57,7 +56,7 @@ public class CoordinateTrustManager: TrustAssessor {
         // don't update too frequently
         if let lastUpdated = lastUpdated, lastUpdated.age < .oneDay { return }
 
-        os_log("CoordinateTrustManager.updateTrustFactors", type: .debug)
+        logger.debug("CoordinateTrustManager.updateTrustFactors")
 
         self.lastUpdated = Date()
 

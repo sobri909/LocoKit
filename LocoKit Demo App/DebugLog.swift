@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
 import SwiftNotes
 
 extension NSNotification.Name {

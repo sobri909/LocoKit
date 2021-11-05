@@ -3,7 +3,6 @@
 // Copyright (c) 2015 Big Paua. All rights reserved.
 //
 
-import os.log
 import CoreLocation
 import CoreMotion
 
@@ -236,12 +235,12 @@ internal extension ActivityBrain {
 
         // reject locations that are too old
         if !processHistoricalLocations && location.timestamp.age > ActivityBrain.maximumSampleAge {
-            os_log("Rejecting out of date location (age: %@)", type: .info, String(format: "%.0f seconds", location.timestamp.age))
+            logger.info("Rejecting out of date location (age: \(location.timestamp.age, format: .fixed(precision: 0)) seconds)")
             return
         }
        
         if !location.hasUsableCoordinate {
-            os_log("Rejecting location with unusable coordinate", type: .info)
+            logger.info("Rejecting location with unusable coordinate")
             return
         }
 

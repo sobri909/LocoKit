@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
 import GRDB
 import CoreLocation
 import CoreMotion
@@ -74,11 +73,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var deleted = false
     open func delete() {
         if isMergeLocked {
-            os_log(.debug, "Can't delete (TimelineItem.isMergeLocked).")
+            logger.debug("Can't delete (TimelineItem.isMergeLocked)")
             return
         }
         guard samples.isEmpty else {
-            os_log(.debug, "Can't delete an item that has samples. Assign the samples to another item first.")
+            logger.debug("Can't delete an item that has samples. Assign the samples to another item first.")
             return
         }
         deleted = true
@@ -172,9 +171,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             return nil
         }
         set(newValue) {
-            if newValue == self { os_log("Can't link to self", type: .error); return }
-            if newValue?.deleted == true { os_log("Can't link to a deleted item", type: .error); return }
-            if newValue != nil, newValue?.itemId == nextItemId { os_log("Can't set previousItem and nextItem to the same item", type: .error); return }
+            if newValue == self { logger.error("Can't link to self"); return }
+            if newValue?.deleted == true { logger.error("Can't link to a deleted item"); return }
+            if newValue != nil, newValue?.itemId == nextItemId { logger.error("Can't set previousItem and nextItem to the same item"); return }
             mutex.sync {
                 let oldValue = self.previousItem
 
@@ -209,9 +208,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             return nil
         }
         set(newValue) {
-            if newValue == self { os_log("Can't link to self", type: .error); return }
-            if newValue?.deleted == true { os_log("Can't link to a deleted item", type: .error); return }
-            if newValue != nil, newValue?.itemId == previousItemId { os_log("Can't set previousItem and nextItem to the same item", type: .error); return }
+            if newValue == self { logger.error("Can't link to self"); return }
+            if newValue?.deleted == true { logger.error("Can't link to a deleted item"); return }
+            if newValue != nil, newValue?.itemId == previousItemId { logger.error("Can't set previousItem and nextItem to the same item"); return }
             mutex.sync {
                 let oldValue = self.nextItem
 

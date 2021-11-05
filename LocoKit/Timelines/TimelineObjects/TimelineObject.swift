@@ -6,7 +6,6 @@
 //  Copyright © 2018 Big Paua. All rights reserved.
 //
 
-import os.log
 import Foundation
 import GRDB
 
@@ -35,7 +34,7 @@ public extension TimelineObject {
     var needsSave: Bool { return unsaved || hasChanges }
     func save(immediate: Bool = false) { store?.save(self, immediate: immediate) }
     func save(in db: Database) throws {
-        if invalidated { os_log(.error, "Can't save changes to an invalid object"); return }
+        if invalidated { logger.error("Can't save changes to an invalid object"); return }
         if unsaved { try insert(db) } else if hasChanges { try update(db) }
         hasChanges = false
     }

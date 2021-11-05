@@ -5,7 +5,6 @@
 //  Created by Matt Greenfield on 29/05/17.
 //
 
-import os.log
 import CoreLocation
 
 // source: https://stackoverflow.com/a/15657798/790036

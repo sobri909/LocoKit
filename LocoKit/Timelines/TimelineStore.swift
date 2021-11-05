@@ -6,7 +6,6 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-import os.log
 import UIKit
 import CoreLocation
 import GRDB
@@ -389,7 +388,7 @@ open class TimelineStore {
                     for case let item as TimelineObject in savingItems {
                         item.transactionDate = now
                         do { try item.save(in: db) }
-                        catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                        catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
                         catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
                             // constraint fails (linked list inconsistencies) are non fatal
                             // so let's break the edges and put the item back in the queue
@@ -398,7 +397,7 @@ open class TimelineStore {
                             save(item, immediate: false)
                             
                         } catch {
-                            os_log("%@", type: .error, String(describing: error))
+                            logger.error("\(String(describing: error))")
                             save(item, immediate: false)
                         }
                         savedObjectIds.insert(item.objectId)
@@ -411,7 +410,7 @@ open class TimelineStore {
                 }
 
             } catch {
-                os_log("%@", type: .error, String(describing: error))
+                logger.error("\(String(describing: error))")
             }
         }
         if !savingSamples.isEmpty {
@@ -421,14 +420,14 @@ open class TimelineStore {
                     for case let sample as TimelineObject in savingSamples {
                         sample.transactionDate = now
                         do { try sample.save(in: db) }
-                        catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                        catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
                         catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
                             // break the edge and put it back in the queue
                             (sample as? PersistentSample)?.timelineItem = nil
                             save(sample, immediate: false)
                             
                         } catch {
-                            os_log("%@", type: .error, String(describing: error))
+                            logger.error("\(String(describing: error))")
                             save(sample, immediate: false)
                         }
                         savedObjectIds.insert(sample.objectId)
@@ -441,7 +440,7 @@ open class TimelineStore {
                 }
                 
             } catch {
-                os_log("%@", type: .error, String(describing: error))
+                logger.error("\(String(describing: error))")
             }
         }
 
@@ -457,13 +456,13 @@ open class TimelineStore {
             try pool.write { db in
                 object.transactionDate = Date()
                 do { try object.save(in: db) }
-                catch PersistenceError.recordNotFound { os_log("PersistenceError.recordNotFound", type: .error) }
+                catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
                 db.afterNextTransactionCommit { db in
                     object.lastSaved = object.transactionDate
                 }
             }
         } catch {
-            os_log("%@", type: .error, error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
         }
     }
 
@@ -509,7 +508,7 @@ open class TimelineStore {
                 try db.execute(sql: "DELETE FROM TimelineItem WHERE deleted = 1 AND (endDate < ? OR endDate IS NULL)", arguments: [deadline])
             }
         } catch {
-            os_log("%@", error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
         }
     }
 
@@ -522,7 +521,7 @@ open class TimelineStore {
                 try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
             }
         } catch {
-            os_log("%@", error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
         }
     }
 

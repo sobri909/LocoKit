@@ -3,7 +3,6 @@
 // Copyright (c) 2016 Big Paua. All rights reserved.
 //
 
-import os.log
 import CoreMotion
 import CoreLocation
 import GRDB
@@ -421,7 +420,7 @@ open class ActivityType: MLModel, PersistableRecord, Identifiable {
                 self.lastSaved = self.transactionDate
             }
         } catch {
-            os_log("%@", type: .error, error.localizedDescription)
+            logger.error("\(error.localizedDescription)")
         }
     }
 
