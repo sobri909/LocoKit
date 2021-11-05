@@ -2,12 +2,21 @@
   "object": {
     "pins": [
       {
+        "package": "FlatBuffers",
+        "repositoryURL": "https://github.com/mustiikhalil/flatbuffers",
+        "state": {
+          "branch": null,
+          "revision": "d1bad799d82545f3ab70e6baa86e714927eb4a84",
+          "version": "0.8.1"
+        }
+      },
+      {
         "package": "GRDB",
         "repositoryURL": "https://github.com/groue/GRDB.swift.git",
         "state": {
           "branch": null,
-          "revision": "1acf8e4b1ea90ed314c7c477051efc7933946b22",
-          "version": "5.11.0"
+          "revision": "32b2923e890df320906e64cbd0faca22a8bfda14",
+          "version": "5.12.0"
         }
       },
       {
