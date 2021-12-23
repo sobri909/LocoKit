@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -11,14 +11,14 @@ let package = Package(
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/alejandro-isaza/Upsurge.git", from: "0.11.0"),
+//        .package(url: "https://github.com/alejandro-isaza/Upsurge.git", from: "0.11.0"),
         .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "5.0.0"),
         .package(name: "FlatBuffers", url: "https://github.com/mustiikhalil/flatbuffers", from: "0.8.1")
     ],
     targets: [
         .target(
             name: "LocoKit",
-            dependencies: ["Upsurge", "GRDB", "FlatBuffers"], 
+            dependencies: ["GRDB", "FlatBuffers"], 
             path: "LocoKit",
             exclude: ["Base/Strings", "Timelines/ActivityTypes/CoordinateBins.fbs"]
         )

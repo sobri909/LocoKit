@@ -18,15 +18,6 @@
           "revision": "32b2923e890df320906e64cbd0faca22a8bfda14",
           "version": "5.12.0"
         }
-      },
-      {
-        "package": "Upsurge",
-        "repositoryURL": "https://github.com/alejandro-isaza/Upsurge.git",
-        "state": {
-          "branch": null,
-          "revision": "66c66253ab0d1a0988a6efb68f49629cf3e06a84",
-          "version": "0.11.0"
-        }
       }
     ]
   },
