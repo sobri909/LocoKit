@@ -8,7 +8,9 @@
 
 import os.log
 import CoreLocation
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 public class ActivityBrainSample {
 

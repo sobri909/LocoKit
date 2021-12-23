@@ -23,6 +23,9 @@ public extension String {
             case .brief: unitStyle = .medium
             case .full: unitStyle = .long
             case .spellOut: unitStyle = .long
+            @unknown default:
+              assertionFailure("New value in Formatter.UnitStyle")
+              unitStyle = .long
             }
             self.init(String(duration: Measurement(value: duration, unit: UnitDuration.seconds), style: unitStyle))
             return
@@ -75,6 +78,15 @@ public extension String {
             formatter.numberFormatter.maximumFractionDigits = 1
         }
         self.init(format: formatter.string(from: metres.measurement))
+    }
+    
+    init(paceForSpeed mps: CLLocationSpeed) {
+        let totalSeconds = TimeInterval(1000.0 / mps)
+        let minutes = floor(totalSeconds / 60)
+        let remainderSeconds = totalSeconds - (minutes * 60)
+        print("mps: \(mps), totalSeconds: \(totalSeconds), minutes: \(minutes), remainderSeconds: \(remainderSeconds)")
+
+        self.init(format: "%.0f'%.0f\"", minutes, remainderSeconds)
     }
 
     init(speed: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {

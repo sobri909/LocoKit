@@ -7,7 +7,9 @@
 //
 
 import CoreLocation
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 public typealias Radians = Double
 
@@ -128,14 +130,6 @@ extension CLLocationCoordinate2D: Codable {
 // MARK: - CLLocation
 
 public extension CLLocation {
-
-    convenience init?(weightedCenterFor samples: [LocomotionSample]) {
-        self.init(weightedCenterFor: samples.compactMap { $0.hasUsableCoordinate ? $0.location : nil })
-    }
-
-    convenience init?(centerFor samples: [LocomotionSample]) {
-        self.init(centerFor: samples.compactMap { $0.hasUsableCoordinate ? $0.location : nil })
-    }
 
     /// The weighted centre for an array of locations
     convenience init?(weightedCenterFor locations: [CLLocation]) {

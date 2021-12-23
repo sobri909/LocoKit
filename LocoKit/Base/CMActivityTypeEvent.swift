@@ -3,7 +3,9 @@
 // Copyright (c) 2015 Big Paua. All rights reserved.
 //
 
+#if canImport(CoreMotion)
 import CoreMotion
+#endif
 
 internal struct CMActivityTypeEvent: Equatable {
 
@@ -45,6 +47,9 @@ internal struct CMActivityTypeEvent: Equatable {
             result = 0.66
         case .high:
             result = 1.00
+        @unknown default:
+          assertionFailure("New value in CMMotionActivityConfidence")
+          result = 0
         }
         
         if name == .stationary {

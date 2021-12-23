@@ -17,7 +17,6 @@ public class AppGroup {
 
     public let thisApp: AppName
     public let suiteName: String
-    public var timelineRecorder: TimelineRecorder?
 
     public private(set) var apps: [AppName: AppState] = [:]
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
@@ -92,16 +91,26 @@ public class AppGroup {
     }
 
     var currentAppState: AppState {
-        if let currentItem = timelineRecorder?.currentItem {
-            return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                            currentItemId: currentItem.itemId, currentItemTitle: currentItem.title)
+        var deepSleepUntil: Date?
+        if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
+            deepSleepUntil = until
         }
-        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState)
+        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: deepSleepUntil)
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {
         let messageInfo = MessageInfo(date: Date(), message: .modifiedObjects, appName: thisApp, modifiedObjectIds: objectIds)
         send(message: .modifiedObjects, messageInfo: messageInfo)
+    }
+    
+    // MARK: - Shared settings
+    
+    public func get(setting key: String) -> Any? {
+        return groupDefaults?.value(forKey: "sharedSetting." + key) as Any?
+    }
+    
+    public func set(setting key: String, value: Any?) {
+        groupDefaults?.set(value, forKey: "sharedSetting." + key)
     }
 
     // MARK: - Private
@@ -136,10 +145,8 @@ public class AppGroup {
         print("RECEIVED: .updatedState, from: \(by)")
         guard let currentRecorder = currentRecorder else { print("wtf. no currentRecorder"); return }
         guard let currentItemId = currentRecorder.currentItemId else { print("wtf. no currentItemId"); return }
-        if currentAppState.currentItemId != currentItemId {
+        if !isAnActiveRecorder, currentAppState.currentItemId != currentItemId {
             print("need to update local currentItem (mine: \(currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
-            timelineRecorder?.store.connectToDatabase()
-            timelineRecorder?.updateCurrentItem()
         }
     }
 
@@ -160,17 +167,34 @@ public class AppGroup {
 
     // MARK: - Interfaces
 
-    public enum AppName: String, CaseIterable, Codable { case arcV3, arcMini, arcV4 }
+    public enum AppName: String, CaseIterable, Codable {
+        case arcV3, arcMini, arcV4
+        public var sortIndex: Int {
+            switch self {
+            case .arcV3: return 0
+            case .arcMini: return 1
+            case .arcV4: return 2
+            }
+        }
+    }
 
     public struct AppState: Codable {
         public let appName: AppName
         public let recordingState: RecordingState
         public var currentItemId: UUID?
         public var currentItemTitle: String?
+        public var deepSleepingUntil: Date?
         public var updated = Date()
 
-        public var isAlive: Bool { return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2 }
+        public var isAlive: Bool {
+            if isDeepSleeping { return true }
+            return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2
+        }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
+        public var isDeepSleeping: Bool {
+            guard let until = deepSleepingUntil else { return false }
+            return until.age < 0
+        }
     }
 
     public enum Message: String, CaseIterable, Codable {

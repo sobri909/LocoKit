@@ -6,10 +6,15 @@
 //
 
 import os.log
+import Combine
+#if canImport(UIKit)
 import UIKit
+#else
+import AppKit
+#endif
 import Foundation
 
-public class Jobs {
+public class Jobs: ObservableObject {
 
     // MARK: - PUBLIC
 
@@ -35,7 +40,7 @@ public class Jobs {
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
         queue.qualityOfService = loco.applicationState == .active ? .utility : .background
-        queue.maxConcurrentOperationCount = loco.applicationState == .active ? OperationQueue.defaultMaxConcurrentOperationCount : 1
+        queue.maxConcurrentOperationCount = loco.applicationState == .active ? 4 : 1
         return queue
     }()
 
@@ -87,6 +92,11 @@ public class Jobs {
             if self.primaryQueue.operationCount == 0, self.resumeWorkItem == nil {
                 self.resumeManagedQueues()
             }
+            onMain { self.objectWillChange.send() }
+        })
+        
+        observers.append(secondaryQueue.observe(\.operationCount) { _, _ in
+            onMain { self.objectWillChange.send() }
         })
 
         // debug observers
@@ -106,12 +116,20 @@ public class Jobs {
         }
 
         let center = NotificationCenter.default
-        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+        center.addObserver(forName: AppKitOrUIKitApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
             self?.didBecomeActive()
         }
+      
+        #if !os(macOS)
         center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
-            self?.didEnterBackground()
+          self?.didEnterBackground()
         }
+        #else
+        center.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: nil) { [weak self] note in
+          self?.didEnterBackground()
+        }
+        #endif
+
     }
 
     private func logSerialQueueState() {
@@ -216,6 +234,10 @@ public class Jobs {
             }
         }
     }
+    
+    // MARK: - ObservableObject
+
+    public let objectWillChange = ObservableObjectPublisher()
 
 }
 
