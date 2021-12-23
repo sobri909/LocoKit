@@ -17,7 +17,6 @@ public class AppGroup {
 
     public let thisApp: AppName
     public let suiteName: String
-    public var timelineRecorder: TimelineRecorder?
 
     public private(set) var apps: [AppName: AppState] = [:]
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
@@ -96,15 +95,6 @@ public class AppGroup {
         if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
             deepSleepUntil = until
         }
-        if let currentItem = timelineRecorder?.currentItem {
-            if currentRecorder?.appName == thisApp {
-                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title, deepSleepingUntil: deepSleepUntil)
-            } else {
-                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, deepSleepingUntil: deepSleepUntil)
-            }
-        }
         return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: deepSleepUntil)
     }
 
@@ -155,10 +145,8 @@ public class AppGroup {
         print("RECEIVED: .updatedState, from: \(by)")
         guard let currentRecorder = currentRecorder else { print("wtf. no currentRecorder"); return }
         guard let currentItemId = currentRecorder.currentItemId else { print("wtf. no currentItemId"); return }
-        timelineRecorder?.store.connectToDatabase()
         if !isAnActiveRecorder, currentAppState.currentItemId != currentItemId {
             print("need to update local currentItem (mine: \(currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
-            timelineRecorder?.updateCurrentItem()
         }
     }
 
