@@ -6,7 +6,6 @@
 //
 
 import os.log
-import Upsurge
 import CoreLocation
 
 #if canImport(Reachability)
