@@ -11,15 +11,13 @@ let package = Package(
         .library(name: "LocoKit", targets: ["LocoKit"])
     ],
     dependencies: [
-        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "5.0.0"),
-        .package(name: "FlatBuffers", url: "https://github.com/mustiikhalil/flatbuffers", from: "0.8.1")
     ],
     targets: [
         .target(
             name: "LocoKit",
-            dependencies: ["GRDB", "FlatBuffers"], 
+            dependencies: [], 
             path: "LocoKit",
-            exclude: ["Base/Strings", "Timelines/ActivityTypes/CoordinateBins.fbs"]
+            exclude: ["Base/Strings"]
         )
     ]
 )

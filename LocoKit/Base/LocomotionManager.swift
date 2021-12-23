@@ -274,18 +274,7 @@ import CoreLocation
     public var filteredLocation: CLLocation? {
         return ActivityBrain.highlander.kalmanLocation
     }
-    
-    /**
-     Returns a new `LocomotionSample` representing the most recent filtered and smoothed locomotion state, with
-     combined location, motion, and activity properties.
-
-     - Note: This method will create a new sample instance on each call. As such, you should retain and reuse the
-     resulting sample until a new sample is needed.
-     */
-    public func locomotionSample() -> LocomotionSample {
-        return LocomotionSample(from: ActivityBrain.highlander.presentSample)
-    }
-    
+        
     // MARK: - Current Moving State
     
     /**
