@@ -74,6 +74,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         self.lastSaved = dict["lastSaved"] as? Date
         if let uuidString = dict["timelineItemId"] as? String { self.timelineItemId = UUID(uuidString: uuidString)! }
         if let source = dict["source"] as? String, !source.isEmpty { self.source = source }
+        self.disabled = dict["disabled"] as? Bool ?? false
 
         super.init(from: dict)
     }
@@ -92,6 +93,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         self.timelineItemId = try? container.decode(UUID.self, forKey: .timelineItemId)
         self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
         if let deleted = try? container.decode(Bool.self, forKey: .deleted) { self.deleted = deleted }
+        if let disabled = try? container.decode(Bool.self, forKey: .disabled) { self.disabled = disabled }
         try super.init(from: decoder)
     }
 
@@ -100,6 +102,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         if timelineItemId != nil { try container.encode(timelineItemId, forKey: .timelineItemId) }
         try container.encode(lastSaved, forKey: .lastSaved)
         if deleted { try container.encode(deleted, forKey: .deleted) }
+        if disabled { try container.encode(disabled, forKey: .disabled) }
         try super.encode(to: encoder)
     }
 
@@ -107,6 +110,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         case timelineItemId
         case lastSaved
         case deleted
+        case disabled
     }
 
     // MARK: - Relationships
@@ -162,6 +166,8 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         save()
     }
 
+    public var disabled: Bool = false { didSet { hasChanges = true } }
+
     // MARK: - PersistableRecord
     
     public static let databaseTableName = "LocomotionSample"
@@ -172,6 +178,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["date"] = date
         container["secondsFromGMT"] = secondsFromGMT
         container["deleted"] = deleted
+        container["disabled"] = disabled
         container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
         container["movingState"] = movingState.rawValue
         container["recordingState"] = recordingState.rawValue

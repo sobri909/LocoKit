@@ -22,6 +22,7 @@ internal extension TimelineStore {
                 table.column("startDate", .datetime).indexed()
                 table.column("endDate", .datetime).indexed()
                 table.column("source", .text).defaults(to: "LocoKit").indexed()
+                table.column("disabled", .boolean).notNull().defaults(to: false)
 
                 table.column("previousItemId", .text).indexed().references("TimelineItem", onDelete: .setNull, deferred: true)
                     .check(sql: "previousItemId != itemId AND (previousItemId IS NULL OR deleted = 0)")
@@ -49,6 +50,7 @@ internal extension TimelineStore {
                 table.column("deleted", .boolean).notNull().indexed()
                 table.column("lastSaved", .datetime).notNull().indexed()
                 table.column("source", .text).defaults(to: "LocoKit").indexed()
+                table.column("disabled", .boolean).notNull().defaults(to: false)
 
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
@@ -242,6 +244,18 @@ internal extension TimelineStore {
             try? db.drop(index: "LocomotionSample_on_confirmedType_latitude_longitude")
             try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
                            columns: ["confirmedType", "latitude", "longitude", "date"])
+        }
+
+        // for HealthKit Workout Route imports
+        migrator.registerMigration("LocomotionSample.disabled") { db in
+            try? db.alter(table: "LocomotionSample") { table in
+                table.add(column: "disabled", .boolean).notNull().defaults(to: false)
+            }
+        }
+        migrator.registerMigration("TimelineItem.disabled") { db in
+            try? db.alter(table: "TimelineItem") { table in
+                table.add(column: "disabled", .boolean).notNull().defaults(to: false)
+            }
         }
     }
 

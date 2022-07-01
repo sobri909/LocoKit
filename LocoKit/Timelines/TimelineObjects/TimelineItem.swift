@@ -87,6 +87,8 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         save()
     }
 
+    public var disabled: Bool = false { didSet { hasChanges = true } }
+
     private var updatingPedometerData = false
     private var pedometerDataIsStale = false
 
@@ -713,6 +715,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         container["itemId"] = itemId.uuidString
         container["lastSaved"] = transactionDate ?? lastSaved ?? Date()
         container["deleted"] = deleted
+        container["disabled"] = disabled
         container["source"] = source
         let range = _dateRange ?? dateRange
         container["startDate"] = range?.start
@@ -764,6 +767,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         }
         self.lastSaved = dict["lastSaved"] as? Date
         self.deleted = dict["deleted"] as? Bool ?? false
+        self.disabled = dict["disabled"] as? Bool ?? false
         if let uuidString = dict["previousItemId"] as? String { self.previousItemId = UUID(uuidString: uuidString)! }
         if let uuidString = dict["nextItemId"] as? String { self.nextItemId = UUID(uuidString: uuidString)! }
         if let mean = dict["radiusMean"] as? Double, let sd = dict["radiusSD"] as? Double {
@@ -807,6 +811,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         self.itemId = (try? container.decode(UUID.self, forKey: .itemId)) ?? UUID()
         self.deleted = (try? container.decode(Bool.self, forKey: .deleted)) ?? false
+        self.disabled = (try? container.decode(Bool.self, forKey: .disabled)) ?? false
         self.lastSaved = try? container.decode(Date.self, forKey: .lastSaved)
         self.previousItemId = try? container.decode(UUID.self, forKey: .previousItemId)
         self.nextItemId = try? container.decode(UUID.self, forKey: .nextItemId)
@@ -834,6 +839,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         try container.encode(itemId, forKey: .itemId)
         try container.encode(self is Visit, forKey: .isVisit)
         if deleted { try container.encode(deleted, forKey: .deleted) }
+        if disabled { try container.encode(disabled, forKey: .disabled) }
         if lastSaved != nil { try container.encode(lastSaved, forKey: .lastSaved) }
         if previousItemId != nil { try container.encode(previousItemId, forKey: .previousItemId) }
         if nextItemId != nil { try container.encode(nextItemId, forKey: .nextItemId) }
@@ -859,6 +865,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     internal enum CodingKeys: String, CodingKey {
         case itemId
         case deleted
+        case disabled
         case isVisit
         case previousItemId
         case nextItemId
