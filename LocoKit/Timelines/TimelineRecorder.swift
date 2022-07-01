@@ -182,7 +182,7 @@ public class TimelineRecorder: ObservableObject {
         }
     }
 
-    private func process(_ sample: PersistentSample) {
+    public func process(_ sample: PersistentSample) {
 
         /** first timeline item **/
         guard let currentItem = currentItem else {
