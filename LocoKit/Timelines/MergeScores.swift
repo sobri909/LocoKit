@@ -27,6 +27,9 @@ class MergeScores {
 
         // deadmen can't consume anyone
         if consumer.deleted { return .impossible }
+
+        // disabled can't consume or be consumed
+        if consumer.disabled || consumee.disabled { return .impossible }
         
         // if consumee has zero samples, call it a perfect merge
         if consumee.samples.isEmpty { return .perfect }

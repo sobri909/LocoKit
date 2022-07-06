@@ -259,7 +259,7 @@ public class TimelineProcessor {
 
             // find the overlapping items
             let overlappers = store.items(
-                where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
+                where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 AND disabled = 0 ORDER BY startDate",
                 arguments: ["startDate": segmentRange.start, "endDate": segmentRange.end])
 
             var modifiedItems: [TimelineItem] = []
@@ -410,7 +410,7 @@ public class TimelineProcessor {
             if let overlapper = store.item(
                 where: """
                 startDate <= :startDate AND endDate >= :endDate AND startDate IS NOT NULL AND endDate IS NOT NULL
-                AND deleted = 0 AND itemId != :itemId
+                AND deleted = 0 AND disabled = 0 AND itemId != :itemId
                 """,
                 arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
                             "itemId": brokenItem.itemId.uuidString]),
@@ -432,7 +432,7 @@ public class TimelineProcessor {
         if let overlapper = store.item(
             where: """
             startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             """,
             arguments: ["endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
@@ -446,7 +446,7 @@ public class TimelineProcessor {
         if let nearest = store.item(
             for: """
             SELECT *, ABS(strftime('%s', startDate) - :timestamp) AS gap FROM TimelineItem
-            WHERE startDate IS NOT NULL AND startDate > :startDate AND gap < 86400 AND deleted = 0 AND itemId != :itemId
+            WHERE startDate IS NOT NULL AND startDate > :startDate AND gap < 86400 AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             ORDER BY gap
             """,
             arguments: ["startDate": dateRange.start, "itemId": brokenItem.itemId.uuidString,
@@ -493,7 +493,7 @@ public class TimelineProcessor {
         if let overlapper = store.item(
             where: """
             startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND itemId != :itemId
+            AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             """,
             arguments: ["startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
                         "itemId": brokenItem.itemId.uuidString]),
@@ -507,7 +507,7 @@ public class TimelineProcessor {
         if let nearest = store.item(
             for: """
             SELECT *, ABS(strftime('%s', endDate) - :timestamp) AS gap FROM TimelineItem
-            WHERE endDate IS NOT NULL AND endDate < :endDate AND gap < 86400 AND deleted = 0 AND itemId != :itemId
+            WHERE endDate IS NOT NULL AND endDate < :endDate AND gap < 86400 AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             ORDER BY gap
             """,
             arguments: ["endDate": dateRange.end, "itemId": brokenItem.itemId.uuidString,
@@ -646,7 +646,7 @@ public class TimelineProcessor {
     private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
         store.connectToDatabase()
 
-        var query = "timelineItemId IS NULL AND deleted = 0"
+        var query = "timelineItemId IS NULL AND deleted = 0 AND disabled = 0"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
             query += " AND date >= ? AND date <= ?"
@@ -662,7 +662,7 @@ public class TimelineProcessor {
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
-            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0",
+            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = 0",
                                      arguments: [orphan.date, orphan.date]) {
                 logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), sample: \(orphan.sampleId.shortString), date: \(String(describing: orphan.date))")
                 item.add(orphan)
@@ -718,7 +718,7 @@ public class TimelineProcessor {
     private static func detachDeadmenEdges(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
         store.connectToDatabase()
 
-        var query = "deleted = 1 AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)"
+        var query = "(deleted = 1 OR disabled = 1) AND (previousItemId IS NOT NULL OR nextItemId IS NOT NULL)"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
             query += " AND startDate >= ? AND endDate <= ?"

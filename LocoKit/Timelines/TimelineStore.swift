@@ -195,7 +195,7 @@ open class TimelineStore {
     // MARK: - Item fetching
 
     open var mostRecentItem: TimelineItem? {
-        return item(where: "deleted = 0 ORDER BY endDate DESC")
+        return item(where: "deleted = 0 AND disabled = 0 ORDER BY endDate DESC")
     }
 
     open func item(for itemId: UUID) -> TimelineItem? {
@@ -309,7 +309,7 @@ open class TimelineStore {
     // MARK: - Segments
 
     public func segment(for dateRange: DateInterval) -> TimelineSegment {
-        let segment = self.segment(where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 ORDER BY startDate",
+        let segment = self.segment(where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 AND disabled = 0 ORDER BY startDate",
                                    arguments: ["startDate": dateRange.start, "endDate": dateRange.end])
         segment.dateRange = dateRange
         return segment
