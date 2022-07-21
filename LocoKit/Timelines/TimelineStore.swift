@@ -213,7 +213,7 @@ open class TimelineStore {
 
     public func item(for query: String, arguments: StatementArguments = StatementArguments()) -> TimelineItem? {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
-        return try! pool.read { db in
+        return try? pool.read { db in
             guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
             return item(for: row)
         }
@@ -221,12 +221,13 @@ open class TimelineStore {
 
     public func items(for query: String, arguments: StatementArguments = StatementArguments()) -> [TimelineItem] {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
-        return try! pool.read { db in
+        let items = try? pool.read { db in
             var items: [TimelineItem] = []
             let itemRows = try Row.fetchCursor(db, sql: query, arguments: arguments)
             while let row = try itemRows.next() { items.append(item(for: row)) }
             return items
         }
+        return items ?? []
     }
 
     open func item(for row: Row) -> TimelineItem {
