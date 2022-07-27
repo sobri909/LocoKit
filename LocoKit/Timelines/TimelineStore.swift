@@ -547,7 +547,7 @@ open class TimelineStore {
     }
 
     open var dateFields: [String] { return ["lastSaved", "lastUpdated", "startDate", "endDate", "date"] }
-    open var boolFields: [String] { return ["isVisit", "deleted", "locationIsBogus", "isShared", "needsUpdate"] }
+    open var boolFields: [String] { return ["isVisit", "deleted", "disabled", "locationIsBogus", "isShared", "needsUpdate"] }
 
 }
 
