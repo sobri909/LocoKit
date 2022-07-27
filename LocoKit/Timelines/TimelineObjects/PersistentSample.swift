@@ -75,6 +75,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         if let uuidString = dict["timelineItemId"] as? String { self.timelineItemId = UUID(uuidString: uuidString)! }
         if let source = dict["source"] as? String, !source.isEmpty { self.source = source }
         self.disabled = dict["disabled"] as? Bool ?? false
+        self.deleted = dict["deleted"] as? Bool ?? false
 
         super.init(from: dict)
     }
