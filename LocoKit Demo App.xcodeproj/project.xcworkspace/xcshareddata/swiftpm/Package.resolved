@@ -1,0 +1,59 @@
+{
+  "pins" : [
+    {
+      "identity" : "anchorage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Rightpoint/Anchorage",
+      "state" : {
+        "revision" : "23a6dd0ccf9529d2750d8679a2e74a161cff2f16",
+        "version" : "4.5.0"
+      }
+    },
+    {
+      "identity" : "flatbuffers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mustiikhalil/flatbuffers",
+      "state" : {
+        "revision" : "d1bad799d82545f3ab70e6baa86e714927eb4a84",
+        "version" : "0.8.1"
+      }
+    },
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift.git",
+      "state" : {
+        "revision" : "23f4254ae36fa19aecd73047c0577a9f49850d1c",
+        "version" : "5.26.0"
+      }
+    },
+    {
+      "identity" : "locokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sobri909/locokit",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "f60d12cd99a9f117429e15505fc11716363e1e03"
+      }
+    },
+    {
+      "identity" : "swiftnotes",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sobri909/SwiftNotes",
+      "state" : {
+        "branch" : "master",
+        "revision" : "1240d0b252551d78f2eb37a0bd468b9fa0a398e3"
+      }
+    },
+    {
+      "identity" : "upsurge",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alejandro-isaza/Upsurge.git",
+      "state" : {
+        "revision" : "66c66253ab0d1a0988a6efb68f49629cf3e06a84",
+        "version" : "0.11.0"
+      }
+    }
+  ],
+  "version" : 2
+}

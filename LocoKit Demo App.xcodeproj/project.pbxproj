@@ -3,11 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		C91CAF4B1F8B88A300416418 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C91CAF4A1F8B88A300416418 /* SettingsView.swift */; };
+		C9236811289BBCAD00CC1B1E /* LocoKit in Frameworks */ = {isa = PBXBuildFile; productRef = C9236810289BBCAD00CC1B1E /* LocoKit */; };
+		C9236814289BBD1B00CC1B1E /* SwiftNotes in Frameworks */ = {isa = PBXBuildFile; productRef = C9236813289BBD1B00CC1B1E /* SwiftNotes */; };
+		C9236837289BEACE00CC1B1E /* Anchorage in Frameworks */ = {isa = PBXBuildFile; productRef = C9236836289BEACE00CC1B1E /* Anchorage */; };
 		C95141541FE00B3F00A6A348 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95141531FE00B3F00A6A348 /* TimelineView.swift */; };
 		C95141561FE015CD00A6A348 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95141551FE015CD00A6A348 /* Settings.swift */; };
 		C95644241F5EAABF00E9F428 /* Array.helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95644231F5EAABF00E9F428 /* Array.helpers.swift */; };
@@ -28,7 +31,6 @@
 		C9FE566A1F18A35500F941FE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FE56691F18A35500F941FE /* ViewController.swift */; };
 		C9FE566F1F18A35500F941FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C9FE566E1F18A35500F941FE /* Assets.xcassets */; };
 		C9FE56721F18A35500F941FE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C9FE56701F18A35500F941FE /* LaunchScreen.storyboard */; };
-		D948B26B243395FF9C9B94BF /* Pods_LocoKit_Demo_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 410E894751DDA03B6BF17581 /* Pods_LocoKit_Demo_App.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -45,8 +47,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		410E894751DDA03B6BF17581 /* Pods_LocoKit_Demo_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LocoKit_Demo_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		99F746E0E74737EE45BCE661 /* Pods-LocoKit Demo App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LocoKit Demo App.release.xcconfig"; path = "Pods/Target Support Files/Pods-LocoKit Demo App/Pods-LocoKit Demo App.release.xcconfig"; sourceTree = "<group>"; };
 		C91CAF4A1F8B88A300416418 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C95141531FE00B3F00A6A348 /* TimelineView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
 		C95141551FE015CD00A6A348 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -70,7 +70,6 @@
 		C9FE566E1F18A35500F941FE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C9FE56711F18A35500F941FE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C9FE56731F18A35500F941FE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DCAC0B010930E734D60E4954 /* Pods-LocoKit Demo App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LocoKit Demo App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-LocoKit Demo App/Pods-LocoKit Demo App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,30 +77,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D948B26B243395FF9C9B94BF /* Pods_LocoKit_Demo_App.framework in Frameworks */,
+				C9236811289BBCAD00CC1B1E /* LocoKit in Frameworks */,
+				C9236837289BEACE00CC1B1E /* Anchorage in Frameworks */,
+				C9236814289BBD1B00CC1B1E /* SwiftNotes in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		08E01CC06D1B5C63EFF90DA4 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				410E894751DDA03B6BF17581 /* Pods_LocoKit_Demo_App.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		AC8391991FD403448C09FE98 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				DCAC0B010930E734D60E4954 /* Pods-LocoKit Demo App.debug.xcconfig */,
-				99F746E0E74737EE45BCE661 /* Pods-LocoKit Demo App.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 		C96981AA1F360B160021238C /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -139,8 +123,6 @@
 			children = (
 				C9FE56661F18A35500F941FE /* LocoKit Demo App */,
 				C9FE56651F18A35500F941FE /* Products */,
-				AC8391991FD403448C09FE98 /* Pods */,
-				08E01CC06D1B5C63EFF90DA4 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -180,11 +162,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C9FE56761F18A35500F941FE /* Build configuration list for PBXNativeTarget "LocoKit Demo App" */;
 			buildPhases = (
-				0E6A0291254168344255F408 /* [CP] Check Pods Manifest.lock */,
 				C9FE56601F18A35500F941FE /* Sources */,
 				C9FE56611F18A35500F941FE /* Frameworks */,
 				C9FE56621F18A35500F941FE /* Resources */,
-				ED1FDDEF8FD69960ACDA7050 /* [CP] Embed Pods Frameworks */,
 				C9650DB51F6BD02D00EDF791 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -192,6 +172,11 @@
 			dependencies = (
 			);
 			name = "LocoKit Demo App";
+			packageProductDependencies = (
+				C9236810289BBCAD00CC1B1E /* LocoKit */,
+				C9236813289BBD1B00CC1B1E /* SwiftNotes */,
+				C9236836289BEACE00CC1B1E /* Anchorage */,
+			);
 			productName = "ArcKit Demo App";
 			productReference = C9FE56641F18A35500F941FE /* LocoKit Demo App.app */;
 			productType = "com.apple.product-type.application";
@@ -229,6 +214,11 @@
 				Base,
 			);
 			mainGroup = C9FE565B1F18A35500F941FE;
+			packageReferences = (
+				C923680F289BBCAD00CC1B1E /* XCRemoteSwiftPackageReference "locokit" */,
+				C9236812289BBD1B00CC1B1E /* XCRemoteSwiftPackageReference "SwiftNotes" */,
+				C9236835289BEACE00CC1B1E /* XCRemoteSwiftPackageReference "Anchorage" */,
+			);
 			productRefGroup = C9FE56651F18A35500F941FE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -249,55 +239,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		0E6A0291254168344255F408 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-LocoKit Demo App-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		ED1FDDEF8FD69960ACDA7050 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LocoKit Demo App/Pods-LocoKit Demo App-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/Anchorage/Anchorage.framework",
-				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
-				"${BUILT_PRODUCTS_DIR}/LocoKit/LocoKit.framework",
-				"${PODS_ROOT}/LocoKitCore/LocoKitCore.framework",
-				"${BUILT_PRODUCTS_DIR}/SwiftNotes/SwiftNotes.framework",
-				"${BUILT_PRODUCTS_DIR}/Upsurge/Upsurge.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Anchorage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GRDB.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LocoKit.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LocoKitCore.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftNotes.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Upsurge.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LocoKit Demo App/Pods-LocoKit Demo App-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C9FE56601F18A35500F941FE /* Sources */ = {
@@ -446,14 +387,14 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		C9FE56771F18A35500F941FE /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DCAC0B010930E734D60E4954 /* Pods-LocoKit Demo App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -463,17 +404,25 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = "LocoKit Demo App/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.bigpaua.LocoKit-Demo-App";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		C9FE56781F18A35500F941FE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 99F746E0E74737EE45BCE661 /* Pods-LocoKit Demo App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = U5N7VG8DUG;
@@ -482,11 +431,19 @@
 					"$(PROJECT_DIR)",
 				);
 				INFOPLIST_FILE = "LocoKit Demo App/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.bigpaua.LocoKit-Demo-App";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -512,6 +469,51 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C923680F289BBCAD00CC1B1E /* XCRemoteSwiftPackageReference "locokit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sobri909/locokit";
+			requirement = {
+				branch = develop;
+				kind = branch;
+			};
+		};
+		C9236812289BBD1B00CC1B1E /* XCRemoteSwiftPackageReference "SwiftNotes" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sobri909/SwiftNotes";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		C9236835289BEACE00CC1B1E /* XCRemoteSwiftPackageReference "Anchorage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Rightpoint/Anchorage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C9236810289BBCAD00CC1B1E /* LocoKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C923680F289BBCAD00CC1B1E /* XCRemoteSwiftPackageReference "locokit" */;
+			productName = LocoKit;
+		};
+		C9236813289BBD1B00CC1B1E /* SwiftNotes */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9236812289BBD1B00CC1B1E /* XCRemoteSwiftPackageReference "SwiftNotes" */;
+			productName = SwiftNotes;
+		};
+		C9236836289BEACE00CC1B1E /* Anchorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C9236835289BEACE00CC1B1E /* XCRemoteSwiftPackageReference "Anchorage" */;
+			productName = Anchorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C9FE565C1F18A35500F941FE /* Project object */;
 }
