@@ -4,6 +4,35 @@
 //
 
 import CoreLocation
+import SwiftUI
+
+public extension String.StringInterpolation {
+    mutating func appendInterpolation(duration: TimeInterval, fractionalUnit: Bool = false,
+                                      style: DateComponentsFormatter.UnitsStyle = .full,
+                                      maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
+        appendLiteral(String(duration: duration, fractionalUnit: fractionalUnit, style: style,
+                             maximumUnits: maximumUnits, alwaysIncludeSeconds: alwaysIncludeSeconds))
+    }
+    mutating func appendInterpolation(metres: CLLocationDistance,
+                                      style: MeasurementFormatter.UnitStyle = .medium,
+                                      isAltitude: Bool = false) {
+        appendLiteral(String(metres: metres, style: style, isAltitude: isAltitude))
+    }
+}
+
+public extension LocalizedStringKey.StringInterpolation {
+    mutating func appendInterpolation(duration: TimeInterval, fractionalUnit: Bool = false,
+                                      style: DateComponentsFormatter.UnitsStyle = .full,
+                                      maximumUnits: Int = 2, alwaysIncludeSeconds: Bool = false) {
+        appendLiteral(String(duration: duration, fractionalUnit: fractionalUnit, style: style,
+                             maximumUnits: maximumUnits, alwaysIncludeSeconds: alwaysIncludeSeconds))
+    }
+    mutating func appendInterpolation(metres: CLLocationDistance,
+                                      style: MeasurementFormatter.UnitStyle = .medium,
+                                      isAltitude: Bool = false) {
+        appendLiteral(String(metres: metres, style: style, isAltitude: isAltitude))
+    }
+}
 
 public extension String {
 
