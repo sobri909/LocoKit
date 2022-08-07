@@ -15,9 +15,11 @@ public class ActivityBrain {
     internal static let maximumSampleAge: TimeInterval = 60
     internal static let minimumWakeupConfidenceN = 8
     internal static let minimumConfidenceN = 6
-    internal static let minimumRequiredN = 8
+    internal static let minimumRequiredN = 4
     internal static let maximumRequiredN = 60
-    internal static let speedSampleN: Int = 4
+    internal static let maxSpeedReq: Double = 6 // maximum extra required N for slow speeds
+    internal static let speedReqKmh: Double = 5 // faster than this requires no extra N
+    internal static let speedSampleN: Int = 4 // number of samples to avg speed over if reported speed is nil
 
     public var processHistoricalLocations = false
 
@@ -173,17 +175,15 @@ public extension ActivityBrain {
 
     // slower speed means higher required (zero speed == max required)
     var speedRequiredN: Double {
-        let maxSpeedReq: Double = 8 // maximum required N for slow speeds
-        let speedReqKmh: Double = 5 // faster than this requires no extra N
-
         let kmh = presentSample.speed * 3.6
 
         // negative speed is useless here, so fall back to max required
         guard kmh >= 0 else {
-            return maxSpeedReq
+            return ActivityBrain.maxSpeedReq
         }
 
-        return (maxSpeedReq - (kmh * (maxSpeedReq / speedReqKmh))).clamped(min: 0, max: maxSpeedReq)
+        return (ActivityBrain.maxSpeedReq - (kmh * (ActivityBrain.maxSpeedReq / ActivityBrain.speedReqKmh)))
+            .clamped(min: 0, max: ActivityBrain.maxSpeedReq)
     }
 
     var requiredN: Int {
