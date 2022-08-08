@@ -371,17 +371,17 @@ public extension Array where Element: CLLocation {
         return Radius(mean: distances.mean, sd: distances.standardDeviation)
     }
 
-    public var horizontalAccuracy: CLLocationDistance {
+    var horizontalAccuracy: CLLocationDistance {
         let accuracies = self.compactMap { $0.horizontalAccuracy >= 0 ? $0.horizontalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
-    public var verticalAccuracy: CLLocationDistance {
+    var verticalAccuracy: CLLocationDistance {
         let accuracies = self.compactMap { $0.verticalAccuracy >= 0 ? $0.verticalAccuracy : nil }
         return accuracies.isEmpty ? -1 : accuracies.mean
     }
 
-    public var horizontalAccuracyRange: AccuracyRange? {
+    var horizontalAccuracyRange: AccuracyRange? {
         let accuracies = self.compactMap { return $0.hasUsableCoordinate ? $0.horizontalAccuracy : nil }
         if let range = accuracies.range {
             return AccuracyRange(best: range.min, worst: range.max)
@@ -390,7 +390,7 @@ public extension Array where Element: CLLocation {
         }
     }
 
-    public var verticalAccuracyRange: AccuracyRange? {
+    var verticalAccuracyRange: AccuracyRange? {
         let accuracies = self.compactMap { return $0.verticalAccuracy > 0 ? $0.verticalAccuracy : nil }
         if let range = accuracies.range {
             return AccuracyRange(best: range.min, worst: range.max)
@@ -399,7 +399,7 @@ public extension Array where Element: CLLocation {
         }
     }
 
-    public var weightedMeanAltitude: CLLocationDistance? {
+    var weightedMeanAltitude: CLLocationDistance? {
         guard let accuracyRange = verticalAccuracyRange else {
             return nil
         }
