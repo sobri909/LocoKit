@@ -144,6 +144,7 @@ public class ActivityBrainSample {
             // TODO: this will use an outdated speed because speed isn't updated until after. uh, oops.
             // should probably start doing speed from filteredLocations instead. that's the end goal anyway
             updateLocation()
+            updateRadius()
 
             if let centre = _location {
                 _centresHistory.append(centre)
@@ -219,7 +220,7 @@ public class ActivityBrainSample {
             return
         }
         
-        guard let centre = location else {
+        guard let centre = _location else {
             _radius = 0
             return
         }

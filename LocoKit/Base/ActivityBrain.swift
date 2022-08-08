@@ -13,8 +13,8 @@ public class ActivityBrain {
     internal static let worstAllowedPastSampleRadius: CLLocationDistance = 65 // small enough for slow walking to be detected
 
     internal static let maximumSampleAge: TimeInterval = 60
-    internal static let minimumWakeupConfidenceN = 8
-    internal static let minimumConfidenceN = 6
+    internal static let minimumWakeupConfidenceN = 6
+    internal static let minimumConfidenceN = 4
     internal static let minimumRequiredN = 4
     internal static let maximumRequiredN = 60
     internal static let maxSpeedReq: Double = 6 // maximum extra required N for slow speeds
@@ -321,8 +321,8 @@ internal extension ActivityBrain {
             return
         }
 
-        // overlapping samples always mean stationary, regardless of N
-        if presentIsInsidePast() {
+        // newest filtered location inside past means stationary, regardless of N
+        if locationIsInsidePast() {
             presentSample.movingState = .stationary
 
             // mark the start of a stationary period
@@ -333,7 +333,7 @@ internal extension ActivityBrain {
             return
         }
 
-        // not overlapping, and enough N, so we can confidently say moving
+        // not inside, and enough N, so we can confidently say moving
         if presentSample.n >= dynamicMinimumConfidenceN {
             presentSample.movingState = .moving
             return
@@ -341,6 +341,18 @@ internal extension ActivityBrain {
 
         // not enough N, so have to say uncertain
         presentSample.movingState = .uncertain
+    }
+
+    func locationIsInsidePast() -> Bool {
+        guard let latest = presentSample.filteredLocations.last else {
+            return false
+        }
+
+        guard let pastCentre = pastSample.location else {
+            return false
+        }
+
+        return latest.distance(from: pastCentre) <= pastSample.radiusBounded
     }
 
     func presentIsInsidePast() -> Bool {
