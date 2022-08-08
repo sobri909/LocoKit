@@ -326,24 +326,24 @@ extension CMDeviceMotion {
 
 // MARK: - [CLLocation]
 
-extension Array where Element: CLLocation {
+public extension Array where Element: CLLocation {
 
-    public var center: CLLocation? {
+    var center: CLLocation? {
         return CLLocation(centerFor: self)
     }
     
-    public var weightedCenter: CLLocation? {
+    var weightedCenter: CLLocation? {
         return CLLocation(weightedCenterFor: self)
     }
 
-    public var duration: TimeInterval {
+    var duration: TimeInterval {
         guard let firstDate = first?.timestamp, let lastDate = last?.timestamp else {
             return 0
         }
         return lastDate.timeIntervalSince(firstDate)
     }
 
-    public var distance: CLLocationDistance {
+    var distance: CLLocationDistance {
         var distance: CLLocationDistance = 0
         var previousLocation: CLLocation?
         for location in self {
@@ -355,7 +355,7 @@ extension Array where Element: CLLocation {
         return distance
     }
     
-    public var dateInterval: DateInterval? {
+    var dateInterval: DateInterval? {
         guard let first = first, let last = last else { return nil }
         return DateInterval(start: first.timestamp, end: last.timestamp)
     }

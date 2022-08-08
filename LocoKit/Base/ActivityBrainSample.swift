@@ -24,7 +24,7 @@ public class ActivityBrainSample {
     private var _radius: CLLocationDistance = 0
 
     public var movingState: MovingState = .uncertain
-    var radiusBounded: CLLocationDistance = 5
+    public var radiusBounded: CLLocationDistance = 5
     
     var mutex: UnfairLock
     var wigglesMutex: UnfairLock
@@ -62,7 +62,7 @@ public class ActivityBrainSample {
     public var location: CLLocation? { return mutex.sync { _location } }
 
     var coordinate: CLLocationCoordinate2D? { return location?.coordinate }
-    var radius: CLLocationDistance { return mutex.sync { _radius } }
+    public var radius: CLLocationDistance { return mutex.sync { _radius } }
     var altitude: CLLocationDistance? { return mutex.sync { _location?.altitude } }
 
     public var stepHz: Double? {

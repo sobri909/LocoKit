@@ -34,7 +34,7 @@ public class ActivityBrain {
         return ActivityBrainSample(mutex: self.samplesMutex, wigglesMutex: self.wigglesMutex)
     }()
     
-    private lazy var pastSample: ActivityBrainSample = {
+    public lazy var pastSample: ActivityBrainSample = {
         return ActivityBrainSample(mutex: self.samplesMutex, wigglesMutex: self.wigglesMutex)
     }()
     
