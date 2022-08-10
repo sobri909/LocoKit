@@ -50,7 +50,7 @@ public class ActivityBrainSample {
         }
     }
     
-    var spread: TimeInterval { return range?.duration ?? 0 }
+    public var spread: TimeInterval { return range?.duration ?? 0 }
     
     private var _range: DateInterval? { return _filteredLocations.dateInterval }
     var range: DateInterval? { return mutex.sync { _range } }
