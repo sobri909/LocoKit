@@ -286,8 +286,8 @@ internal extension ActivityBrain {
 
     func trimThePastSample() {
 
-        // past n should be <= present n
-        while pastSample.n > 2 && pastSample.n > presentSample.n {
+        // past n should be <= present n * 2
+        while pastSample.n > 2 && pastSample.n > presentSample.n * 2 {
             guard let oldest = pastSample.firstLocation else {
                 break
             }
