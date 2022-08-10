@@ -53,7 +53,7 @@ import CoreLocation
     // internal settings
     internal static let fallbackUpdateCycle: TimeInterval = 30
     internal static let maximumDesiredAccuracyIncreaseFrequency: TimeInterval = 60
-    internal static let maximumDesiredAccuracyDecreaseFrequency: TimeInterval = 60 * 2
+    internal static let maximumDesiredAccuracyDecreaseFrequency: TimeInterval = 60 * 5
     internal static let maximumDesiredLocationAccuracyInVisit = kCLLocationAccuracyHundredMeters
     internal static let wiggleHz: Double = 4
 
