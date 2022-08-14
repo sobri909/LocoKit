@@ -662,12 +662,12 @@ public class TimelineProcessor {
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
-            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = 0",
-                                     arguments: [orphan.date, orphan.date]) {
-                logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), sample: \(orphan.sampleId.shortString), date: \(String(describing: orphan.date))")
+            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = ? AND source = ?",
+                                     arguments: [orphan.date, orphan.date, orphan.disabled, orphan.source]) {
+                logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), date: \(orphan.date), source: \(orphan.source))")
                 item.add(orphan)
 
-            } else { // create a new item for the orphan
+            } else if orphan.source == "LocoKit" { // create a new item for the orphan
                 if orphan.movingState == .stationary {
                     newParents.append(store.createVisit(from: orphan))
                 } else {
