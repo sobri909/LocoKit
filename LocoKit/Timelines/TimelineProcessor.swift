@@ -635,6 +635,75 @@ public class TimelineProcessor {
         }
     }
 
+    // MARK: - Enabling items and samples
+
+    public static func enable(timelineItem: TimelineItem) {
+        guard let store = timelineItem.store else { return }
+        guard let dateRange = timelineItem.dateRange else { return }
+
+        store.process {
+            // 1. disable and orphan all overlapped samples
+            let overlappedSamples = store.samples(
+                where: "date >= ? AND date <= ? AND timelineItemId != ? AND disabled = 0",
+                arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
+            )
+            var changedItems: Set<TimelineItem> = []
+            for sample in overlappedSamples {
+                if let item = sample.timelineItem {
+                    changedItems.insert(item)
+                }
+                sample.disabled = true
+                sample.timelineItem = nil
+                sample.save()
+            }
+            changedItems.forEach { item in
+                item.breakEdges()
+                item.save()
+            }
+
+            // 2. disable all entirely overlapped items
+            let overlappedItems = store.items(
+                where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 0",
+                arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
+            )
+            overlappedItems.forEach { item in
+                item.disabled = true
+                item.breakEdges()
+                item.save()
+            }
+
+            // 4. it an item entirely overlaps the range, split it in two
+            let biggerItem = store.item(
+                where: "startDate < ? AND endDate > ? AND itemId != ? AND disabled = 0",
+                arguments: [timelineItem.startDate, timelineItem.endDate, timelineItem.itemId.uuidString]
+            )
+            if let biggerItem {
+                let endSamples = biggerItem.samples.filter { $0.date > dateRange.end }
+                if !endSamples.isEmpty {
+                    let endItem: TimelineItem
+                    if timelineItem.isVisit {
+                        endItem = store.createVisit(from: endSamples)
+                    } else {
+                        endItem = store.createPath(from: endSamples)
+                    }
+                    endItem.copyMetadata(from: biggerItem)
+                    endItem.save()
+                }
+                biggerItem.breakEdges()
+                biggerItem.save()
+            }
+
+            // 5. enable the target item
+            timelineItem.disabled = false
+            timelineItem.samples.forEach { $0.disabled = false; $0.save() }
+            timelineItem.save()
+
+            // 6. heal the edges
+            healPreviousEdge(of: timelineItem)
+            healNextEdge(of: timelineItem)
+        }
+    }
+
     // MARK: - Database sanitising
 
     public static func sanitise(store: TimelineStore, inRange dateRange: DateInterval? = nil) {
