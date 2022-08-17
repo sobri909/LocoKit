@@ -699,8 +699,7 @@ public class TimelineProcessor {
             timelineItem.save()
 
             // 6. heal the edges
-            healPreviousEdge(of: timelineItem)
-            healNextEdge(of: timelineItem)
+            healEdges(of: timelineItem)
         }
     }
 
