@@ -537,12 +537,12 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         while allMoved.count < maximumEdgeSteals {
             var movedThisLoop: Set<LocomotionSample> = []
 
-            if let previousPath = self.previousItem as? Path {
+            if let previousPath = self.previousItem as? Path, previousPath.source == self.source {
                 if let moved = self.cleanseEdge(with: previousPath, excluding: excluding.union(allMoved)) {
                     movedThisLoop.insert(moved)
                 }
             }
-            if let nextPath = self.nextItem as? Path {
+            if let nextPath = self.nextItem as? Path, nextPath.source == self.source {
                 if let moved = self.cleanseEdge(with: nextPath, excluding: excluding.union(allMoved)) {
                     movedThisLoop.insert(moved)
                 }
