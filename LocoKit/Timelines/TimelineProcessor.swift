@@ -730,8 +730,8 @@ public class TimelineProcessor {
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
-            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = ? AND source = ?",
-                                     arguments: [orphan.date, orphan.date, orphan.disabled, orphan.source]) {
+            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = 0 AND source = ?",
+                                     arguments: [orphan.date, orphan.date, orphan.source]) {
                 logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), date: \(orphan.date), source: \(orphan.source))")
                 item.add(orphan)
 
