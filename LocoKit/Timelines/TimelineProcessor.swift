@@ -395,8 +395,7 @@ public class TimelineProcessor {
     }
 
     public static func healEdges(of brokenItem: TimelineItem) {
-        if brokenItem.isMergeLocked { return }
-        if !brokenItem.hasBrokenEdges { return }
+        guard brokenItem.hasBrokenEdges else { return }
         guard let store = brokenItem.store else { return }
 
         store.process {
@@ -404,45 +403,54 @@ public class TimelineProcessor {
             self.healNextEdge(of: brokenItem)
 
             // it's wholly contained by another item?
-            guard brokenItem.hasBrokenPreviousItemEdge && brokenItem.hasBrokenNextItemEdge else { return }
-            guard let dateRange = brokenItem.dateRange else { return }
+            if !brokenItem.isMergeLocked, let dateRange = brokenItem.dateRange {
+                guard brokenItem.hasBrokenPreviousItemEdge && brokenItem.hasBrokenNextItemEdge else { return }
 
-            if let overlapper = store.item(
-                where: """
+                if let overlapper = store.item(
+                    where: """
                 startDate <= :startDate AND endDate >= :endDate AND startDate IS NOT NULL AND endDate IS NOT NULL
                 AND deleted = 0 AND disabled = 0 AND itemId != :itemId
                 """,
-                arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
-                            "itemId": brokenItem.itemId.uuidString]),
-                !overlapper.deleted && !overlapper.isMergeLocked
-            {
-                overlapper.add(brokenItem.samples)
-                brokenItem.delete()
-                return
+                    arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
+                                "itemId": brokenItem.itemId.uuidString]),
+                   !overlapper.deleted && !overlapper.isMergeLocked
+                {
+                    overlapper.add(brokenItem.samples)
+                    brokenItem.delete()
+                    return
+                }
             }
         }
     }
 
     private static func healNextEdge(of brokenItem: TimelineItem) {
         guard let store = brokenItem.store else { return }
-        if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let dateRange = brokenItem.dateRange else { return }
 
-        if let overlapper = store.item(
-            where: """
+        if brokenItem.source == "HealthKit" {
+            print("healNextEdge() source: HealthKit")
+        }
+
+        // TODO: this looks wrong
+        // it's an item that only overlaps the start of the broken item,
+        // but it's being used to consume the whole broken item
+        if !brokenItem.isMergeLocked {
+            if let overlapper = store.item(
+                where: """
             startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
             AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             """,
-            arguments: ["endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
+                arguments: ["endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
+                            "itemId": brokenItem.itemId.uuidString]),
+               !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source
+            {
+                overlapper.add(brokenItem.samples)
+                brokenItem.delete()
+                return
+            }
         }
-        
+
         if let nearest = store.item(
             for: """
             SELECT *, ABS(strftime('%s', startDate) - :timestamp) AS gap FROM TimelineItem
@@ -486,22 +494,26 @@ public class TimelineProcessor {
 
     private static func healPreviousEdge(of brokenItem: TimelineItem) {
         guard let store = brokenItem.store else { return }
-        if brokenItem.isMergeLocked { return }
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let dateRange = brokenItem.dateRange else { return }
 
-        if let overlapper = store.item(
-            where: """
+        // TODO: this looks wrong
+        // it's an item that only overlaps the start of the broken item,
+        // but it's being used to consume the whole broken item
+        if !brokenItem.isMergeLocked {
+            if let overlapper = store.item(
+                where: """
             startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
             AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
             """,
-            arguments: ["startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
-                        "itemId": brokenItem.itemId.uuidString]),
-            !overlapper.deleted && !overlapper.isMergeLocked
-        {
-            overlapper.add(brokenItem.samples)
-            brokenItem.delete()
-            return
+                arguments: ["startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
+                            "itemId": brokenItem.itemId.uuidString]),
+               !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source
+            {
+                overlapper.add(brokenItem.samples)
+                brokenItem.delete()
+                return
+            }
         }
 
         if let nearest = store.item(
@@ -635,11 +647,13 @@ public class TimelineProcessor {
         }
     }
 
-    // MARK: - Enabling items and samples
+    // MARK: - Enabling disabled items
 
     public static func enable(timelineItem: TimelineItem) {
         guard let store = timelineItem.store else { return }
         guard let dateRange = timelineItem.dateRange else { return }
+
+        print("TimelineProcessor.enable(timelineItem:)")
 
         store.process {
             // 1. disable and orphan all overlapped samples
@@ -661,15 +675,14 @@ public class TimelineProcessor {
                 item.save()
             }
 
-            // 2. disable all entirely overlapped items
+            // 2. delete overlapped items
             let overlappedItems = store.items(
                 where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
             overlappedItems.forEach { item in
-                item.disabled = true
-                item.breakEdges()
-                item.save()
+                item.samples.forEach { $0.timelineItem = nil }
+                item.delete()
             }
 
             // 4. it an item entirely overlaps the range, split it in two
