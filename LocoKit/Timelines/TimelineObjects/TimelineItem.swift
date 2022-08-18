@@ -61,12 +61,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
     public var hasBrokenPreviousItemEdge: Bool {
         if deleted { return false }
+        if disabled { return false }
         if previousItem == nil { return true }
         return false
     }
 
     public var hasBrokenNextItemEdge: Bool {
         if deleted { return false }
+        if disabled { return false }
         if nextItem == nil && !isCurrentItem { return true }
         return false
     }
