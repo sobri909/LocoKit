@@ -650,7 +650,7 @@ public class TimelineProcessor {
         }
     }
 
-    // MARK: - Enabling disabled items
+    // MARK: - Enabling/disabling items
 
     public static func enable(timelineItem: TimelineItem) {
         guard let store = timelineItem.store else { return }
@@ -659,7 +659,7 @@ public class TimelineProcessor {
         print("TimelineProcessor.enable(timelineItem:)")
 
         store.process {
-            // 1. disable and orphan all overlapped samples
+            // 1a. disable all overlapped samples
             let overlappedSamples = store.samples(
                 where: "date >= ? AND date <= ? AND timelineItemId != ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
@@ -670,22 +670,25 @@ public class TimelineProcessor {
                     changedItems.insert(item)
                 }
                 sample.disabled = true
-                sample.timelineItem = nil
                 sample.save()
             }
+
+            // 1b. break edges of their parents
             changedItems.forEach { item in
                 item.breakEdges()
                 item.save()
             }
 
-            // 2. delete overlapped items
+            // 2. disable and break egdges of fully overlapped items
             let overlappedItems = store.items(
                 where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
             overlappedItems.forEach { item in
-                item.samples.forEach { $0.timelineItem = nil }
-                item.delete()
+                item.samples.forEach { $0.disabled = true }
+                item.disabled = true
+                item.breakEdges()
+                item.save()
             }
 
             // 4. it an item entirely overlaps the range, split it in two
@@ -716,6 +719,30 @@ public class TimelineProcessor {
 
             // 6. heal the edges
             healEdges(of: timelineItem)
+        }
+    }
+
+    public static func disable(timelineItem: TimelineItem) {
+        guard let store = timelineItem.store else { return }
+        guard let dateRange = timelineItem.dateRange else { return }
+
+        print("TimelineProcessor.disable(timelineItem:)")
+
+        store.process {
+            // 1. disable the item and its samples
+            timelineItem.disabled = true
+            timelineItem.samples.forEach { $0.disabled = true }
+            timelineItem.breakEdges()
+            timelineItem.save()
+
+            // 2. find all items inside the daterange and enable them
+            let overlappedItems = store.items(
+                where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 1",
+                arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
+            )
+            overlappedItems.forEach { item in
+                enable(timelineItem: item)
+            }
         }
     }
 
