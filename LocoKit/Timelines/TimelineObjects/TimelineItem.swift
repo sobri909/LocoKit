@@ -643,7 +643,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         onMain {
             NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
-            self.objectWillChange.send()
         }
     }
 
@@ -704,7 +703,6 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             if madeChanges {
                 onMain {
                     NotificationCenter.default.post(Notification(name: .updatedTimelineItem, object: self, userInfo: nil))
-                    self.objectWillChange.send()
                 }
             }
         }
