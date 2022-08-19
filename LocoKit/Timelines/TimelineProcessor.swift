@@ -431,10 +431,6 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let dateRange = brokenItem.dateRange else { return }
 
-        if brokenItem.source == "HealthKit" {
-            print("healNextEdge() source: HealthKit")
-        }
-
         // TODO: this looks wrong
         // it's an item that only overlaps the start of the broken item,
         // but it's being used to consume the whole broken item
