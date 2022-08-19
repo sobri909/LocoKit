@@ -257,6 +257,9 @@ public class TimelineProcessor {
                 return
             }
 
+            // don't mess with merge locked parent
+            if let item = segment.timelineItem, item.isMergeLocked { return }
+
             // find the overlapping items
             let overlappers = store.items(
                 where: "endDate > :startDate AND startDate < :endDate AND deleted = 0 AND disabled = 0 ORDER BY startDate",
