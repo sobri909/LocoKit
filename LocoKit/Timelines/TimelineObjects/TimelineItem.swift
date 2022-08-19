@@ -24,7 +24,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var transactionDate: Date?
     public var lastSaved: Date?
-    public var hasChanges: Bool = false
+    public var hasChanges: Bool = false {
+        didSet {
+            if hasChanges { onMain { self.objectWillChange.send() } }
+        }
+    }
 
     public var classifier: MLCompositeClassifier? { return store?.recorder?.classifier }
 
