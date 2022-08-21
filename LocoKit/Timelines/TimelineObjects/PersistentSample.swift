@@ -167,7 +167,13 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         save()
     }
 
-    public var disabled: Bool = false { didSet { hasChanges = true } }
+    public var disabled: Bool = false {
+        didSet {
+            hasChanges = true
+            timelineItem?.resetSamples()
+            timelineItem?.samplesChanged()
+        }
+    }
 
     // MARK: - PersistableRecord
     
