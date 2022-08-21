@@ -141,13 +141,19 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
             if lastSaved == nil {
                 _samples = []
             } else if let store = store {
-                _samples = store.samples(where: "timelineItemId = ? AND deleted = 0 ORDER BY date",
-                                         arguments: [itemId.uuidString])
+                _samples = store.samples(
+                    where: "timelineItemId = ? AND deleted = 0 AND disabled = ? ORDER BY date",
+                    arguments: [itemId.uuidString, disabled])
+                .filter { !$0.deleted && $0.disabled == self.disabled }
             } else {
                 _samples = []
             }
             return _samples!
         }
+    }
+
+    internal func resetSamples() {
+        mutex.sync { _samples = nil }
     }
 
     public var previousItemId: UUID? {
@@ -590,7 +596,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     open func add(_ samples: [PersistentSample]) {
         var madeChanges = false
         mutex.sync {
-            _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
+            _samples = Set(self.samples + samples).filter { $0.disabled == disabled }.sorted { $0.date < $1.date }
             for sample in samples where sample.timelineItem != self || sample.timelineItemId != self.itemId {
                 sample.timelineItem = self
                 madeChanges = true
