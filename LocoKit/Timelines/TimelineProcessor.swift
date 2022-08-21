@@ -616,7 +616,7 @@ public class TimelineProcessor {
         if !samplesToKill.isEmpty {
             let slimmedCount = edgeSamples.count - samplesToKill.count
             let savings = 1.0 - Double(slimmedCount) / Double(edgeSamples.count)
-            logger.debug("pruneSamples() \(savings * 100, format: .fixed(precision: 0), align: .right(columns: 2)) reduction, \(edgeSamples.count, align: .right(columns: 4)) -> \(slimmedCount, align: .right(columns: 4)) (samples.startDate: \(String(describing: dateRange.start))")
+            logger.debug("pruneSamples() \(savings * 100, format: .fixed(precision: 0), align: .right(columns: 2)) reduction, \(edgeSamples.count, align: .right(columns: 4)) -> \(slimmedCount, align: .right(columns: 4)) (samples.startDate: \(String(describing: dateRange.start)))")
         }
         
         samplesToKill.forEach { $0.delete() }
