@@ -652,40 +652,38 @@ public class TimelineProcessor {
         guard let store = timelineItem.store else { return }
         guard let dateRange = timelineItem.dateRange else { return }
 
-        print("TimelineProcessor.enable(timelineItem:)")
+        print("TimelineProcessor.enable(timelineItem:) duration: \(duration: dateRange.duration), dateRange: \(dateRange.debugDescription)")
 
         store.process {
-            // 1a. disable all overlapped samples
+            // 1. disable all overlapped samples
             let overlappedSamples = store.samples(
-                where: "date >= ? AND date <= ? AND timelineItemId != ? AND disabled = 0",
+                where: "date BETWEEN ? AND ? AND timelineItemId IS NOT ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
-            var changedItems: Set<TimelineItem> = []
+            print("overlappedSamples: \(overlappedSamples.count)")
             for sample in overlappedSamples {
-                if let item = sample.timelineItem {
-                    changedItems.insert(item)
-                }
+                sample.timelineItem?.breakEdges()
                 sample.disabled = true
                 sample.save()
             }
 
-            // 1b. break edges of their parents
-            changedItems.forEach { item in
-                item.breakEdges()
-                item.save()
-            }
+            store.save() // flush to db
 
             // 2. disable and break egdges of fully overlapped items
             let overlappedItems = store.items(
                 where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
+            print("overlappedItems: \(overlappedItems.count)")
             overlappedItems.forEach { item in
-                item.samples.forEach { $0.disabled = true }
+                let samples = item.samples
                 item.disabled = true
                 item.breakEdges()
+                samples.forEach { $0.disabled = true; $0.save() }
                 item.save()
             }
+
+            store.save() // flush to db
 
             // 4. it an item entirely overlaps the range, split it in two
             let biggerItem = store.item(
@@ -693,6 +691,7 @@ public class TimelineProcessor {
                 arguments: [timelineItem.startDate, timelineItem.endDate, timelineItem.itemId.uuidString]
             )
             if let biggerItem {
+                print("biggerItem.samples \(biggerItem.samples.count), duration: \(duration: biggerItem.duration), dateRange: \(biggerItem.dateRange?.debugDescription ?? "nil")")
                 let endSamples = biggerItem.samples.filter { $0.date > dateRange.end }
                 if !endSamples.isEmpty {
                     let endItem: TimelineItem
@@ -708,10 +707,22 @@ public class TimelineProcessor {
                 biggerItem.save()
             }
 
-            // 5. enable the target item
+            store.save() // flush to db
+
+            // 6. enable the target item
+            let samples = timelineItem.samples
+            samples.forEach { $0.disabled = false; $0.save() }
             timelineItem.disabled = false
-            timelineItem.samples.forEach { $0.disabled = false; $0.save() }
+            timelineItem.add(samples)
             timelineItem.save()
+
+            if #available(iOS 15.0, *) {
+                if let newRange = timelineItem.dateRange {
+                    print("ENABLED samples: \(timelineItem.samples.count), duration: \(duration: timelineItem.duration), \(newRange.debugDescription)")
+                } else {
+                    print("ENABLED **doesn't have dateRange!**")
+                }
+            }
 
             // 6. heal the edges
             healEdges(of: timelineItem)
@@ -722,23 +733,50 @@ public class TimelineProcessor {
         guard let store = timelineItem.store else { return }
         guard let dateRange = timelineItem.dateRange else { return }
 
-        print("TimelineProcessor.disable(timelineItem:)")
+        print("TimelineProcessor.disable(timelineItem:) duration: \(duration: dateRange.duration), dateRange: \(dateRange.debugDescription)")
 
         store.process {
-            // 1. disable the item and its samples
-            timelineItem.disabled = true
-            timelineItem.samples.forEach { $0.disabled = true }
-            timelineItem.breakEdges()
-            timelineItem.save()
-
-            // 2. find all items inside the daterange and enable them
-            let overlappedItems = store.items(
-                where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 1",
+            // 1. enable all disabled samples inside the range
+            let overlappedSamples = store.samples(
+                where: "date BETWEEN ? AND ? AND timelineItemId IS NOT ? and disabled = 1",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
-            overlappedItems.forEach { item in
-                enable(timelineItem: item)
+            print("overlappedSamples: \(overlappedSamples.count)")
+            overlappedSamples.forEach {
+                $0.disabled = false; $0.save()
+                $0.timelineItem?.save()
             }
+
+            store.save() // flush to db
+
+            // 2. enable all disabled items inside the range
+            let overlappedItems = store.items(
+                where: "((startDate >= ? AND startDate <= ?) OR (endDate >= ? AND endDate <= ?)) AND itemId != ? AND disabled = 1",
+                arguments: [dateRange.start, dateRange.end, dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
+            )
+            print("overlappedItems: \(overlappedItems.count)")
+            overlappedItems.forEach { item in
+                let samples = item.samples
+                samples.forEach { $0.disabled = false; $0.save() }
+                item.disabled = false
+                item.add(samples)
+                item.save()
+            }
+
+            store.save() // flush to db
+
+            // 3. disable the item and its samples
+            let samples = timelineItem.samples
+            samples.forEach { $0.disabled = true; $0.save() }
+            timelineItem.disabled = true
+            timelineItem.add(samples)
+            timelineItem.breakEdges()
+            timelineItem.save()
+        }
+
+        // 4. there might be orphans that need help
+        store.process {
+            adoptOrphanedSamples(in: store, inRange: dateRange)
         }
     }
 
