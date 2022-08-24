@@ -174,7 +174,7 @@ public class ItemSegment: Equatable, Identifiable, ObservableObject {
 
     // MARK: - Modifying the item segment
 
-    func canAdd(_ sample: PersistentSample, ignoreRecordingState: Bool = false) -> Bool {
+    public func canAdd(_ sample: PersistentSample, ignoreRecordingState: Bool = false) -> Bool {
 
         // need at least an activityType match
         if sample.activityType != activityType { return false }
