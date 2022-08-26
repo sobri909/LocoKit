@@ -740,9 +740,14 @@ public class TimelineProcessor {
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
             print("overlappedSamples: \(overlappedSamples.count)")
-            overlappedSamples.forEach {
-                $0.disabled = false; $0.save()
-                $0.timelineItem?.save()
+            overlappedSamples.forEach { sample in
+                sample.disabled = false
+                sample.save()
+                if let parent = sample.timelineItem {
+                    parent.disabled = false
+                    parent.add(sample)
+                    parent.save()
+                }
             }
 
             store.save() // flush to db
