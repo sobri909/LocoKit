@@ -63,9 +63,7 @@ public class TimelineProcessor {
 
         // sanitise the store in the items date range
         if let start = startDate, let end = endDate {
-            store.process {
-                sanitise(store: store, inRange: DateInterval(start: start, end: end))
-            }
+            sanitise(store: store, inRange: DateInterval(start: start, end: end))
         }
 
         store.process {
@@ -775,17 +773,17 @@ public class TimelineProcessor {
         }
 
         // 4. there might be orphans that need help
-        store.process {
-            adoptOrphanedSamples(in: store, inRange: dateRange)
-        }
+        TimelineProcessor.sanitise(store: store, inRange: dateRange)
     }
 
     // MARK: - Database sanitising
 
     public static func sanitise(store: TimelineStore, inRange dateRange: DateInterval? = nil) {
-        orphanSamplesFromDeadParents(in: store, inRange: dateRange)
-        adoptOrphanedSamples(in: store, inRange: dateRange)
-        detachDeadmenEdges(in: store, inRange: dateRange)
+        store.process {
+            orphanSamplesFromDeadParents(in: store, inRange: dateRange)
+            adoptOrphanedSamples(in: store, inRange: dateRange)
+            detachDeadmenEdges(in: store, inRange: dateRange)
+        }
     }
 
     private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
