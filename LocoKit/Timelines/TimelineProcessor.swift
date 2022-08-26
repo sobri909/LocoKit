@@ -749,7 +749,7 @@ public class TimelineProcessor {
 
             // 2. enable all disabled items inside the range
             let overlappedItems = store.items(
-                where: "((startDate >= ? AND startDate <= ?) OR (endDate >= ? AND endDate <= ?)) AND itemId != ? AND disabled = 1",
+                where: "((startDate BETWEEN ? AND ?) OR (endDate BETWEEN ? AND ?)) AND itemId != ? AND disabled = 1",
                 arguments: [dateRange.start, dateRange.end, dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
             )
             print("overlappedItems: \(overlappedItems.count)")
@@ -792,7 +792,7 @@ public class TimelineProcessor {
         var query = "timelineItemId IS NULL AND deleted = 0 AND disabled = 0"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
-            query += " AND date >= ? AND date <= ?"
+            query += " AND date BETWEEN ? AND ?"
             arguments = [dateRange.start, dateRange.end]
         }
 
