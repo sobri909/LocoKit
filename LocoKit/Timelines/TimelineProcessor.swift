@@ -794,7 +794,7 @@ public class TimelineProcessor {
     private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
         store.connectToDatabase()
 
-        var query = "timelineItemId IS NULL AND deleted = 0 AND disabled = 0"
+        var query = "timelineItemId IS NULL AND deleted = 0"
         var arguments: [DatabaseValueConvertible] = []
         if let dateRange = dateRange {
             query += " AND date BETWEEN ? AND ?"
@@ -810,24 +810,30 @@ public class TimelineProcessor {
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
-            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND disabled = 0 AND source = ?",
+            if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND source = ?",
                                      arguments: [orphan.date, orphan.date, orphan.source]) {
-                logger.debug("ADOPTED AN ORPHAN (item: \(item.itemId.shortString), date: \(orphan.date), source: \(orphan.source))")
+                if #available(iOS 15.0, *) {
+                    logger.debug("ADOPTED AN ORPHAN source: \(orphan.source), disabled: \(orphan.disabled), date: \(orphan.date.formatted(date: .abbreviated, time: .shortened))")
+                }
                 item.add(orphan)
 
-            } else if orphan.source == "LocoKit" { // create a new item for the orphan
+            } else if orphan.source == "LocoKit" && !orphan.disabled { // create new items for LcooKit orphans
                 if orphan.movingState == .stationary {
                     newParents.append(store.createVisit(from: orphan))
                 } else {
                     newParents.append(store.createPath(from: orphan))
                 }
-                logger.debug("CREATED NEW PARENT FOR ORPHAN (sample: \(orphan.sampleId.shortString), date: \(String(describing: orphan.date))")
+                if #available(iOS 15.0, *) {
+                    logger.debug("CREATED NEW PARENT FOR ORPHAN source: \(orphan.source), disabled: \(orphan.disabled), date: \(orphan.date.formatted(date: .abbreviated, time: .shortened))")
+                }
+            } else {
+                if #available(iOS 15.0, *) {
+                    print("COULDN'T ADOPT ORPHAN source: \(orphan.source), disabled: \(orphan.disabled), date: \(orphan.date.formatted(date: .abbreviated, time: .shortened))")
+                }
             }
         }
 
         store.save()
-
-        if newParents.isEmpty { return }
 
         // clean up the new parents
         newParents.forEach {
