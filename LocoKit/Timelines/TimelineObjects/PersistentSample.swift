@@ -131,7 +131,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public var timelineItem: TimelineItem? {
         get {
             if let cached = self._timelineItem, cached.itemId == self.timelineItemId { return cached }
-            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item }
+            if let itemId = self.timelineItemId, let item = store?.item(for: itemId) { self._timelineItem = item; return item }
             return self._timelineItem
         }
         set(newValue) {
