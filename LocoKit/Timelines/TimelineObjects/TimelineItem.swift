@@ -142,18 +142,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
                 _samples = []
             } else if let store = store {
                 _samples = store.samples(
-                    where: "timelineItemId = ? AND deleted = 0 AND disabled = ? ORDER BY date",
-                    arguments: [itemId.uuidString, disabled])
-                .filter { !$0.deleted && $0.disabled == self.disabled }
+                    where: "timelineItemId = ? AND deleted = 0 ORDER BY date",
+                    arguments: [itemId.uuidString])
+                .filter { !$0.deleted }
             } else {
                 _samples = []
             }
             return _samples!
         }
-    }
-
-    internal func resetSamples() {
-        mutex.sync { _samples = nil }
     }
 
     public var previousItemId: UUID? {
@@ -256,10 +252,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     private(set) public var _dateRange: DateInterval?
     public var dateRange: DateInterval? {
         if let cached = _dateRange { return cached }
-        guard let start = samples.first?.date else { return nil }
+        guard let start = samples.first(where: { !$0.disabled })?.date else { return nil }
         if let nextItemStart = nextItem?.startDate, nextItemStart > start {
             _dateRange = DateInterval(start: start, end: nextItemStart)
-        } else if let end = samples.last?.date {
+        } else if let end = samples.last(where: { !$0.disabled })?.date {
             _dateRange = DateInterval(start: start, end: end)
         }
         return _dateRange
@@ -341,7 +337,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         var segments: [ItemSegment] = []
         var current: ItemSegment?
-        for sample in samples {
+        for sample in samples where !sample.disabled {
 
             // first segment?
             if current == nil {
@@ -377,7 +373,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         var segments: [ItemSegment] = []
         var current: ItemSegment?
-        for sample in samples {
+        for sample in samples where !sample.disabled {
 
             // first segment?
             if current == nil {
@@ -457,7 +453,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeActivityType: ActivityTypeName? {
         if let cached = _modeActivityType { return cached }
 
-        let sampleTypes = samples.compactMap { $0.activityType }
+        let sampleTypes = samples.filter { !$0.disabled }.compactMap { $0.activityType }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -473,7 +469,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeMovingActivityType: ActivityTypeName? {
         if let modeType = _modeMovingActivityType { return modeType }
 
-        let sampleTypes = samples.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
+        let sampleTypes = samples.filter { !$0.disabled }.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -596,7 +592,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     open func add(_ samples: [PersistentSample]) {
         var madeChanges = false
         mutex.sync {
-            _samples = Set(self.samples + samples).filter { $0.disabled == disabled }.sorted { $0.date < $1.date }
+            _samples = Set(self.samples + samples).sorted { $0.date < $1.date }
             for sample in samples where sample.timelineItem != self || sample.timelineItemId != self.itemId {
                 sample.timelineItem = self
                 madeChanges = true
@@ -655,14 +651,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _center: CLLocation?
     public var center: CLLocation? {
         if let cached = _center { return cached }
-        _center = samples.weightedCenter
+        _center = samples.filter { !$0.disabled }.weightedCenter
         return _center
     }
 
     public private(set) var _radius: Radius?
     public var radius: Radius {
         if let cached = _radius { return cached }
-        if let center = center { _radius = samples.radius(from: center) }
+        if let center = center { _radius = samples.filter { !$0.disabled }.radius(from: center) }
         else { _radius = Radius.zero }
         return _radius!
     }
@@ -670,7 +666,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _altitude: CLLocationDistance?
     public var altitude: CLLocationDistance? {
         if let cached = _altitude { return cached }
-        _altitude = samples.weightedMeanAltitude
+        _altitude = samples.filter { !$0.disabled }.weightedMeanAltitude
         return _altitude
     }
 

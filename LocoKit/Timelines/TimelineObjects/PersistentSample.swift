@@ -170,7 +170,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public var disabled: Bool = false {
         didSet {
             hasChanges = true
-            timelineItem?.resetSamples()
             timelineItem?.samplesChanged()
         }
     }
