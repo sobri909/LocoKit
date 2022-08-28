@@ -252,10 +252,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     private(set) public var _dateRange: DateInterval?
     public var dateRange: DateInterval? {
         if let cached = _dateRange { return cached }
-        guard let start = samples.first(where: { !$0.disabled })?.date else { return nil }
+        guard let start = samples.first(where: { $0.disabled == self.disabled })?.date else { return nil }
         if let nextItemStart = nextItem?.startDate, nextItemStart > start {
             _dateRange = DateInterval(start: start, end: nextItemStart)
-        } else if let end = samples.last(where: { !$0.disabled })?.date {
+        } else if let end = samples.last(where: { $0.disabled == self.disabled })?.date {
             _dateRange = DateInterval(start: start, end: end)
         }
         return _dateRange
@@ -337,7 +337,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         var segments: [ItemSegment] = []
         var current: ItemSegment?
-        for sample in samples where !sample.disabled {
+        for sample in samples where sample.disabled == self.disabled {
 
             // first segment?
             if current == nil {
@@ -373,7 +373,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
 
         var segments: [ItemSegment] = []
         var current: ItemSegment?
-        for sample in samples where !sample.disabled {
+        for sample in samples where sample.disabled == self.disabled {
 
             // first segment?
             if current == nil {
@@ -453,7 +453,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeActivityType: ActivityTypeName? {
         if let cached = _modeActivityType { return cached }
 
-        let sampleTypes = samples.filter { !$0.disabled }.compactMap { $0.activityType }
+        let sampleTypes = samples.filter { $0.disabled == self.disabled }.compactMap { $0.activityType }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -469,7 +469,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeMovingActivityType: ActivityTypeName? {
         if let modeType = _modeMovingActivityType { return modeType }
 
-        let sampleTypes = samples.filter { !$0.disabled }.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
+        let sampleTypes = samples.filter { $0.disabled == self.disabled }.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -651,14 +651,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _center: CLLocation?
     public var center: CLLocation? {
         if let cached = _center { return cached }
-        _center = samples.filter { !$0.disabled }.weightedCenter
+        _center = samples.filter { $0.disabled == self.disabled }.weightedCenter
         return _center
     }
 
     public private(set) var _radius: Radius?
     public var radius: Radius {
         if let cached = _radius { return cached }
-        if let center = center { _radius = samples.filter { !$0.disabled }.radius(from: center) }
+        if let center = center { _radius = samples.filter { $0.disabled == self.disabled }.radius(from: center) }
         else { _radius = Radius.zero }
         return _radius!
     }
@@ -666,7 +666,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _altitude: CLLocationDistance?
     public var altitude: CLLocationDistance? {
         if let cached = _altitude { return cached }
-        _altitude = samples.filter { !$0.disabled }.weightedMeanAltitude
+        _altitude = samples.filter { $0.disabled == self.disabled }.weightedMeanAltitude
         return _altitude
     }
 
