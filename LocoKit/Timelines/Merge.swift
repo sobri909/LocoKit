@@ -99,7 +99,7 @@ internal class Merge: Hashable, CustomStringConvertible {
         // deal with a betweener
         if let betweener = betweener {
             keeper.willConsume(item: betweener)
-            keeper.add(betweener.samples)
+            keeper.add(betweener.samples.filter { !$0.disabled })
 
             if betweener.samples.filter({ $0.disabled }).isEmpty {
                 betweener.delete()
@@ -111,7 +111,7 @@ internal class Merge: Hashable, CustomStringConvertible {
 
         // deal with the deadman
         keeper.willConsume(item: deadman)
-        keeper.add(deadman.samples)
+        keeper.add(deadman.samples.filter { !$0.disabled })
 
         if deadman.samples.filter({ $0.disabled }).isEmpty {
             deadman.delete()
