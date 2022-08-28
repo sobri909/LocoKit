@@ -100,13 +100,25 @@ internal class Merge: Hashable, CustomStringConvertible {
         if let betweener = betweener {
             keeper.willConsume(item: betweener)
             keeper.add(betweener.samples)
-            betweener.delete()
+
+            if betweener.samples.filter({ $0.disabled }).isEmpty {
+                betweener.delete()
+            } else {
+                betweener.disabled = true
+                betweener.breakEdges()
+            }
         }
 
         // deal with the deadman
         keeper.willConsume(item: deadman)
         keeper.add(deadman.samples)
-        deadman.delete()
+
+        if deadman.samples.filter({ $0.disabled }).isEmpty {
+            deadman.delete()
+        } else {
+            deadman.disabled = true
+            deadman.breakEdges()
+        }
     }
 
     // MARK: - Hashable
