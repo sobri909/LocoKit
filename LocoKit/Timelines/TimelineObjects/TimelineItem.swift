@@ -152,6 +152,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         }
     }
 
+    public var samplesMatchingDisabled: [PersistentSample] {
+        return samples.filter { $0.disabled == self.disabled }
+    }
+
     public var previousItemId: UUID? {
         didSet {
             if previousItemId == itemId { fatalError("Can't link to self") }
@@ -252,10 +256,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     private(set) public var _dateRange: DateInterval?
     public var dateRange: DateInterval? {
         if let cached = _dateRange { return cached }
-        guard let start = samples.first(where: { $0.disabled == self.disabled })?.date else { return nil }
+        guard let start = samplesMatchingDisabled.first?.date else { return nil }
         if let nextItemStart = nextItem?.startDate, nextItemStart > start {
             _dateRange = DateInterval(start: start, end: nextItemStart)
-        } else if let end = samples.last(where: { $0.disabled == self.disabled })?.date {
+        } else if let end = samplesMatchingDisabled.last?.date {
             _dateRange = DateInterval(start: start, end: end)
         }
         return _dateRange
@@ -453,7 +457,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeActivityType: ActivityTypeName? {
         if let cached = _modeActivityType { return cached }
 
-        let sampleTypes = samples.filter { $0.disabled == self.disabled }.compactMap { $0.activityType }
+        let sampleTypes = samplesMatchingDisabled.compactMap { $0.activityType }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -469,7 +473,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var modeMovingActivityType: ActivityTypeName? {
         if let modeType = _modeMovingActivityType { return modeType }
 
-        let sampleTypes = samples.filter { $0.disabled == self.disabled }.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
+        let sampleTypes = samplesMatchingDisabled.compactMap { $0.activityType != .stationary ? $0.activityType : nil }
         if sampleTypes.isEmpty { return nil }
 
         let counted = NSCountedSet(array: sampleTypes)
@@ -651,14 +655,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _center: CLLocation?
     public var center: CLLocation? {
         if let cached = _center { return cached }
-        _center = samples.filter { $0.disabled == self.disabled }.weightedCenter
+        _center = samplesMatchingDisabled.weightedCenter
         return _center
     }
 
     public private(set) var _radius: Radius?
     public var radius: Radius {
         if let cached = _radius { return cached }
-        if let center = center { _radius = samples.filter { $0.disabled == self.disabled }.radius(from: center) }
+        if let center = center { _radius = samplesMatchingDisabled.radius(from: center) }
         else { _radius = Radius.zero }
         return _radius!
     }
@@ -666,7 +670,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public private(set) var _altitude: CLLocationDistance?
     public var altitude: CLLocationDistance? {
         if let cached = _altitude { return cached }
-        _altitude = samples.filter { $0.disabled == self.disabled }.weightedMeanAltitude
+        _altitude = samplesMatchingDisabled.weightedMeanAltitude
         return _altitude
     }
 

@@ -59,7 +59,7 @@ open class Path: TimelineItem, CustomStringConvertible {
     open override var isValid: Bool {
         if isDataGap { return isValidDataGap }
         if isNolo { return isValidPathNolo }
-        if samples.count < Path.minimumValidSamples { return false }
+        if samplesMatchingDisabled.count < Path.minimumValidSamples { return false }
         if duration < Path.minimumValidDuration { return false }
         if distance < Path.minimumValidDistance { return false }
         return true
@@ -79,7 +79,7 @@ open class Path: TimelineItem, CustomStringConvertible {
     }
 
     private var isValidPathNolo: Bool {
-        if samples.count < Path.minimumValidSamples { return false }
+        if samplesMatchingDisabled.count < Path.minimumValidSamples { return false }
         if duration < Path.minimumValidDuration { return false }
         return true
     }
@@ -95,13 +95,13 @@ open class Path: TimelineItem, CustomStringConvertible {
     /// The distance of the path, as the sum of the distances between each sample.
     public var distance: CLLocationDistance {
         if let distance = _distance { return distance }
-        let distance = samples.distance
+        let distance = samplesMatchingDisabled.distance
         _distance = distance
         return distance
     }
 
     public var metresPerSecond: CLLocationSpeed {
-        if samples.count == 1, let sampleSpeed = samples.first?.location?.speed, sampleSpeed >= 0 { return sampleSpeed }
+        if samplesMatchingDisabled.count == 1, let sampleSpeed = samplesMatchingDisabled.first?.location?.speed, sampleSpeed >= 0 { return sampleSpeed }
         if duration > 0 { return distance / duration }
         return 0
     }
@@ -133,11 +133,11 @@ open class Path: TimelineItem, CustomStringConvertible {
     private func distance(from otherPath: Path) -> CLLocationDistance? {
         guard let myStart = startDate, let theirStart = otherPath.startDate else { return nil }
         if myStart < theirStart {
-            if let myEdge = samples.last, let theirEdge = otherPath.samples.first {
+            if let myEdge = samplesMatchingDisabled.last, let theirEdge = otherPath.samplesMatchingDisabled.first {
                 return myEdge.distance(from: theirEdge)
             }
         } else {
-            if let myEdge = samples.first, let theirEdge = otherPath.samples.last {
+            if let myEdge = samplesMatchingDisabled.first, let theirEdge = otherPath.samplesMatchingDisabled.last {
                 return myEdge.distance(from: theirEdge)
             }
         }
