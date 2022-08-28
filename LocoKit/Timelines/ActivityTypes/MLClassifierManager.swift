@@ -47,7 +47,7 @@ extension MLClassifierManager {
     }
 
     public func classify(_ timelineItem: TimelineItem, timeout: TimeInterval? = nil) -> ClassifierResults? {
-        guard let results = classify(timelineItem.samples.filter { !$0.disabled == timelineItem.disabled }, timeout: timeout) else { return nil }
+        guard let results = classify(timelineItem.samples.filter { $0.disabled == timelineItem.disabled }, timeout: timeout) else { return nil }
 
         // radius is small enough to consider stationary a valid result
         if timelineItem.radius3sd < Visit.maximumRadius { return results }
