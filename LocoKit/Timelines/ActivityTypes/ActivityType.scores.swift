@@ -117,7 +117,7 @@ extension ActivityType {
     // MARK: -
 
     func scoreFor(_ value: Double, in histogram: Histogram) -> Double {
-        return histogram.probabilityFor(value)
+        return histogram.scoreFor(value)
     }
 
     // MARK: -
@@ -153,43 +153,43 @@ extension ActivityType {
     }
     
     func speedScore(for speed: Double) -> Double {
-        return speedHistogram?.probabilityFor(speed) ?? 0
+        return speedHistogram?.scoreFor(speed) ?? 0
     }
     
     func stepHzScore(for stepHz: Double) -> Double {
-        return stepHzHistogram?.probabilityFor(stepHz) ?? 0
+        return stepHzHistogram?.scoreFor(stepHz) ?? 0
     }
     
     func xyScore(for value: Double) -> Double {
-        return xyAccelerationHistogram?.probabilityFor(value) ?? 0
+        return xyAccelerationHistogram?.scoreFor(value) ?? 0
     }
     
     func zScore(for value: Double) -> Double {
-        return zAccelerationHistogram?.probabilityFor(value) ?? 0
+        return zAccelerationHistogram?.scoreFor(value) ?? 0
     }
     
     func courseScore(for value: Double) -> Double {
-        return courseHistogram?.probabilityFor(value) ?? 0
+        return courseHistogram?.scoreFor(value) ?? 0
     }
     
     func courseVarianceScore(for value: Double) -> Double {
-        return courseVarianceHistogram?.probabilityFor(value) ?? 0
+        return courseVarianceHistogram?.scoreFor(value) ?? 0
     }
     
     func altitudeScore(for value: Double) -> Double {
-        return altitudeHistogram?.probabilityFor(value) ?? 0
+        return altitudeHistogram?.scoreFor(value) ?? 0
     }
     
     func timeOfDayScore(for value: Double) -> Double {
-        return timeOfDayHistogram?.probabilityFor(value) ?? 0
+        return timeOfDayHistogram?.scoreFor(value) ?? 0
     }
 
     func horizAccuracyScore(for value: Double) -> Double {
-        return horizontalAccuracyHistogram?.probabilityFor(value) ?? 0
+        return horizontalAccuracyHistogram?.scoreFor(value) ?? 0
     }
     
     func latLongScore(for coordinate: CLLocationCoordinate2D) -> Double {
-        return coordinatesMatrix?.probabilityFor(coordinate, maxThreshold: bucketMax) ?? 0
+        return coordinatesMatrix?.scoreFor(coordinate, maxThreshold: bucketMax) ?? 0
     }
 
     // MARK: -

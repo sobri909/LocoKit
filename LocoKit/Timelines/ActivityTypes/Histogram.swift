@@ -172,7 +172,7 @@ open class Histogram: CustomStringConvertible {
         return bins.count == 1 && bins[0] == 0
     }
     
-    public func probabilityFor(_ value: Double) -> Double {
+    public func scoreFor(_ value: Double) -> Double {
         guard let max = bins.max() else {
             return 0
         }

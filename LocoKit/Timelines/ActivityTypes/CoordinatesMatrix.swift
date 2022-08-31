@@ -150,7 +150,7 @@ open class CoordinatesMatrix: CustomStringConvertible {
 
     // MARK: - Scores
 
-    public func probabilityFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
+    public func scoreFor(_ coordinate: CLLocationCoordinate2D, maxThreshold: Int? = nil) -> Double {
         guard latBinWidth > 0 && lngBinWidth > 0 else { return 0 }
         guard matrixMax > 0 else { return 0 }
 
