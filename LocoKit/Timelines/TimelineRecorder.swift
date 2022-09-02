@@ -26,7 +26,7 @@ public class TimelineRecorder: ObservableObject {
     public var samplesPerMinute: Double = 10
 
     private(set) public var store: TimelineStore
-    private(set) public var classifier: MLCompositeClassifier?
+    public var classifier: MLCompositeClassifier?
     private(set) public var lastClassifierResults: ClassifierResults? {
         didSet { objectWillChange.send() }
     }
