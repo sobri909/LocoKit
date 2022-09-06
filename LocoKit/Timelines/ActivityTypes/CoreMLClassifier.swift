@@ -129,28 +129,34 @@ public class CoreMLClassifier: MLCompositeClassifier {
 
     // MARK: - Model building
 
+    static let modelMaxTrainingSamples = 500_000
+    static let modelSamplesBatchSize = 50_000
+
     @available(iOS 15, *)
     public static func buildModel(in store: TimelineStore) async {
-        let dateRange = DateInterval(
-            start: Date(timeIntervalSinceNow: -.oneYear * 1),
-            end: Date()
-        )
-        
         print("buildModel() START")
 
         let manager = FileManager.default
         let tempModelFile = manager.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mlmodel")
 
-        store.connectToDatabase()
-        let samples = store.samples(
-            where: "date BETWEEN ? AND ? AND confirmedType IS NOT NULL AND source = ?",
-            arguments: [dateRange.start, dateRange.end, "LocoKit"]
-        )
-        print("buildModel() FETCHED SAMPLES: \(samples.count)")
-
         do {
-            let csvFile = try exportCSV(samples: samples)
-            print("buildModel() SAVED CSV")
+            var csvFile: URL?
+            var lastDate: Date?
+            var samplesCount = 0
+            repeat {
+                let samples = fetchTrainingSamples(in: store, from: lastDate)
+                print("buildModel() SAMPLES BATCH: \(samples.count)")
+                csvFile = try exportCSV(samples: samples, appendingTo: csvFile)
+                lastDate = samples.last?.lastSaved
+                samplesCount += samples.count
+                if samplesCount >= CoreMLClassifier.modelMaxTrainingSamples { break }
+            } while lastDate != nil
+            print("buildModel() FINISHED WRITING CSV FILE")
+
+            guard let csvFile else {
+                print("buildModel() NO CSV FILE. WTF?")
+                return
+            }
 
             let dataFrame = try DataFrame(contentsOfCSVFile: csvFile)
             print("buildModel() LOADED CSV")
@@ -172,9 +178,40 @@ public class CoreMLClassifier: MLCompositeClassifier {
         }
     }
 
-    private static func exportCSV(samples: [PersistentSample]) throws -> URL {
-        print("exportCSV() samples: \(samples.count)")
+    private static func fetchTrainingSamples(in store: TimelineStore, from: Date? = nil) -> [PersistentSample] {
+        store.connectToDatabase()
+        if let from {
+            return store.samples(
+                where: """
+                    source = ? AND lastSaved < ?
+                    AND confirmedType IS NOT NULL
+                    AND lastSaved IS NOT NULL
+                    AND xyAcceleration IS NOT NULL
+                    AND zAcceleration IS NOT NULL
+                    AND stepHz IS NOT NULL
+                        ORDER BY lastSaved DESC
+                        LIMIT ?
+                    """,
+                arguments: ["LocoKit", from, CoreMLClassifier.modelSamplesBatchSize]
+            )
+        } else {
+            return store.samples(
+                where: """
+                    source = ?
+                    AND confirmedType IS NOT NULL
+                    AND lastSaved IS NOT NULL
+                    AND xyAcceleration IS NOT NULL
+                    AND zAcceleration IS NOT NULL
+                    AND stepHz IS NOT NULL
+                        ORDER BY lastSaved DESC
+                        LIMIT ?
+                    """,
+                arguments: ["LocoKit", CoreMLClassifier.modelSamplesBatchSize]
+            )
+        }
+    }
 
+    private static func exportCSV(samples: [PersistentSample], appendingTo: URL? = nil) throws -> URL {
         let modelFeatures = [
             "stepHz", "xyAcceleration", "zAcceleration", "movingState",
             "verticalAccuracy", "horizontalAccuracy",
@@ -182,12 +219,15 @@ public class CoreMLClassifier: MLCompositeClassifier {
             "timeOfDay", "confirmedType"
         ]
 
-        let csvFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let csvFile = appendingTo ?? FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 
         // header the csv file
-        try modelFeatures.joined(separator: ",").appendLineToURL(fileURL: csvFile)
+        if appendingTo == nil {
+            try modelFeatures.joined(separator: ",").appendLineToURL(fileURL: csvFile)
+        }
 
         // write the samples to file
+        var count = 0
         for sample in samples where sample.confirmedType != nil {
             guard let location = sample.location, location.hasUsableCoordinate else { continue }
             guard location.speed >= 0, location.course >= 0 else { continue }
@@ -206,9 +246,10 @@ public class CoreMLClassifier: MLCompositeClassifier {
             line += "\(sample.timeOfDay),\"\(sample.confirmedType!)\""
 
             try line.appendLineToURL(fileURL: csvFile)
+            count += 1
         }
 
-        print("exportCSV() FINI")
+        print("exportCSV() WROTE SAMPLES: \(count)")
 
         return csvFile
     }
