@@ -257,6 +257,11 @@ internal extension TimelineStore {
                 table.add(column: "disabled", .boolean).notNull().defaults(to: false)
             }
         }
+
+        migrator.registerMigration("LocomotionSample_on_source_lastSaved_confirmedType") { db in
+            try? db.create(index: "LocomotionSample_on_source_lastSaved_confirmedType", on: "LocomotionSample",
+                           columns: ["source", "lastSaved", "confirmedType"])
+        }
     }
 
 }
