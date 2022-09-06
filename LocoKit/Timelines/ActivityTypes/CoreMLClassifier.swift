@@ -7,19 +7,43 @@
 
 import Foundation
 import CoreLocation
+import TabularData
+import CreateML
 import CoreML
 import Upsurge
+import BackgroundTasks
 
 public class CoreMLClassifier: MLCompositeClassifier {
 
-    let model: CoreML.MLModel
+    private var modelURL: URL
+    private var model: CoreML.MLModel
 
-    public init() {
-        self.model = try! CoreML.MLModel(contentsOf: CoreMLClassifier.modelURL)
+    public init() throws {
+        self.model = try CoreML.MLModel(contentsOf: CoreMLClassifier.customModelURL)
+        self.modelURL = CoreMLClassifier.customModelURL
     }
 
-    class var modelURL: URL {
-        return Bundle(for: self).url(forResource: "ActivityTypeCoreMLClassifier2", withExtension:"mlmodelc")!
+    public init(modelURL: URL) throws {
+        self.modelURL = modelURL
+        self.model = try CoreML.MLModel(contentsOf: modelURL)
+    }
+
+    // MARK: -
+
+    class var customModelURL: URL {
+        return try! FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("CoreMLModel.mlmodelc")
+    }
+
+    public func reloadModel(modelURL: URL? = nil) throws {
+        if let modelURL {
+            self.model = try CoreML.MLModel(contentsOf: modelURL)
+            self.modelURL = modelURL
+        } else {
+            self.model = try CoreML.MLModel(contentsOf: CoreMLClassifier.customModelURL)
+            self.modelURL = CoreMLClassifier.customModelURL
+        }
     }
 
     // MARK: - MLCompositeClassifier
@@ -102,5 +126,91 @@ public class CoreMLClassifier: MLCompositeClassifier {
 
         return ClassifierResults(results: finalResults, moreComing: false)
     }
-    
+
+    // MARK: - Model building
+
+    @available(iOS 15, *)
+    public static func buildModel(in store: TimelineStore) async {
+        let dateRange = DateInterval(
+            start: Date(timeIntervalSinceNow: -.oneYear * 1),
+            end: Date()
+        )
+        
+        print("buildModel() START")
+
+        let manager = FileManager.default
+        let tempModelFile = manager.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mlmodel")
+
+        store.connectToDatabase()
+        let samples = store.samples(
+            where: "date BETWEEN ? AND ? AND confirmedType IS NOT NULL AND source = ?",
+            arguments: [dateRange.start, dateRange.end, "LocoKit"]
+        )
+        print("buildModel() FETCHED SAMPLES: \(samples.count)")
+
+        do {
+            let csvFile = try exportCSV(samples: samples)
+            print("buildModel() SAVED CSV")
+
+            let dataFrame = try DataFrame(contentsOfCSVFile: csvFile)
+            print("buildModel() LOADED CSV")
+
+            let classifier = try MLBoostedTreeClassifier(trainingData: dataFrame, targetColumn: "confirmedType")
+            print("buildModel() TRAINED CLASSIFIER")
+
+            try classifier.write(to: tempModelFile)
+            print("buildModel() WROTE TEMP FILE")
+
+            let compiledModelFile = try CoreML.MLModel.compileModel(at: tempModelFile)
+            print("buildModel() COMPILED MODEL")
+
+            _ = try manager.replaceItemAt(CoreMLClassifier.customModelURL, withItemAt: compiledModelFile)
+            print("buildModel() SAVED MODEL TO FINAL URL")
+
+        } catch {
+            print("buildModel() ERROR: \(error)")
+        }
+    }
+
+    private static func exportCSV(samples: [PersistentSample]) throws -> URL {
+        print("exportCSV() samples: \(samples.count)")
+
+        let modelFeatures = [
+            "stepHz", "xyAcceleration", "zAcceleration", "movingState",
+            "verticalAccuracy", "horizontalAccuracy",
+            "speed", "course", "latitude", "longitude", "altitude",
+            "timeOfDay", "confirmedType"
+        ]
+
+        let csvFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+
+        // header the csv file
+        try modelFeatures.joined(separator: ",").appendLineToURL(fileURL: csvFile)
+
+        // write the samples to file
+        for sample in samples where sample.confirmedType != nil {
+            guard let location = sample.location, location.hasUsableCoordinate else { continue }
+            guard location.speed >= 0, location.course >= 0 else { continue }
+            guard let stepHz = sample.stepHz else { continue }
+            guard let xyAcceleration = sample.xyAcceleration else { continue }
+            guard let zAcceleration = sample.zAcceleration else { continue }
+            guard location.speed >= 0 else { continue }
+            guard location.course >= 0 else { continue }
+            guard location.horizontalAccuracy > 0 else { continue }
+            guard location.verticalAccuracy > 0 else { continue }
+
+            var line = ""
+            line += "\(stepHz),\(xyAcceleration),\(zAcceleration),\"\(sample.movingState.rawValue)\","
+            line += "\(location.horizontalAccuracy),\(location.verticalAccuracy),"
+            line += "\(location.speed),\(location.course),\(location.coordinate.latitude),\(location.coordinate.longitude),\(location.altitude),"
+            line += "\(sample.timeOfDay),\"\(sample.confirmedType!)\""
+
+            try line.appendLineToURL(fileURL: csvFile)
+        }
+
+        print("exportCSV() FINI")
+
+        return csvFile
+    }
+
 }

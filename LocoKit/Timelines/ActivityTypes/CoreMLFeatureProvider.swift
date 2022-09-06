@@ -72,7 +72,7 @@ class CoreMLFeatureProvider: MLFeatureProvider {
             return MLFeatureValue(double: longitude ?? kCLLocationCoordinate2DInvalid.longitude)
         }
         if (featureName == "altitude") {
-            return MLFeatureValue(double: altitude ?? Double.greatestFiniteMagnitude)
+            return MLFeatureValue(double: altitude ?? 0)
         }
         if (featureName == "timeOfDay") {
             return MLFeatureValue(double: timeOfDay)

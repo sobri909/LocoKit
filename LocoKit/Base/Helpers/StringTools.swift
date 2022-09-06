@@ -136,5 +136,28 @@ public extension String {
         guard self.hasPrefix(prefix) else { return self }
         return String(self.dropFirst(prefix.count))
     }
+    
+    func appendLineToURL(fileURL: URL) throws {
+        try appendingFormat("\n").appendToURL(fileURL: fileURL)
+    }
 
+    func appendToURL(fileURL: URL) throws {
+        let dataObj = data(using: .utf8)!
+        try dataObj.appendToURL(fileURL)
+    }
+
+}
+
+extension Data {
+    func appendToURL(_ fileURL: URL) throws {
+        if let fileHandle = try? FileHandle(forWritingTo: fileURL) {
+            defer {
+                fileHandle.closeFile()
+            }
+            fileHandle.seekToEndOfFile()
+            fileHandle.write(self)
+        } else {
+            try write(to: fileURL, options: .atomic)
+        }
+    }
 }
