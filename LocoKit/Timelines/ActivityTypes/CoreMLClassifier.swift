@@ -19,8 +19,8 @@ public class CoreMLClassifier: MLCompositeClassifier {
     private var model: CoreML.MLModel
 
     public init() throws {
-        self.model = try CoreML.MLModel(contentsOf: CoreMLClassifier.customModelURL)
-        self.modelURL = CoreMLClassifier.customModelURL
+        self.model = try CoreML.MLModel(contentsOf: CoreMLClassifier.defaultModelURL)
+        self.modelURL = CoreMLClassifier.defaultModelURL
     }
 
     public init(modelURL: URL) throws {
@@ -30,7 +30,7 @@ public class CoreMLClassifier: MLCompositeClassifier {
 
     // MARK: -
 
-    class var customModelURL: URL {
+    public static var defaultModelURL: URL {
         return try! FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("CoreMLModel.mlmodelc")
@@ -41,8 +41,7 @@ public class CoreMLClassifier: MLCompositeClassifier {
             self.model = try CoreML.MLModel(contentsOf: modelURL)
             self.modelURL = modelURL
         } else {
-            self.model = try CoreML.MLModel(contentsOf: CoreMLClassifier.customModelURL)
-            self.modelURL = CoreMLClassifier.customModelURL
+            self.model = try CoreML.MLModel(contentsOf: self.modelURL)
         }
     }
 
@@ -133,7 +132,7 @@ public class CoreMLClassifier: MLCompositeClassifier {
     static let modelSamplesBatchSize = 50_000
 
     @available(iOS 15, *)
-    public static func buildModel(in store: TimelineStore) async {
+    public static func buildModel(in store: TimelineStore, modelURL finalFile: URL = CoreMLClassifier.defaultModelURL) async {
         print("buildModel() START")
 
         let manager = FileManager.default
@@ -170,7 +169,7 @@ public class CoreMLClassifier: MLCompositeClassifier {
             let compiledModelFile = try CoreML.MLModel.compileModel(at: tempModelFile)
             print("buildModel() COMPILED MODEL")
 
-            _ = try manager.replaceItemAt(CoreMLClassifier.customModelURL, withItemAt: compiledModelFile)
+            _ = try manager.replaceItemAt(finalFile, withItemAt: compiledModelFile)
             print("buildModel() SAVED MODEL TO FINAL URL")
 
         } catch {
