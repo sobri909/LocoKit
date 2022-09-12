@@ -350,7 +350,9 @@ public class TimelineProcessor {
             }
 
             // keep currentItem sane
-            store.recorder?.updateCurrentItem()
+            store.process {
+                store.recorder?.updateCurrentItem()
+            }
 
             // complete with the new item
             completion?(newItem)
@@ -724,6 +726,11 @@ public class TimelineProcessor {
 
             // 6. heal the edges
             healEdges(of: timelineItem)
+
+            // current item might be wrong
+            store.process {
+                store.recorder?.updateCurrentItem()
+            }
         }
     }
 
