@@ -693,7 +693,7 @@ public class TimelineProcessor {
                 let endSamples = biggerItem.samples.filter { $0.date > dateRange.end }
                 if !endSamples.isEmpty {
                     let endItem: TimelineItem
-                    if timelineItem.isVisit {
+                    if biggerItem.isVisit {
                         endItem = store.createVisit(from: endSamples)
                     } else {
                         endItem = store.createPath(from: endSamples)
