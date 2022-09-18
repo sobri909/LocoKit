@@ -99,7 +99,7 @@ public struct LocoKitService {
 
         requestingWakeupCall = true
 
-        logger.debug("requestWakeup(at: \(String(describing: wakeupDate))")
+        logger.debug("requestWakeup(at: \(String(describing: wakeupDate)))")
 
         if useStaging { logger.debug("USING STAGING") }
 
