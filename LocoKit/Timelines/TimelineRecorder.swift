@@ -12,6 +12,7 @@ public extension NSNotification.Name {
     static let newTimelineItem = Notification.Name("newTimelineItem")
     static let updatedTimelineItem = Notification.Name("updatedTimelineItem")
     static let currentItemChanged = Notification.Name("currentItemChanged")
+    static let currentItemTitleChanged = Notification.Name("currentItemTitleChanged")
 }
 
 public class TimelineRecorder: ObservableObject {
@@ -150,6 +151,8 @@ public class TimelineRecorder: ObservableObject {
 
     public var currentVisit: Visit? { return currentItem as? Visit }
 
+    private var currentItemTitle: String?
+
     private var lastRecorded: Date?
     
     private func recordSample() {
@@ -183,6 +186,12 @@ public class TimelineRecorder: ObservableObject {
     }
 
     public func process(_ sample: PersistentSample) {
+        defer {
+            if currentItem?.title != currentItemTitle {
+                NotificationCenter.default.post(Notification(name: .currentItemTitleChanged))
+            }
+            currentItemTitle = currentItem?.title
+        }
 
         /** first timeline item **/
         guard let currentItem = currentItem else {
@@ -276,6 +285,7 @@ public class TimelineRecorder: ObservableObject {
         onMain {
             let note = Notification(name: .newTimelineItem, object: self, userInfo: ["timelineItem": newItem])
             NotificationCenter.default.post(note)
+            NotificationCenter.default.post(Notification(name: .currentItemChanged))
         }
     }
     
