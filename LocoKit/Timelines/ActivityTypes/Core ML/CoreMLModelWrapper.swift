@@ -317,48 +317,58 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         store.connectToDatabase()
 
         if let from {
-            return store.samples(
+            var start = Date()
+            let unfiltered = store.samples(
                 where: """
                     source = ? AND lastSaved < ?
                     AND confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
-                    AND latitude > ? AND latitude < ?
-                    AND longitude > ? AND longitude < ?
                     AND stepHz IS NOT NULL
                         ORDER BY lastSaved DESC
                         LIMIT ?
                     """,
-                arguments: [
-                    "LocoKit", from,
-                    self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
-                    self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
-                    Self.modelSamplesBatchSize
-                ]
+                arguments: ["LocoKit", from, Self.modelSamplesBatchSize]
             )
+            print("UNFILTERED: \(unfiltered.count), duration: \(start.age)")
+
+            // SQLite sucks at range queries, so do it here instead
+            start = Date()
+            let filtered = unfiltered.filter {
+                guard let coordinate = $0.location?.coordinate else { return false }
+                return self.contains(coordinate: coordinate)
+            }
+            print("FILTERED: \(filtered.count), duration: \(start.age)")
+
+            return filtered
 
         } else {
-            return store.samples(
+            var start = Date()
+            let unfiltered = store.samples(
                 where: """
                     source = ?
                     AND confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
-                    AND latitude > ? AND latitude < ?
-                    AND longitude > ? AND longitude < ?
                     AND stepHz IS NOT NULL
                         ORDER BY lastSaved DESC
                         LIMIT ?
                     """,
-                arguments: [
-                    "LocoKit",
-                    self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
-                    self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
-                    Self.modelSamplesBatchSize
-                ]
+                arguments: ["LocoKit", Self.modelSamplesBatchSize]
             )
+            print("UNFILTERED: \(unfiltered.count), duration: \(start.age)")
+
+            // SQLite sucks at range queries, so do it here instead
+            start = Date()
+            let filtered = unfiltered.filter {
+                guard let coordinate = $0.location?.coordinate else { return false }
+                return self.contains(coordinate: coordinate)
+            }
+            print("FILTERED: \(filtered.count), duration: \(start.age)")
+
+            return filtered
         }
     }
 
