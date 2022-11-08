@@ -17,7 +17,7 @@ import os.log
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
-    static let modelMaxTrainingSamples = 500_000
+    static let modelMaxTrainingSamples = 200_000
     static let modelMinTrainingSamples = 50_000 // for completenessScore
     static let modelSamplesBatchSize = 50_000
 
