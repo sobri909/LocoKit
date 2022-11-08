@@ -13,7 +13,6 @@ import Reachability
 #endif
 
 public protocol MLClassifierManager: MLCompositeClassifier {
-    
     associatedtype Classifier: MLClassifier
 
     var sampleClassifier: Classifier? { get set }
@@ -23,7 +22,6 @@ public protocol MLClassifierManager: MLCompositeClassifier {
     #endif
 
     var mutex: PThreadMutex { get }
-
 }
 
 extension MLClassifierManager {
@@ -173,7 +171,7 @@ extension MLClassifierManager {
         #endif
 
         // attempt to get an updated classifier
-        if let replacement = Classifier(requestedTypes: ActivityTypeName.allTypes, coordinate: coordinate) {
+        if let replacement = Classifier(coordinate: coordinate, depth: 2) {
             sampleClassifier = replacement
         }
     }

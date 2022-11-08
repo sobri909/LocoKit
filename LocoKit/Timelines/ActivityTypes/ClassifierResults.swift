@@ -6,71 +6,8 @@
 //  Copyright © 2017 Big Paua. All rights reserved.
 //
 
-/**
- The results of a call to `classify(_:types:)` on an `ActivityTypeClassifier`.
+import Upsurge
 
- Classifier Results are an iterable sequence of `ClassifierResultItem` rows, with each row representing a single
- `ActivityTypeName` and its match probability score.
-
- The results are ordered from best match to worst match, thus the first result row represents the best match for the
- given sample.
-
- ## Using The Results
-
- The simplest way to use the results is to take the first result row (ie the best match) and ignore the rest.
-
- ```swift
- let results = classifier.classify(sample)
-
- let bestMatch = results.first
- ```
-
- You could also iterate through the results, in order from best match to worst match.
-
- ```swift
- for result in results {
-     print("name: \(result.name) score: \(result.score)")
- }
- ```
-
- If you want to know the probability score of a specific type, you could extract that result row by `ActivityTypeName`:
-
- ```swift
- let walkingResult = results[.walking]
- ```
-
- If you want the first and second result rows:
-
- ```swift
- let firstResult = results[0]
- let secondResult = results[1]
- ```
-
- ## Interpreting Classifier Results
-
- Two key indicators can help to interpret the probability scores. The first being the most obvious: a higher score
- indicates a better match.
-
- The second, and perhaps more important indicator, is the ratio of the best match's score to the second best match's
- score.
-
- For example if the first result row has a probability score of 0.9 (a 90% match) while the second result row's score
- is 0.1 (a 10% match), that indicates that the best match is nine times more probable than the second best match
- (`0.9 / 0.1 = 9.0`). However if the second row's score where instead 0.8, the first row would only be 1.125 times more
- probable than the second (`0.9 / 0.8 = 1.125`).
-
- The ratio between the first and second best matches can be loosely considered a "confidence" score. Thus the
- `0.9 / 0.1 = 9.0` example gives a confidence score of 9.0, whilst the second example of `0.9 / 0.8 = 1.125` gives
- a much lower confidence score of 1.125.
-
- A real world example might be results that have "car" and "bus" as the top two results. If both types achieve a high
- probability score, but the scores are close together, that indicates there is high confidence that the type is either
- car or bus, but low confidence of knowing which one of the two it is.
-
- The easiest way to apply these two metrics is with simple thresholds. For example a raw score threshold of 0.01
- and a first-to-second-match ratio threshold of 2.0. If the first match falls below these thresholds, you could consider
- it an "uncertain" match. Although which kinds of thresholds to use will depend heavily on the application.
- */
 public struct ClassifierResults: Sequence, IteratorProtocol {
     
     internal let results: [ClassifierResultItem]
@@ -88,6 +25,54 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
         self.results = resultItems
         self.moreComing = false
     }
+
+    public init(merging resultsArray: [ClassifierResults]) {
+        var allScores: [ActivityTypeName: ValueArray<Double>] = [:]
+        for typeName in ActivityTypeName.allTypes {
+            allScores[typeName] = ValueArray(capacity: resultsArray.count)
+        }
+
+        for result in resultsArray {
+            for typeName in ActivityTypeName.allTypes {
+                if let resultRow = result[typeName] {
+                    allScores[resultRow.name]!.append(resultRow.score)
+                } else {
+                    allScores[typeName]!.append(0)
+                }
+            }
+        }
+
+        var mergedResults: [ClassifierResultItem] = []
+        for typeName in ActivityTypeName.allTypes {
+            var finalScore = 0.0
+            if let scores = allScores[typeName], !scores.isEmpty {
+                finalScore = mean(scores)
+            }
+            mergedResults.append(ClassifierResultItem(name: typeName, score: finalScore))
+        }
+
+        self.init(results: mergedResults, moreComing: false)
+    }
+
+    func merging(_ otherResults: ClassifierResults, withWeight otherWeight: Double) -> ClassifierResults {
+        let selfWeight = 1.0 - otherWeight
+
+        var combinedDict: [ActivityTypeName: ClassifierResultItem] = [:]
+        let combinedTypes = Set(self.results.map { $0.name } + otherResults.map { $0.name })
+
+        for typeName in combinedTypes {
+            let selfScore = self[typeName]?.score ?? 0.0
+            let otherScore = otherResults[typeName]?.score ?? 0.0
+            let mergedScore = (selfScore * selfWeight) + (otherScore * otherWeight)
+            let mergedItem = ClassifierResultItem(name: typeName, score: mergedScore)
+            combinedDict[typeName] = mergedItem
+        }
+
+        return ClassifierResults(results: Array(combinedDict.values),
+                                 moreComing: self.moreComing || otherResults.moreComing)
+    }
+
+    // MARK: -
     
     private lazy var arrayIterator: IndexingIterator<Array<ClassifierResultItem>> = {
         return self.results.makeIterator()

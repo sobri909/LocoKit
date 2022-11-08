@@ -46,6 +46,7 @@ open class TimelineStore {
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
     private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
     private let modelMap = NSMapTable<NSString, ActivityType>.strongToWeakObjects()
+    private let coreMLModelMap = NSMapTable<NSString, CoreMLModelWrapper>.strongToWeakObjects()
     private let segmentMap = NSMapTable<NSNumber, TimelineSegment>.strongToWeakObjects()
 
     public private(set) var processing = false {
@@ -159,6 +160,10 @@ open class TimelineStore {
 
     open func add(_ model: ActivityType) {
         mutex.sync { modelMap.setObject(model, forKey: model.geoKey as NSString) }
+    }
+
+    open func add(_ model: CoreMLModelWrapper) {
+        mutex.sync { coreMLModelMap.setObject(model, forKey: model.geoKey as NSString) }
     }
 
     open func add(_ segment: TimelineSegment) {
@@ -307,6 +312,26 @@ open class TimelineStore {
         fatalError("FAILED MODEL INIT FROM ROW")
     }
 
+
+    // MARK: - Core ML model fetching
+
+    public func coreMLModel(where query: String, arguments: StatementArguments = StatementArguments()) -> CoreMLModelWrapper? {
+        return coreMLModel(for: "SELECT * FROM CoreMLModel WHERE " + query, arguments: arguments)
+    }
+
+    public func coreMLModel(for query: String, arguments: StatementArguments = StatementArguments()) -> CoreMLModelWrapper? {
+        return try! auxiliaryPool.read { db in
+            guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
+            return coreMLModel(for: row)
+        }
+    }
+
+    func coreMLModel(for row: Row) -> CoreMLModelWrapper {
+        guard let geoKey = row["geoKey"] as String? else { fatalError("MISSING GEOKEY") }
+        if let cached = mutex.sync(execute: { coreMLModelMap.object(forKey: geoKey as NSString) }) { return cached }
+        return CoreMLModelWrapper(dict: row.asDict(in: self), in: self)
+    }
+
     // MARK: - Segments
 
     public func segment(for dateRange: DateInterval) -> TimelineSegment {
@@ -351,6 +376,16 @@ open class TimelineStore {
         return try! auxiliaryPool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
         }
+    }
+
+    public func countCoreMLModels(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
+        return try! auxiliaryPool.read { db in
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM CoreMLModel WHERE " + query, arguments: arguments)!
+        }
+    }
+
+    public var coreMLModelsPendingUpdate: Int {
+        return countCoreMLModels(where: "needsUpdate = 1")
     }
 
     // MARK: - Saving

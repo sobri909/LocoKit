@@ -13,6 +13,9 @@ internal extension TimelineStore {
 
         // initial tables creation
         migrator.registerMigration("CreateTables") { db in
+
+            // MARK: CREATE TimelineItem
+
             try db.create(table: "TimelineItem") { table in
                 table.column("itemId", .text).primaryKey()
 
@@ -42,6 +45,8 @@ internal extension TimelineStore {
                 table.column("latitude", .double)
                 table.column("longitude", .double)
             }
+
+            // MARK: CREATE LocomotionSample
 
             try db.create(table: "LocomotionSample") { table in
                 table.column("sampleId", .text).primaryKey()
@@ -76,12 +81,16 @@ internal extension TimelineStore {
                 table.column("course", .double)
             }
 
+            // MARK: Multicolumn indexes
+
             try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
                           columns: ["timelineItemId", "deleted", "date"])
             try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
                           columns: ["confirmedType", "latitude", "longitude", "date"])
             try db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
                           columns: ["confirmedType", "lastSaved"])
+
+            // MARK: Triggers
 
             /** maintaining the linked list **/
 
@@ -143,6 +152,8 @@ internal extension TimelineStore {
                 """)
         }
 
+        // MARK: - Main database migrations
+
         migrator.registerMigration("7.0.1 segments") { db in
             try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
                           columns: ["deleted", "startDate"])
@@ -170,6 +181,9 @@ internal extension TimelineStore {
     // MARK: - Auxiliary database
 
     func registerAuxiliaryDbMigrations() {
+
+        // MARK: ActivityTypeModel
+
         auxiliaryDbMigrator.registerMigration("7.0.0 models") { db in
             try db.create(table: "ActivityTypeModel") { table in
                 table.column("geoKey", .text).primaryKey()
@@ -206,6 +220,29 @@ internal extension TimelineStore {
             }
         }
 
+        // MARK: CoreMLModel
+
+        auxiliaryDbMigrator.registerMigration("CoreMLModel") { db in
+            try db.create(table: "CoreMLModel") { table in
+                table.column("geoKey", .text).primaryKey()
+                table.column("lastSaved", .datetime).notNull().indexed()
+                table.column("lastUpdated", .datetime).indexed()
+                table.column("filename", .text).notNull()
+
+                table.column("depth", .integer).notNull().indexed()
+                table.column("needsUpdate", .boolean).indexed()
+                table.column("totalSamples", .integer).notNull()
+                table.column("accuracyScore", .double)
+
+                table.column("latitudeMax", .double).notNull().indexed()
+                table.column("latitudeMin", .double).notNull().indexed()
+                table.column("longitudeMax", .double).notNull().indexed()
+                table.column("longitudeMin", .double).notNull().indexed()
+            }
+        }
+
+        // MARK: CoordinateTrust
+
         auxiliaryDbMigrator.registerMigration("7.0.6 trust factor") { db in
             try db.create(table: "CoordinateTrust") { table in
                 table.column("latitude", .double).notNull()
@@ -214,6 +251,8 @@ internal extension TimelineStore {
                 table.column("trustFactor", .double).notNull()
             }
         }
+
+        // MARK: - Auxiliary database migrations
         
         auxiliaryDbMigrator.registerMigration("ActivityTypeModel FlatBuffers") { db in
             try? db.alter(table: "ActivityTypeModel") { table in
@@ -222,7 +261,7 @@ internal extension TimelineStore {
         }
     }
 
-    // MARK: - Delayable migrations
+    // MARK: - Delayed migrations
 
     func registerDelayedMigrations() {
         migrator.registerMigration("7.0.6 recent confirmed samples") { db in

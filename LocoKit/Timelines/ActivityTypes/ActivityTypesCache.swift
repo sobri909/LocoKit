@@ -27,6 +27,8 @@ public final class ActivityTypesCache: MLModelSource {
     
     public var providesDepths = [0, 1, 2]
 
+    // MARK: - Model fetching
+
     public func modelFor(name: ActivityTypeName, coordinate: CLLocationCoordinate2D, depth: Int) -> ActivityType? {
         guard let store = store else { return nil }
         guard providesDepths.contains(depth) else { return nil }
@@ -76,7 +78,35 @@ public final class ActivityTypesCache: MLModelSource {
 
         return models
     }
-    
+
+    // MARK: - Core ML model fetching
+
+    public func coreMLModelFor(coordinate: CLLocationCoordinate2D, depth: Int) -> CoreMLModelWrapper? {
+        guard let store = store else { return nil }
+
+        var query = "SELECT * FROM CoreMLModel WHERE depth = ?"
+        var arguments: [DatabaseValueConvertible] = [depth]
+
+        if depth > 0 {
+            query += " AND latitudeMin <= ? AND latitudeMax >= ? AND longitudeMin <= ? AND longitudeMax >= ?"
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.latitude)
+            arguments.append(coordinate.longitude)
+            arguments.append(coordinate.longitude)
+        }
+
+        if let model = store.coreMLModel(for: query, arguments: StatementArguments(arguments)) {
+            return model
+        }
+
+        // create if missing
+        let model = CoreMLModelWrapper(coordinate: coordinate, depth: depth, in: store)
+        logger.info("NEW CORE ML MODEL: [\(model.geoKey)]")
+        model.needsUpdate = true
+        model.save()
+        return model
+    }
+
     // MARK: - Remote model fetching
 
     func fetchTypesFor(coordinate: CLLocationCoordinate2D, depth: Int) {
