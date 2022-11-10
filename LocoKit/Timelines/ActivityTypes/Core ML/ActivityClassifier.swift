@@ -17,7 +17,7 @@ public class ActivityClassifier: MLCompositeClassifier {
 
     public static var highlander = ActivityClassifier()
 
-    private var discreteClassifiers: [Int: any DiscreteClassifier] = [:] // index = depth
+    private var discreteClassifiers: [Int: any DiscreteClassifier] = [:] // index = priority
 
     private let mutex = PThreadMutex(type: .recursive)
 
@@ -29,6 +29,9 @@ public class ActivityClassifier: MLCompositeClassifier {
     }
 
     public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults? {
+
+        // make sure have suitable classifiers
+        if let coordinate = classifiable.location?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
 
         // highest priorty first (ie D2 first)
         let classifiers = discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value }
@@ -64,6 +67,12 @@ public class ActivityClassifier: MLCompositeClassifier {
     }
 
     public func classify(_ samples: [ActivityTypeClassifiable], timeout: TimeInterval? = nil) -> ClassifierResults? {
+
+        // make sure have suitable classifiers
+        // TODO: this sucks for itms briding D2 regions
+        let center = samples.compactMap { $0.location }.center
+        if let coordinate = center?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
+
         if samples.isEmpty { return nil }
 
         let start = Date()
@@ -122,47 +131,44 @@ public class ActivityClassifier: MLCompositeClassifier {
             return classifier.contains(coordinate: coordinate)
         }
 
+        // all existing classfiiers are good?
+        if updated.count == 4 { return }
+
         let cache = ActivityTypesCache.highlander
 
-        var changed = false
-
-        // always need a D2
-        if updated[2] == nil {
-            if let cd2 = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
-                updated[2] = cd2
-                changed = true
-
-            // } else if ud2 = ... { TODO: fetcd UD2
-
-            } else if let gd2 = ActivityTypeClassifier(coordinate: coordinate, depth: 2) {
-                updated[2] = gd2
-                changed = true
+        // get a CD2
+        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("CD2") == true }) == nil {
+            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
+                print("FETCHED: \(classifier.id)")
+                updated[3] = classifier // priority 3 (top)
             }
         }
 
-        if updated[1] == nil {
-            if let gd1 = ActivityTypeClassifier(coordinate: coordinate, depth: 1) {
-                updated[1] = gd1
-                changed = true
+        // get a GD2
+        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD2") == true }) == nil {
+            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 2)  {
+                print("FETCHED: \(classifier.id)")
+                updated[2] = classifier
             }
         }
 
-        if updated[0] == nil {
-            if let gd0 = ActivityTypeClassifier(coordinate: coordinate, depth: 0) {
-                updated[0] = gd0
-                changed = true
+        // get a GD1
+        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD1") == true }) == nil {
+            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 1)  {
+                print("FETCHED: \(classifier.id)")
+                updated[1] = classifier
+            }
+        }
+
+        // get a GD0
+        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD0") == true }) == nil {
+            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 0)  {
+                print("FETCHED: \(classifier.id)")
+                updated[0] = classifier
             }
         }
 
         discreteClassifiers = updated
-
-        if changed {
-            print("updateDiscreteClassifiers() discreteClassifiers:")
-            let classifiers = discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value }
-            for classifier in classifiers {
-                print("\(classifier.id)")
-            }
-        }
     }
 
 }
