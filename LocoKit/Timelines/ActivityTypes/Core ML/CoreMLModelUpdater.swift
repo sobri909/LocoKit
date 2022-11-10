@@ -90,7 +90,7 @@ public class CoreMLModelUpdater {
         // do the job
         store.connectToDatabase()
         if let model = store.coreMLModel(where: "needsUpdate = 1") {
-            model.updatedModel(task: task, in: store) // TODO: this should recurse back to here on completion
+            model.updatedModel(task: task, in: store)
             return
         }
 

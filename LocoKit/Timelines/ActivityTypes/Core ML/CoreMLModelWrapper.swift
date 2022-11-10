@@ -240,7 +240,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     @available(iOS 15, *)
     public func updatedModel(task: BGProcessingTask? = nil, in store: TimelineStore) {
         CoreMLModelUpdater.highlander.updatesQueue.addOperation {
-            let done = {
+            defer {
                 if let task {
                     CoreMLModelUpdater.highlander.updateQueuedModels(task: task, store: store)
                 }
@@ -255,20 +255,33 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 var csvFile: URL?
                 var lastDate: Date?
                 var samplesCount = 0
+                var includedTypes: Set<ActivityTypeName> = []
                 repeat {
                     let start = Date()
                     let samples = self.fetchTrainingSamples(in: store, from: lastDate)
                     print("buildModel() SAMPLES BATCH: \(samples.count), duration: \(start.age)")
-                    let (url, added) = try self.exportCSV(samples: samples, appendingTo: csvFile)
+                    let (url, samplesAdded, typesAdded) = try self.exportCSV(samples: samples, appendingTo: csvFile)
                     csvFile = url
-                    lastDate = samples.last?.lastSaved
-                    samplesCount += added
+                    samplesCount += samplesAdded
+                    includedTypes.formUnion(typesAdded)
                     if samplesCount >= Self.modelMaxTrainingSamples { break }
+                    lastDate = samples.last?.lastSaved
                 } while lastDate != nil
+
+                guard samplesCount > 0, includedTypes.count > 1 else {
+                    logger.info("SKIPPED: \(self.geoKey) (samples: \(samplesCount), includedTypes: \(includedTypes.count))")
+                    self.totalSamples = samplesCount
+                    self.accuracyScore = nil
+                    self.lastUpdated = Date()
+                    self.needsUpdate = false
+                    self.save()
+                    return
+                }
+
                 print("buildModel() FINISHED WRITING CSV FILE")
 
                 guard let csvFile else {
-                    print("buildModel() NO CSV FILE. WTF?")
+                    logger.error("Missing CSV file for model build.")
                     return
                 }
 
@@ -307,8 +320,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             } catch {
                 logger.error("buildModel() ERROR: \(error)")
             }
-
-            done()
         }
     }
 
@@ -357,7 +368,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         }
     }
 
-    private func exportCSV(samples: [PersistentSample], appendingTo: URL? = nil) throws -> (URL, Int) {
+    private func exportCSV(samples: [PersistentSample], appendingTo: URL? = nil) throws -> (URL, Int, Set<ActivityTypeName>) {
         let modelFeatures = [
             "stepHz", "xyAcceleration", "zAcceleration", "movingState",
             "verticalAccuracy", "horizontalAccuracy",
@@ -372,8 +383,10 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             try modelFeatures.joined(separator: ",").appendLineToURL(fileURL: csvFile)
         }
 
+        var samplesAdded = 0
+        var includedTypes: Set<ActivityTypeName> = []
+
         // write the samples to file
-        var count = 0
         for sample in samples where sample.confirmedType != nil {
             guard let location = sample.location, location.hasUsableCoordinate else { continue }
             guard location.speed >= 0, location.course >= 0 else { continue }
@@ -385,6 +398,8 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             guard location.horizontalAccuracy > 0 else { continue }
             guard location.verticalAccuracy > 0 else { continue }
 
+            includedTypes.insert(sample.confirmedType!)
+
             var line = ""
             line += "\(stepHz),\(xyAcceleration),\(zAcceleration),\"\(sample.movingState.rawValue)\","
             line += "\(location.horizontalAccuracy),\(location.verticalAccuracy),"
@@ -392,12 +407,12 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             line += "\(sample.timeOfDay),\"\(sample.confirmedType!)\""
 
             try line.appendLineToURL(fileURL: csvFile)
-            count += 1
+            samplesAdded += 1
         }
 
-        print("exportCSV() WROTE SAMPLES: \(count)")
+        print("exportCSV() WROTE SAMPLES: \(samplesAdded)")
 
-        return (csvFile, count)
+        return (csvFile, samplesAdded, includedTypes)
     }
 
     // MARK: - Equatable
