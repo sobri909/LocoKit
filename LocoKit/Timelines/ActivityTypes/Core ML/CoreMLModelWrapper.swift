@@ -317,10 +317,12 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         store.connectToDatabase()
 
         if let from {
-            var start = Date()
-            let unfiltered = store.samples(
+            let start = Date()
+            let samples = store.samples(
                 where: """
                     source = ? AND lastSaved < ?
+                    AND latitude BETWEEN ? AND ?
+                    AND longitude BETWEEN ? AND ?
                     AND confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
@@ -329,25 +331,21 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                         ORDER BY lastSaved DESC
                         LIMIT ?
                     """,
-                arguments: ["LocoKit", from, Self.modelSamplesBatchSize]
+                arguments: ["LocoKit", from,
+                            self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
+                            self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
+                            Self.modelSamplesBatchSize]
             )
-            print("UNFILTERED: \(unfiltered.count), duration: \(start.age)")
-
-            // SQLite sucks at range queries, so do it here instead
-            start = Date()
-            let filtered = unfiltered.filter {
-                guard let coordinate = $0.location?.coordinate else { return false }
-                return self.contains(coordinate: coordinate)
-            }
-            print("FILTERED: \(filtered.count), duration: \(start.age)")
-
-            return filtered
+            print("FETCHED: \(samples.count), duration: \(start.age)")
+            return samples
 
         } else {
-            var start = Date()
-            let unfiltered = store.samples(
+            let start = Date()
+            let samples = store.samples(
                 where: """
                     source = ?
+                    AND latitude BETWEEN ? AND ?
+                    AND longitude BETWEEN ? AND ?
                     AND confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
@@ -356,19 +354,13 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                         ORDER BY lastSaved DESC
                         LIMIT ?
                     """,
-                arguments: ["LocoKit", Self.modelSamplesBatchSize]
+                arguments: ["LocoKit",
+                            self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
+                            self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
+                            Self.modelSamplesBatchSize]
             )
-            print("UNFILTERED: \(unfiltered.count), duration: \(start.age)")
-
-            // SQLite sucks at range queries, so do it here instead
-            start = Date()
-            let filtered = unfiltered.filter {
-                guard let coordinate = $0.location?.coordinate else { return false }
-                return self.contains(coordinate: coordinate)
-            }
-            print("FILTERED: \(filtered.count), duration: \(start.age)")
-
-            return filtered
+            print("FETCHED: \(samples.count), duration: \(start.age)")
+            return samples
         }
     }
 
