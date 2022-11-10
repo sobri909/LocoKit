@@ -246,8 +246,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 }
             }
 
-
-
             logger.info("UPDATING: \(self.geoKey)")
 
             let manager = FileManager.default
@@ -258,8 +256,9 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 var lastDate: Date?
                 var samplesCount = 0
                 repeat {
+                    let start = Date()
                     let samples = self.fetchTrainingSamples(in: store, from: lastDate)
-                    print("buildModel() SAMPLES BATCH: \(samples.count)")
+                    print("buildModel() SAMPLES BATCH: \(samples.count), duration: \(start.age)")
                     let (url, added) = try self.exportCSV(samples: samples, appendingTo: csvFile)
                     csvFile = url
                     lastDate = samples.last?.lastSaved
@@ -317,8 +316,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         store.connectToDatabase()
 
         if let from {
-            let start = Date()
-            let samples = store.samples(
+            return store.samples(
                 where: """
                     source = ? AND lastSaved < ?
                     AND latitude BETWEEN ? AND ?
@@ -336,12 +334,9 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                             self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
                             Self.modelSamplesBatchSize]
             )
-            print("FETCHED: \(samples.count), duration: \(start.age)")
-            return samples
 
         } else {
-            let start = Date()
-            let samples = store.samples(
+            return store.samples(
                 where: """
                     source = ?
                     AND latitude BETWEEN ? AND ?
@@ -359,8 +354,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                             self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
                             Self.modelSamplesBatchSize]
             )
-            print("FETCHED: \(samples.count), duration: \(start.age)")
-            return samples
         }
     }
 
