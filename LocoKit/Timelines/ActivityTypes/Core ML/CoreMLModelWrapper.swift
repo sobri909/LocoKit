@@ -272,11 +272,11 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     return
                 }
 
+                // load the csv file
                 let dataFrame = try DataFrame(contentsOfCSVFile: csvFile)
-                print("buildModel() LOADED CSV")
 
+                // train the model
                 let classifier = try MLBoostedTreeClassifier(trainingData: dataFrame, targetColumn: "confirmedType")
-                print("buildModel() TRAINED CLASSIFIER")
 
                 do {
                     try FileManager.default.createDirectory(at: Self.modelsDir, withIntermediateDirectories: true, attributes: nil)
@@ -284,14 +284,14 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     logger.error("Couldn't create MLModels directory.")
                 }
 
+                // write model to temp file
                 try classifier.write(to: tempModelFile)
-                print("buildModel() WROTE TEMP FILE")
 
+                // compile the model
                 let compiledModelFile = try CoreML.MLModel.compileModel(at: tempModelFile)
-                print("buildModel() COMPILED MODEL")
 
+                // save model to final dest
                 _ = try manager.replaceItemAt(self.modelURL, withItemAt: compiledModelFile)
-                print("buildModel() SAVED MODEL TO FINAL URL")
 
                 // update metadata
                 self.totalSamples = samplesCount
