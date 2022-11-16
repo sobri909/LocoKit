@@ -326,12 +326,13 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     private func fetchTrainingSamples(in store: TimelineStore, from: Date? = nil) -> [PersistentSample] {
         store.connectToDatabase()
 
+        let rect = CoordinateRect(latitudeRange: latitudeRange, longitudeRange: longitudeRange)
+
         if let from {
             return store.samples(
+                inside: rect,
                 where: """
-                    source = ? AND lastSaved < ?
-                    AND latitude BETWEEN ? AND ?
-                    AND longitude BETWEEN ? AND ?
+                    lastSaved < ?
                     AND confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
@@ -339,31 +340,23 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     AND stepHz IS NOT NULL
                         ORDER BY lastSaved DESC
                         LIMIT ?
-                    """,
-                arguments: ["LocoKit", from,
-                            self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
-                            self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
-                            Self.modelSamplesBatchSize]
+                """,
+                arguments: [from, Self.modelSamplesBatchSize]
             )
 
         } else {
             return store.samples(
+                inside: rect,
                 where: """
-                    source = ?
-                    AND latitude BETWEEN ? AND ?
-                    AND longitude BETWEEN ? AND ?
-                    AND confirmedType IS NOT NULL
+                    confirmedType IS NOT NULL
                     AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
                     AND stepHz IS NOT NULL
                         ORDER BY lastSaved DESC
                         LIMIT ?
-                    """,
-                arguments: ["LocoKit",
-                            self.latitudeRange.lowerBound, self.latitudeRange.upperBound,
-                            self.longitudeRange.lowerBound, self.longitudeRange.upperBound,
-                            Self.modelSamplesBatchSize]
+                """,
+                arguments: [Self.modelSamplesBatchSize]
             )
         }
     }
@@ -388,6 +381,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
         // write the samples to file
         for sample in samples where sample.confirmedType != nil {
+            guard sample.source == "LocoKit" else { continue }
             guard let location = sample.location, location.hasUsableCoordinate else { continue }
             guard location.speed >= 0, location.course >= 0 else { continue }
             guard let stepHz = sample.stepHz else { continue }

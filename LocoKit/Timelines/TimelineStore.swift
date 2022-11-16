@@ -275,6 +275,25 @@ open class TimelineStore {
         return rows.map { sample(for: $0) }
     }
 
+    public func samples(inside coordRect: CoordinateRect, where extraWhere: String? = nil, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
+        var query = """
+            SELECT *
+            FROM LocomotionSample, SampleRTree AS r
+            WHERE
+                rtreeId = r.id
+                AND r.latMin >= :latMin AND r.latMax <= :latMax
+                AND r.lonMin >= :longMin AND r.lonMax <= :longMax
+            """
+        if let extraWhere {
+            query += " AND \(extraWhere)"
+        }
+        let boxArgs = StatementArguments([
+            "latMin": coordRect.latitudeRange.lowerBound, "latMax": coordRect.latitudeRange.upperBound,
+            "longMin": coordRect.longitudeRange.lowerBound, "longMax": coordRect.longitudeRange.upperBound
+        ])
+        return samples(for: query, arguments: boxArgs + arguments)
+    }
+
     open func sample(for row: Row) -> PersistentSample {
         guard let sampleId = row["sampleId"] as String? else { fatalError("MISSING SAMPLEID") }
         if let sample = object(for: UUID(uuidString: sampleId)!) as? PersistentSample { return sample }
@@ -558,6 +577,17 @@ open class TimelineStore {
             }
         } catch {
             logger.error("\(error.localizedDescription)")
+        }
+    }
+
+    public func pruneSampleRTreeRows() {
+        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+        do {
+            try pool.write {
+                try $0.execute(sql: "DELETE FROM SampleRTree WHERE id NOT IN (SELECT rtreeId FROM LocomotionSample WHERE rtreeId IS NOT NULL)")
+            }
+        } catch {
+            logger.error("ERROR: \(error)")
         }
     }
 
