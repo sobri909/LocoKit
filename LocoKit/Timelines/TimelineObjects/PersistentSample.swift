@@ -17,6 +17,8 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var source: String = "LocoKit"
 
+    public var rtreeId: Int64?
+
     private var _invalidated = false
     public var invalidated: Bool { return _invalidated }
     public func invalidate() {
@@ -53,6 +55,11 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         self.init(from: dict)
         self.store = store
         store.add(self)
+
+        // backfill rtree indexes
+        if lastSaved != nil, rtreeId == nil {
+            Task { self.updateRTree() }
+        }
     }
 
     public convenience init(from sample: ActivityBrainSample, in store: TimelineStore) {
@@ -76,6 +83,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         if let source = dict["source"] as? String, !source.isEmpty { self.source = source }
         self.disabled = dict["disabled"] as? Bool ?? false
         self.deleted = dict["deleted"] as? Bool ?? false
+        self.rtreeId = dict["rtreeId"] as? Int64
 
         super.init(from: dict)
     }
@@ -112,6 +120,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         case lastSaved
         case deleted
         case disabled
+        case rtreeId
     }
 
     // MARK: - Relationships
@@ -174,6 +183,37 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         }
     }
 
+    // MARK: - RTree index
+
+    internal func updateRTree() {
+        guard let coordinate = location?.coordinate, coordinate.isUsable else { return }
+        guard let pool = store?.pool else { return }
+        do {
+            if let rtreeId = rtreeId {
+                print("UPDATING SAMPLE RTREE")
+                let rtree = SampleRTree(
+                    id: rtreeId,
+                    latMin: coordinate.latitude, latMax: coordinate.latitude,
+                    lonMin: coordinate.longitude, lonMax: coordinate.longitude
+                )
+                try pool.write { try rtree.update($0) }
+                
+            } else {
+                print("Inserting sample RTree")
+                var rtree = SampleRTree(
+                    latMin: coordinate.latitude, latMax: coordinate.latitude,
+                    lonMin: coordinate.longitude, lonMax: coordinate.longitude
+                )
+                try pool.write { try rtree.insert($0) }
+                rtreeId = rtree.id
+                save()
+            }
+
+        } catch {
+            logger.error("ERROR: \(error)")
+        }
+    }
+
     // MARK: - PersistableRecord
     
     public static let databaseTableName = "LocomotionSample"
@@ -206,6 +246,8 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["verticalAccuracy"] = location?.verticalAccuracy
         container["speed"] = location?.speed
         container["course"] = location?.course
+
+        container["rtreeId"] = rtreeId
     }
     
     // MARK: - PersistentObject

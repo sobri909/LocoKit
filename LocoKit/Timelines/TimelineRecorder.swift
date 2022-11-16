@@ -164,6 +164,7 @@ public class TimelineRecorder: ObservableObject {
         lastRecorded = Date()
 
         let sample = store.createSample(from: ActivityBrain.highlander.presentSample)
+        sample.updateRTree()
 
         // classify the sample, if a classifier has been provided
         if let classifier = classifier, classifier.canClassify(sample.location?.coordinate) {

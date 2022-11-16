@@ -301,6 +301,14 @@ internal extension TimelineStore {
             try? db.create(index: "LocomotionSample_on_source_lastSaved_confirmedType", on: "LocomotionSample",
                            columns: ["source", "lastSaved", "confirmedType"])
         }
+
+        migrator.registerMigration("LocomotionSample RTree indexing") { db in
+            try db.execute(sql: "DROP TABLE IF EXISTS SampleRTree")
+            try db.execute(sql: "CREATE VIRTUAL TABLE SampleRTree USING rtree(id, latMin, latMax, lonMin, lonMax)")
+            try? db.alter(table: "LocomotionSample") { table in
+                table.add(column: "rtreeId", .integer).indexed()
+            }
+        }
     }
 
 }
