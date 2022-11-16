@@ -190,7 +190,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         guard let pool = store?.pool else { return }
         do {
             if let rtreeId = rtreeId {
-                print("UPDATING SAMPLE RTREE")
                 let rtree = SampleRTree(
                     id: rtreeId,
                     latMin: coordinate.latitude, latMax: coordinate.latitude,
@@ -199,7 +198,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
                 try pool.write { try rtree.update($0) }
                 
             } else {
-                print("Inserting sample RTree")
                 var rtree = SampleRTree(
                     latMin: coordinate.latitude, latMax: coordinate.latitude,
                     lonMin: coordinate.longitude, lonMax: coordinate.longitude
