@@ -73,8 +73,8 @@ internal extension TimelineStore {
                 table.column("previousSampleConfirmedType", .text)
 
                 // sample.location
-                table.column("latitude", .double).indexed()
-                table.column("longitude", .double).indexed()
+                table.column("latitude", .double)
+                table.column("longitude", .double)
                 table.column("altitude", .double)
                 table.column("horizontalAccuracy", .double)
                 table.column("verticalAccuracy", .double)
