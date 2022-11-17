@@ -86,8 +86,6 @@ internal extension TimelineStore {
 
             try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
                           columns: ["timelineItemId", "deleted", "date"])
-            try db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
-                          columns: ["confirmedType", "latitude", "longitude", "date"])
             try db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
                           columns: ["confirmedType", "lastSaved"])
 
@@ -278,12 +276,6 @@ internal extension TimelineStore {
         migrator.registerMigration("7.0.6 redundant indexes") { db in
             try? db.drop(index: "LocomotionSample_on_confirmedType")
             try? db.drop(index: "LocomotionSample_on_timelineItemId")
-        }
-
-        migrator.registerMigration("7.0.6 even better sample index") { db in
-            try? db.drop(index: "LocomotionSample_on_confirmedType_latitude_longitude")
-            try? db.create(index: "LocomotionSample_on_confirmedType_latitude_longitude_date", on: "LocomotionSample",
-                           columns: ["confirmedType", "latitude", "longitude", "date"])
         }
 
         // for HealthKit Workout Route imports
