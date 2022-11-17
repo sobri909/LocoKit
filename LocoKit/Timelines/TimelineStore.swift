@@ -582,10 +582,13 @@ open class TimelineStore {
 
     public func pruneSampleRTreeRows() {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+        logger.info("TimelineStore.pruneSampleRTreeRows() START")
         do {
             try pool.write {
                 try $0.execute(sql: "DELETE FROM SampleRTree WHERE id NOT IN (SELECT rtreeId FROM LocomotionSample WHERE rtreeId IS NOT NULL)")
             }
+            logger.info("TimelineStore.pruneSampleRTreeRows() FINISH")
+            
         } catch {
             logger.error("ERROR: \(error)")
         }
