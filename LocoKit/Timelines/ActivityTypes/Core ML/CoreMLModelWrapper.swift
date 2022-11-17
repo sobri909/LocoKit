@@ -36,15 +36,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     public var lastSaved: Date?
     public internal(set) var transactionDate: Date?
 
-    public var store: TimelineStore?
-
-    // MARK: -
-
-    open class var modelsDir: URL {
-        return try! FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("MLModels", isDirectory: true)
-    }
+    public var store: TimelineStore
 
     // MARK: -
 
@@ -126,7 +118,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     }()
 
     public var modelURL: URL {
-        return Self.modelsDir.appendingPathComponent(filename)
+        return store.modelsDir.appendingPathComponent(filename)
     }
 
     public func reloadModel() throws {
@@ -195,13 +187,13 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     public func save() {
         do {
-            try store?.auxiliaryPool.write { db in
+            try store.auxiliaryPool.write { db in
                 self.transactionDate = Date()
                 try self.save(in: db)
                 self.lastSaved = self.transactionDate
             }
         } catch {
-            logger.error("\(error.localizedDescription)")
+            logger.error("ERROR: \(error)")
         }
     }
 
@@ -292,7 +284,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 let classifier = try MLBoostedTreeClassifier(trainingData: dataFrame, targetColumn: "confirmedType")
 
                 do {
-                    try FileManager.default.createDirectory(at: Self.modelsDir, withIntermediateDirectories: true, attributes: nil)
+                    try FileManager.default.createDirectory(at: store.modelsDir, withIntermediateDirectories: true, attributes: nil)
                 } catch {
                     logger.error("Couldn't create MLModels directory.")
                 }

@@ -81,6 +81,11 @@ open class TimelineStore {
         return dbDir.appendingPathComponent("LocoKitAuxiliary.sqlite")
     }()
 
+    open lazy var modelsDir: URL = {
+        return try! FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appendingPathComponent("MLModels", isDirectory: true)
+    }()
+
     public lazy var poolConfig: Configuration = {
         var config = Configuration()
         config.busyMode = .timeout(30)
