@@ -50,6 +50,7 @@ internal extension TimelineStore {
 
             try db.create(table: "LocomotionSample") { table in
                 table.column("sampleId", .text).primaryKey()
+                table.column("rtreeId", .integer).indexed()
 
                 table.column("date", .datetime).notNull().indexed()
                 table.column("deleted", .boolean).notNull().indexed()
