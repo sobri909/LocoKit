@@ -89,10 +89,19 @@ public extension String {
         if isAltitude {
             formatter.unitOptions = .providedUnit
             formatter.numberFormatter.maximumFractionDigits = 0
-            if Locale.current.usesMetricSystem {
-                self.init(format: formatter.string(from: metres.measurement))
+
+            if #available(iOS 16, *) {
+                if Locale.current.measurementSystem == .metric {
+                    self.init(format: formatter.string(from: metres.measurement))
+                } else {
+                    self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
+                }
             } else {
-                self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
+                if Locale.current.usesMetricSystem {
+                    self.init(format: formatter.string(from: metres.measurement))
+                } else {
+                    self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
+                }
             }
             return
         }
