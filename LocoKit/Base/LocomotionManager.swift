@@ -60,7 +60,6 @@ import CoreLocation
     public static let miminumDeepSleepDuration: TimeInterval = 60 * 15
 
     public let pedometer = CMPedometer()
-    private let activityManager = CMMotionActivityManager()
 
     private lazy var wiggles: CMMotionManager = {
         let wiggles = CMMotionManager()
@@ -387,18 +386,15 @@ import CoreLocation
     // MARK: -
 
     /**
-     This method is temporarily public because the only way to request Core Motion permission is to just go ahead and
-     start using Core Motion. I will make this method private soon, and provide a more tidy way to trigger a Core
-     Motion permission request modal.
+     This method is public because the only way to request Core Motion permission is to just go ahead and
+     start using Core Motion.
      */
     public func startCoreMotion() {
-        startTheM()
         startThePedometer()
         startTheWiggles()
     }
 
     private func stopCoreMotion() {
-        stopTheM()
         stopThePedometer()
         stopTheWiggles()
     }
@@ -727,37 +723,6 @@ import CoreLocation
         locationManager = freshManager
 
         logger.fault("Recreated the LocationManager")
-    }
-
-    // MARK: - Core Motion management
-
-    private func startTheM() {
-        if watchingTheM {
-            return
-        }
-
-        guard recordCoreMotionActivityTypeEvents else {
-            return
-        }
-        
-        watchingTheM = true
-        
-        activityManager.startActivityUpdates(to: coreMotionQueue) { activity in
-            if let activity = activity {
-                self.coreMotionPermission = true
-                ActivityBrain.highlander.add(cmMotionActivity: activity)
-            }
-        }
-    }
-
-    private func stopTheM() {
-        if !watchingTheM {
-            return
-        }
-        
-        activityManager.stopActivityUpdates()
-        
-        watchingTheM = false
     }
 
     // MARK: - Pedometer

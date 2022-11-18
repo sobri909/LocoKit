@@ -231,7 +231,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["courseVariance"] = courseVariance
         container["xyAcceleration"] = xyAcceleration
         container["zAcceleration"] = zAcceleration
-        container["coreMotionActivityType"] = coreMotionActivityType?.rawValue
         container["confirmedType"] = confirmedType?.rawValue
         container["classifiedType"] = _classifiedType?.rawValue
         container["previousSampleConfirmedType"] = previousSampleConfirmedType?.rawValue

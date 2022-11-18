@@ -104,13 +104,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     
     // MARK: Activity Type Properties
     
-    /**
-     The highest scoring Core Motion activity type 
-     ([CMMotionActivity](https://developer.apple.com/documentation/coremotion/cmmotionactivity)) at the time of the 
-     sample's `date`.
-     */
-    public let coreMotionActivityType: CoreMotionActivityTypeName?
-
     public var classifierResults: ClassifierResults?
 
     public var activityType: ActivityTypeName? {
@@ -181,7 +174,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.courseVariance = sample.courseVariance
         self.xyAcceleration = sample.xyAcceleration
         self.zAcceleration = sample.zAcceleration
-        self.coreMotionActivityType = sample.coreMotionActivityType
 
         if let sampleStepHz = sample.stepHz {
             self.stepHz = sampleStepHz
@@ -208,11 +200,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.courseVariance = dict["courseVariance"] as? Double
         self.xyAcceleration = dict["xyAcceleration"] as? Double
         self.zAcceleration = dict["zAcceleration"] as? Double
-        if let rawValue = dict["coreMotionActivityType"] as? String {
-            self.coreMotionActivityType = CoreMotionActivityTypeName(rawValue: rawValue)
-        } else {
-            self.coreMotionActivityType = nil
-        }
         if let location = dict["location"] as? CLLocation {
             self.location = location
         } else {
@@ -258,7 +245,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.courseVariance = nil
         self.xyAcceleration = nil
         self.zAcceleration = nil
-        self.coreMotionActivityType = nil
     }
 
     // MARK: - Codable
@@ -275,7 +261,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.courseVariance = try? container.decode(Double.self, forKey: .courseVariance)
         self.xyAcceleration = try? container.decode(Double.self, forKey: .xyAcceleration)
         self.zAcceleration = try? container.decode(Double.self, forKey: .zAcceleration)
-        self.coreMotionActivityType = try? container.decode(CoreMotionActivityTypeName.self, forKey: .coreMotionActivityType)
         self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
 
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .location) {
@@ -300,7 +285,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         if courseVariance != nil { try container.encode(courseVariance, forKey: .courseVariance) }
         if xyAcceleration != nil { try container.encode(xyAcceleration, forKey: .xyAcceleration) }
         if zAcceleration != nil { try container.encode(zAcceleration, forKey: .zAcceleration) }
-        if coreMotionActivityType != nil { try container.encode(coreMotionActivityType, forKey: .coreMotionActivityType) }
         if confirmedType != nil { try container.encode(confirmedType, forKey: .confirmedType) }
     }
 
@@ -315,7 +299,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         case courseVariance
         case xyAcceleration
         case zAcceleration
-        case coreMotionActivityType
         case confirmedType
     }
 }

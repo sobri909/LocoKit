@@ -14,7 +14,6 @@ public class ActivityBrainSample {
     private var _rawLocations: [CLLocation] = []
     private var _filteredLocations: [CLLocation] = []
     private var _pedoDataSamples: [CMPedometerData] = []
-    private var _coreMotionActivityTypeSamples: [CMActivityTypeEvent] = []
     private var _deviceMotionSamples: [(date: Date, motion: DeviceMotion)] = []
     private var _centresHistory: [CLLocation] = []
     
@@ -80,10 +79,6 @@ public class ActivityBrainSample {
         }
     }
 
-    public var coreMotionActivityType: CoreMotionActivityTypeName? {
-        return mutex.sync { _coreMotionActivityTypeSamples.reversed().first { $0.date < self._date }?.name }
-    }
-    
     var kmh: Double { return speed * 3.6 }
 
     // TODO: plz make this optional
@@ -127,7 +122,6 @@ public class ActivityBrainSample {
             _rawLocations.removeAll()
             _filteredLocations.removeAll()
             _pedoDataSamples.removeAll()
-            _coreMotionActivityTypeSamples.removeAll()
             _speed = 0
         }
         
@@ -301,29 +295,6 @@ extension ActivityBrainSample {
             }
             
             _pedoDataSamples.append(pedoData)
-        }
-    }
-    
-    func add(cmActivityTypeEvent: CMActivityTypeEvent) {
-        mutex.sync {
-
-            // find the sample for centre date
-            var current: CMActivityTypeEvent?
-            for sample in _coreMotionActivityTypeSamples.reversed() {
-                if sample.date < self._date {
-                    current = sample
-                    break
-                }
-            }
-            
-            // trim outdated samples
-            if current != nil {
-                while _coreMotionActivityTypeSamples.first != current {
-                    _coreMotionActivityTypeSamples.remove(at: 0)
-                }
-            }
-            
-            _coreMotionActivityTypeSamples.append(cmActivityTypeEvent)
         }
     }
     

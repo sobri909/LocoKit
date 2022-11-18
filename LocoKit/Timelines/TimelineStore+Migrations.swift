@@ -67,7 +67,6 @@ internal extension TimelineStore {
                 table.column("courseVariance", .double)
                 table.column("xyAcceleration", .double)
                 table.column("zAcceleration", .double)
-                table.column("coreMotionActivityType", .text)
                 table.column("classifiedType", .text)
                 table.column("confirmedType", .text)
                 table.column("previousSampleConfirmedType", .text)

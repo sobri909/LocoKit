@@ -12,7 +12,6 @@ import CoreLocation
 public protocol ActivityTypeClassifiable: AnyObject {
     var location: CLLocation? { get }
     var movingState: MovingState { get }
-    var coreMotionActivityType: CoreMotionActivityTypeName? { get }
     var stepHz: Double? { get }
     var courseVariance: Double? { get }
     var xyAcceleration: Double? { get }
@@ -25,12 +24,19 @@ public protocol ActivityTypeClassifiable: AnyObject {
 extension ActivityTypeClassifiable {
     var coreMLFeatureProvider: CoreMLFeatureProvider {
         return CoreMLFeatureProvider(
-            stepHz: stepHz, xyAcceleration: xyAcceleration, zAcceleration: zAcceleration,
-            movingState: movingState.rawValue, verticalAccuracy: location?.verticalAccuracy,
-            horizontalAccuracy: location?.horizontalAccuracy, courseVariance: courseVariance,
-            speed: location?.speed, course: location?.course,
-            latitude: location?.coordinate.latitude, longitude: location?.coordinate.longitude,
-            altitude: location?.altitude, timeOfDay: timeOfDay
+            stepHz: stepHz,
+            xyAcceleration: xyAcceleration,
+            zAcceleration: zAcceleration,
+            movingState: movingState.rawValue,
+            verticalAccuracy: location?.verticalAccuracy,
+            horizontalAccuracy: location?.horizontalAccuracy,
+            courseVariance: courseVariance,
+            speed: location?.speed,
+            course: location?.course,
+            latitude: location?.coordinate.latitude,
+            longitude: location?.coordinate.longitude,
+            altitude: location?.altitude,
+            timeOfDay: timeOfDay
         )
     }
 }

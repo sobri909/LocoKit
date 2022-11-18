@@ -30,7 +30,6 @@ open class MutableActivityType: ActivityType {
         var allCourses: [Double] = [], allCourseVariances: [Double] = [], allTimesOfDay: [Double] = []
         var allXYAccelerations: [Double] = [], allZAccelerations: [Double] = []
         var allCoordinates: [CLLocationCoordinate2D] = []
-        var allCoreMotionTypes: [CoreMotionActivityTypeName] = []
         var allAccuracies: [CLLocationAccuracy] = []
         // bootstrap with one of each, for the pseudo count
         var allPreviousTypes: [ActivityTypeName] = ActivityTypeName.allTypes
@@ -78,10 +77,6 @@ open class MutableActivityType: ActivityType {
                 allZAccelerations.append(zAcceleration)
             }
             
-            if let coreMotionType = sample.coreMotionActivityType {
-                allCoreMotionTypes.append(coreMotionType)
-            }
-            
             allCoordinates.append(location.coordinate)
             
             if !location.altitude.isNaN && location.verticalAccuracy >= 0 && location.altitude != LocomotionMagicValue.nilAltitude {
@@ -115,7 +110,6 @@ open class MutableActivityType: ActivityType {
             accuracyScore = nil
         }
 
-        coreMotionTypeScores = coreMotionTypeScoresDict(for: allCoreMotionTypes)
         previousSampleActivityTypeScores = markovScoresDict(for: allPreviousTypes)
 
         if totalSamples == 0 {
@@ -174,34 +168,6 @@ open class MutableActivityType: ActivityType {
         }
     }
 
-    private func coreMotionTypeScoresDict(for values: [CoreMotionActivityTypeName]) -> [CoreMotionActivityTypeName: Double] {
-        var totals: [CoreMotionActivityTypeName: Double] = [:]
-        var scores: [CoreMotionActivityTypeName: Double] = [:]
-        
-        for coreMotionType in CoreMotionActivityTypeName.allTypes {
-            totals[coreMotionType] = 0
-            scores[coreMotionType] = 0
-        }
-        
-        guard values.count > 0 else {
-            return scores
-        }
-        
-        for coreMotionType in values {
-            if totals[coreMotionType] != nil {
-                totals[coreMotionType]! += 1
-            }
-        }
-        
-        for coreMotionType in CoreMotionActivityTypeName.allTypes {
-            if let total = totals[coreMotionType], total > 0 {
-                scores[coreMotionType] = total / Double(values.count)
-            }
-        }
-        
-        return scores
-    }
-
     private func markovScoresDict(for values: [ActivityTypeName]) -> [ActivityTypeName: Double] {
         var totals: [ActivityTypeName: Double] = [:]
         var scores: [ActivityTypeName: Double] = [:]
@@ -239,7 +205,6 @@ open class MutableActivityType: ActivityType {
         dict["longitudeMax"] = longitudeRange.max
         
         dict["movingPct"] = movingPct
-        dict["coreMotionTypeScores"] = coreMotionTypeScoresArray
         dict["speedHistogram"] = speedHistogram?.serialised
         dict["stepHzHistogram"] = stepHzHistogram?.serialised
         dict["courseVarianceHistogram"] = courseVarianceHistogram?.serialised

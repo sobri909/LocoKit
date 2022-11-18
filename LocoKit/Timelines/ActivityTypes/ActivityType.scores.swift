@@ -140,12 +140,6 @@ extension ActivityType {
             : notMovingValue / maxValue
     }
 
-    func coreMotionScore(for coreMotionType: CoreMotionActivityTypeName) -> Double {
-        guard let value = coreMotionTypeScores[coreMotionType] else { return 0 }
-        guard let maxPercent = coreMotionTypeScores.values.max(), maxPercent > 0 else { return 0 }
-        return value / maxPercent
-    }
-
     func previousTypeScore(for previousType: ActivityTypeName) -> Double {
         guard let value = previousSampleActivityTypeScores[previousType] else { return 0 }
         guard let maxPercent = previousSampleActivityTypeScores.values.max(), maxPercent > 0 else { return 0 }

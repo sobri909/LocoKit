@@ -28,8 +28,6 @@ public class ActivityBrain {
     private let altitudeKalman = KalmanAltitude(qMetresPerSecond: 3)
     private let coordinatesKalman = KalmanCoordinates(qMetresPerSecond: 4)
 
-    private var coreMotionActivityConfidences: [CMActivityTypeEvent] = []
-    
     public lazy var presentSample: ActivityBrainSample = {
         return ActivityBrainSample(mutex: self.samplesMutex, wigglesMutex: self.wigglesMutex)
     }()
@@ -216,14 +214,6 @@ public extension ActivityBrain {
         presentSample.addDeviceMotion(deviceMotion)
     }
 
-    func add(cmMotionActivity activity: CMMotionActivity) {
-        for name in CoreMotionActivityTypeName.allTypes {
-            if let boolValue = activity.value(forKey: name.rawValue) as? Bool, boolValue == true {
-                add(cmMotionActivityConfidence: activity.confidence, name: name, date: activity.startDate)
-            }
-        }
-    }
-
 }
 
 
@@ -297,7 +287,6 @@ internal extension ActivityBrain {
 
     func flushThePresentSample() {
         presentSample.flush()
-        coreMotionActivityConfidences.removeAll()
     }
 
     // MARK: -
@@ -365,34 +354,6 @@ internal extension ActivityBrain {
         }
 
         return presentCentre.distance(from: pastCentre) <= pastSample.radiusBounded
-    }
-
-    // MARK: -
-
-    func add(cmMotionActivityConfidence: CMMotionActivityConfidence, name: CoreMotionActivityTypeName, date: Date) {
-        var best: CMActivityTypeEvent?
-        samplesMutex.sync {
-            if let existing = coreMotionActivityConfidences.filter({ $0.name == name }).first {
-                coreMotionActivityConfidences.remove(existing)
-            }
-
-            coreMotionActivityConfidences.append(CMActivityTypeEvent(name: name, confidence: cmMotionActivityConfidence, date: date))
-
-            coreMotionActivityConfidences = coreMotionActivityConfidences.sorted {
-                $0.currentConfidence > $1.currentConfidence
-            }
-
-            best = coreMotionActivityConfidences.first
-        }
-
-        // add the current best to the present sample
-        if best != nil {
-            presentSample.add(cmActivityTypeEvent: best!)
-        }
-    }
-
-    var currentCoreMotionActivityType: CMActivityTypeEvent? {
-        return coreMotionActivityConfidences.first
     }
 
 }
