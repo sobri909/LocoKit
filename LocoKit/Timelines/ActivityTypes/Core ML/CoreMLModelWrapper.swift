@@ -113,6 +113,11 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             return try CoreML.MLModel(contentsOf: modelURL)
         } catch {
             logger.error("ERROR: \(error)")
+            if !needsUpdate {
+                needsUpdate = true
+                save()
+                logger.info("[\(self.geoKey)] Queued update, because missing model file")
+            }
             return nil
         }
     }()
