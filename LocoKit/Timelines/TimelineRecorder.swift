@@ -27,17 +27,16 @@ public class TimelineRecorder: ObservableObject {
     public var samplesPerMinute: Double = 10
 
     private(set) public var store: TimelineStore
-    public var classifier: MLCompositeClassifier?
+    public let classifier = ActivityClassifier.highlander
     private(set) public var lastClassifierResults: ClassifierResults? {
         didSet { objectWillChange.send() }
     }
 
     // MARK: - Recorder creation
 
-    public init(store: TimelineStore, classifier: MLCompositeClassifier? = nil) {
+    public init(store: TimelineStore) {
         self.store = store
         store.recorder = self
-        self.classifier = classifier
 
         let loco = LocomotionManager.highlander
 
@@ -76,7 +75,7 @@ public class TimelineRecorder: ObservableObject {
 
     // convenience access to an often used optional bool
     public func canClassify(_ coordinate: CLLocationCoordinate2D? = nil) -> Bool {
-        return classifier?.canClassify(coordinate) == true
+        return classifier.canClassify(coordinate) == true
     }
 
     // MARK: - Starting and stopping recording
@@ -167,7 +166,7 @@ public class TimelineRecorder: ObservableObject {
         sample.updateRTree()
 
         // classify the sample, if a classifier has been provided
-        if let classifier = classifier, classifier.canClassify(sample.location?.coordinate) {
+        if classifier.canClassify(sample.location?.coordinate) {
             sample.classifierResults = classifier.classify(sample, previousResults: lastClassifierResults)
             lastClassifierResults = sample.classifierResults
         }

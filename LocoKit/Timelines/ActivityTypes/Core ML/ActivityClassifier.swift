@@ -13,13 +13,13 @@ import CoreML
 import Upsurge
 import BackgroundTasks
 
-public class ActivityClassifier: MLCompositeClassifier {
+public class ActivityClassifier {
 
     public static var highlander = ActivityClassifier()
-
-    private var discreteClassifiers: [Int: any DiscreteClassifier] = [:] // index = priority
-
+    public private(set) var discreteClassifiers: [Int: any DiscreteClassifier] = [:] // index = priority
     private let mutex = PThreadMutex(type: .recursive)
+
+    private init() {}
 
     // MARK: - MLCompositeClassifier
 

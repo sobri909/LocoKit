@@ -12,7 +12,7 @@ import CoreLocation
 import Reachability
 #endif
 
-public protocol MLClassifierManager: MLCompositeClassifier {
+public protocol MLClassifierManager: AnyObject {
     associatedtype Classifier: MLClassifier
 
     var sampleClassifier: Classifier? { get set }

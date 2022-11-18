@@ -15,6 +15,10 @@ public class ActivityTypeClassifier: MLClassifier, DiscreteClassifier, Hashable 
 
     public let depth: Int
     public let models: [Cache.Model]
+    
+    public var totalSamples: Int {
+        return models.map { $0.totalSamples }.sum
+    }
 
     public var geoKey: String {
         return String(format: "GD\(depth) %.2f,%.2f", centerCoordinate.latitude, centerCoordinate.longitude)

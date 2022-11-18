@@ -141,7 +141,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         return results(for: output)
     }
 
-    func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults] {
+    public func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults] {
         guard let model else { print("[\(geoKey)] classify(classifiables:) NO MODEL!"); return [] }
         do {
             let inputs = classifiables.map { $0.coreMLFeatureProvider }
@@ -173,7 +173,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         return true
     }
 
-    var completenessScore: Double {
+    public var completenessScore: Double {
         return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamples))
     }
 
@@ -310,7 +310,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 self.needsUpdate = false
                 self.save()
 
-                logger.info("UPDATED: \(self.geoKey) (samples: \(self.totalSamples), accuracy: \(String(format: "%.2f", self.accuracyScore!)))")
+                logger.info("UPDATED: \(self.geoKey) (samples: \(self.totalSamples), accuracy: \(String(format: "%.2f", self.accuracyScore!)), includedTypes: \(includedTypes.count))")
 
                 try self.reloadModel()
 

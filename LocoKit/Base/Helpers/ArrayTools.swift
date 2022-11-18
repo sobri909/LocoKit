@@ -20,9 +20,11 @@ public extension Array {
 
 }
 
-public extension Array where Element: FloatingPoint {
-
+public extension Array where Element: Numeric {
     var sum: Element { return reduce(0, +) }
+}
+
+public extension Array where Element: FloatingPoint {
     var mean: Element { return isEmpty ? 0 : sum / Element(count) }
     
     var variance: Element {

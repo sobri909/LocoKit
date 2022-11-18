@@ -8,7 +8,10 @@
 import Foundation
 import CoreLocation
 
-protocol DiscreteClassifier: AnyObject, Identifiable {
+public protocol DiscreteClassifier: AnyObject, Identifiable {
+    var depth: Int { get }
+    var geoKey: String { get }
+    var totalSamples: Int { get }
     func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults
     func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults]
     func contains(coordinate: CLLocationCoordinate2D) -> Bool

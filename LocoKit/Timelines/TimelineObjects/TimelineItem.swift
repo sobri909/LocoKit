@@ -30,7 +30,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         }
     }
 
-    public var classifier: MLCompositeClassifier? { return store?.recorder?.classifier }
+    public var classifier: ActivityClassifier? { return store?.recorder?.classifier }
 
     public var mutex = PThreadMutex(type: .recursive)
 
