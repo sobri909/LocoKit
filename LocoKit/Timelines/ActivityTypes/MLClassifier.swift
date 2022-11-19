@@ -19,7 +19,6 @@ public protocol MLClassifier {
     init?(coordinate: CLLocationCoordinate2D, depth: Int)
 
     func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults
-    func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults]
     func contains(coordinate: CLLocationCoordinate2D) -> Bool
 
     var isStale: Bool { get }
@@ -51,20 +50,6 @@ extension MLClassifier {
         }
 
         return ClassifierResults(results: scores, moreComing: false)
-    }
-
-    public func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults] {
-        var allResults: [ClassifierResults] = []
-        allResults.reserveCapacity(classifiables.count)
-
-        var previousResult: ClassifierResults?
-        for classifiable in classifiables {
-            let result = classify(classifiable, previousResults: previousResult)
-            allResults.append(result)
-            previousResult = result
-        }
-        
-        return allResults
     }
 
     public func contains(coordinate: CLLocationCoordinate2D) -> Bool {

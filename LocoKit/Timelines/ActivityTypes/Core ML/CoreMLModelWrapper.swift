@@ -141,28 +141,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         return results(for: output)
     }
 
-    public func classify(_ classifiables: [ActivityTypeClassifiable]) -> [ClassifierResults] {
-        guard let model else { print("[\(geoKey)] classify(classifiables:) NO MODEL!"); return [] }
-        do {
-            let inputs = classifiables.map { $0.coreMLFeatureProvider }
-            let batchIn = MLArrayBatchProvider(array: inputs)
-            let batchOut = try model.predictions(from: batchIn, options: MLPredictionOptions())
-
-            var allResults: [ClassifierResults] = []
-            allResults.reserveCapacity(inputs.count)
-            for i in 0..<batchOut.count {
-                let output = batchOut.features(at: i)
-                let result = results(for: output)
-                allResults.append(result)
-            }
-            return allResults
-
-        } catch {
-            logger.error("ERROR: \(error)")
-            return []
-        }
-    }
-
     public func contains(coordinate: CLLocationCoordinate2D) -> Bool {
         guard CLLocationCoordinate2DIsValid(coordinate) else { return false }
         guard coordinate.latitude != 0 || coordinate.longitude != 0 else { return false }

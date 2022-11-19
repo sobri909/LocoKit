@@ -33,7 +33,7 @@ public class ActivityClassifier {
         // make sure have suitable classifiers
         if let coordinate = classifiable.location?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
 
-        // highest priorty first (ie D2 first)
+        // highest priorty first (ie CD2 first)
         let classifiers = discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value }
 
         var combinedResults: ClassifierResults?
@@ -66,54 +66,62 @@ public class ActivityClassifier {
         return combinedResults
     }
 
+    // Note: samples should be provided in date ascending order
     public func classify(_ samples: [ActivityTypeClassifiable], timeout: TimeInterval? = nil) -> ClassifierResults? {
-
-        // make sure have suitable classifiers
-        // TODO: this sucks for itms briding D2 regions
-        let center = samples.compactMap { $0.location }.center
-        if let coordinate = center?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
-
         if samples.isEmpty { return nil }
 
         let start = Date()
 
-        // highest priorty first (ie D2 first)
-        let classifiers = discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value }
-
-        var combinedResults: ClassifierResults?
-        var remainingWeight = 1.0
-
-        for classifier in classifiers {
-            if let timeout = timeout, start.age >= timeout {
-                logger.debug("Classifier reached timeout limit")
-                return combinedResults
-            }
-
-            let resultsArray = classifier.classify(samples)
-            let mergedResults = ClassifierResults(merging: resultsArray)
-
-            if combinedResults == nil {
-                combinedResults = mergedResults
-                remainingWeight -= classifier.completenessScore
-                if remainingWeight <= 0 { break } else { continue }
-            }
-
-            // if it's the last classifier treat it as 1.0 completeness, to make the weights add up to 1
-            var completeness = classifier.completenessScore
-            if classifier.id == classifiers.last?.id {
-                completeness = 1.0
-            }
-
-            // merge in the results
-            let weight = remainingWeight * completeness
-            combinedResults = combinedResults?.merging(mergedResults, withWeight: weight)
-
-            remainingWeight -= weight
-
-            if remainingWeight <= 0 { break }
+        var allScores: [ActivityTypeName: ValueArray<Double>] = [:]
+        for typeName in ActivityTypeName.allTypes {
+            allScores[typeName] = ValueArray(capacity: samples.count)
         }
 
-        return combinedResults
+        var moreComing = false
+        var lastResults: ClassifierResults?
+
+        for sample in samples {
+            if let timeout = timeout, start.age >= timeout {
+                logger.info("Classifer reached timeout limit.")
+                moreComing = true
+                break
+            }
+
+            var tmpResults = sample.classifierResults
+
+            // nil or incomplete existing results? get fresh results
+            if tmpResults == nil || tmpResults?.moreComing == true {
+                sample.classifierResults = classify(sample, previousResults: lastResults)
+                tmpResults = sample.classifierResults ?? tmpResults
+            }
+
+            guard let results = tmpResults else { continue }
+
+            if results.moreComing { moreComing = true }
+
+            for typeName in ActivityTypeName.allTypes {
+                if let resultRow = results[typeName] {
+                    allScores[resultRow.name]!.append(resultRow.score)
+                } else {
+                    allScores[typeName]!.append(0)
+                }
+            }
+
+            lastResults = results
+        }
+
+        var finalResults: [ClassifierResultItem] = []
+
+        for typeName in ActivityTypeName.allTypes {
+            var finalScore = 0.0
+            if let scores = allScores[typeName], !scores.isEmpty {
+                finalScore = mean(scores)
+            }
+
+            finalResults.append(ClassifierResultItem(name: typeName, score: finalScore))
+        }
+
+        return ClassifierResults(results: finalResults, moreComing: moreComing)
     }
 
     public func classify(_ timelineItem: TimelineItem, timeout: TimeInterval?) -> ClassifierResults? {
@@ -131,7 +139,7 @@ public class ActivityClassifier {
             return classifier.contains(coordinate: coordinate)
         }
 
-        // all existing classfiiers are good?
+        // all existing classifiers are good?
         if updated.count == 4 { return }
 
         let cache = ActivityTypesCache.highlander
