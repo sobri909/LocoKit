@@ -58,7 +58,11 @@ open class PersistentSample: LocomotionSample, TimelineObject {
 
         // backfill rtree indexes
         if lastSaved != nil, rtreeId == nil {
-            Task(priority: .background) { self.updateRTree() }
+            Task(priority: .background) {
+                if self.rtreeId == nil {
+                    self.updateRTree()
+                }
+            }
         }
     }
 
