@@ -257,6 +257,11 @@ internal extension TimelineStore {
                 table.add(column: "coordinatesMatrixBlob", .blob)
             }
         }
+
+        auxiliaryDbMigrator.registerMigration("Faster model lookup") { db in
+            try? db.create(index: "ActivityTypeModel_on_isShared_depth", on: "ActivityTypeModel",
+                           columns: ["isShared", "depth"])
+        }
     }
 
     // MARK: - Delayed migrations
