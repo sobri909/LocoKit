@@ -420,7 +420,7 @@ open class ActivityType: MLModel, PersistableRecord, Identifiable {
                 self.lastSaved = self.transactionDate
             }
         } catch {
-            logger.error("\(error.localizedDescription)")
+            logger.error("ERROR: \(error)")
         }
     }
 
