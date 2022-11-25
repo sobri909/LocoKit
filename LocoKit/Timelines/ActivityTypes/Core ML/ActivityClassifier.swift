@@ -8,7 +8,6 @@
 import Foundation
 import CoreLocation
 import TabularData
-import CreateML
 import CoreML
 import Upsurge
 import BackgroundTasks
