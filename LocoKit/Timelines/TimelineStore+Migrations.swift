@@ -7,9 +7,9 @@
 
 import GRDB
 
-internal extension TimelineStore {
+public extension TimelineStore {
 
-    func registerMigrations() {
+    internal func registerMigrations() {
 
         // initial tables creation
         migrator.registerMigration("CreateTables") { db in
@@ -161,7 +161,7 @@ internal extension TimelineStore {
 
     // MARK: - Auxiliary database
 
-    func registerAuxiliaryDbMigrations() {
+    internal func registerAuxiliaryDbMigrations() {
 
         // MARK: ActivityTypeModel
 
@@ -249,7 +249,7 @@ internal extension TimelineStore {
 
     // MARK: - Delayed migrations
 
-    func registerDelayedMigrations() {
+    func registerDelayedMigrations(to migrator: inout DatabaseMigrator) {
 
         // for HealthKit Workout Route imports
         migrator.registerMigration("LocomotionSample.disabled") { db in

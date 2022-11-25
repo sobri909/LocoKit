@@ -617,8 +617,9 @@ open class TimelineStore {
     public var migrator = DatabaseMigrator()
     public var auxiliaryDbMigrator = DatabaseMigrator()
 
-    open func migrateDatabases() {
-        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+    open func migrateDatabases(includeDelayed: Bool = true) {
+        connectToDatabase()
+        guard let pool = pool else { return }
 
         registerMigrations()
         try! migrator.migrate(pool)
@@ -626,9 +627,22 @@ open class TimelineStore {
         registerAuxiliaryDbMigrations()
         try! auxiliaryDbMigrator.migrate(auxiliaryPool)
 
-        delay(6, onQueue: DispatchQueue.global()) {
-            self.registerDelayedMigrations()
-            try! self.migrator.migrate(pool)
+        if includeDelayed {
+            delay(6, onQueue: DispatchQueue.global()) {
+                self.runSlowDatabaseMigrations()
+            }
+        }
+    }
+
+    open func runSlowDatabaseMigrations() {
+        connectToDatabase()
+        guard let pool = pool else { return }
+
+        registerDelayedMigrations(to: &migrator)
+        do {
+            try migrator.migrate(pool)
+        } catch {
+            logger.error("ERROR: \(error)")
         }
     }
 
