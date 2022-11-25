@@ -57,6 +57,7 @@ internal extension TimelineStore {
                 table.column("lastSaved", .datetime).notNull().indexed()
                 table.column("source", .text).defaults(to: "LocoKit").indexed()
                 table.column("disabled", .boolean).notNull().defaults(to: false)
+                table.column("secondsFromGMT", .integer)
 
                 table.column("movingState", .text).notNull()
                 table.column("recordingState", .text).notNull()
@@ -160,12 +161,6 @@ internal extension TimelineStore {
         migrator.registerMigration("7.0.2") { db in
             try? db.alter(table: "LocomotionSample") { table in
                 table.add(column: "previousSampleConfirmedType", .text)
-            }
-        }
-
-        migrator.registerMigration("7.0.4 timezones") { db in
-            try db.alter(table: "LocomotionSample") { table in
-                table.add(column: "secondsFromGMT", .integer)
             }
         }
 
