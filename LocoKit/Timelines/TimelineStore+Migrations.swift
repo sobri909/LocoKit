@@ -157,18 +157,6 @@ internal extension TimelineStore {
             try db.create(index: "TimelineItem_on_deleted_startDate", on: "TimelineItem",
                           columns: ["deleted", "startDate"])
         }
-
-        migrator.registerMigration("7.0.2") { db in
-            try? db.alter(table: "LocomotionSample") { table in
-                table.add(column: "previousSampleConfirmedType", .text)
-            }
-        }
-
-        migrator.registerMigration("7.0.5 cached activity types") { db in
-            try? db.alter(table: "LocomotionSample") { table in
-                table.add(column: "classifiedType", .text)
-            }
-        }
     }
 
     // MARK: - Auxiliary database
@@ -262,20 +250,6 @@ internal extension TimelineStore {
     // MARK: - Delayed migrations
 
     func registerDelayedMigrations() {
-        migrator.registerMigration("7.0.6 recent confirmed samples") { db in
-            try? db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
-                           columns: ["confirmedType", "lastSaved"])
-        }
-
-        migrator.registerMigration("7.0.6 models have moved") { db in
-            try? db.drop(table: "ActivityTypeModel")
-            try? db.drop(table: "CoordinateTrust")
-        }
-
-        migrator.registerMigration("7.0.6 redundant indexes") { db in
-            try? db.drop(index: "LocomotionSample_on_confirmedType")
-            try? db.drop(index: "LocomotionSample_on_timelineItemId")
-        }
 
         // for HealthKit Workout Route imports
         migrator.registerMigration("LocomotionSample.disabled") { db in
