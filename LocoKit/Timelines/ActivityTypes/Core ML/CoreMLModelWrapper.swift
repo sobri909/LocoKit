@@ -40,6 +40,8 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     public var store: TimelineStore
 
+    private let mutex = UnfairLock()
+
     // MARK: -
 
     convenience init(coordinate: CLLocationCoordinate2D, depth: Int, in store: TimelineStore) {
@@ -137,7 +139,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults {
         guard let model else { print("[\(geoKey)] classify(classifiable:) NO MODEL!"); return ClassifierResults(results: [], moreComing: false) }
         let input = classifiable.coreMLFeatureProvider
-        guard let output = try? model.prediction(from: input, options: MLPredictionOptions()) else {
+        guard let output = mutex.sync(execute: { try? model.prediction(from: input, options: MLPredictionOptions()) }) else {
             return ClassifierResults(results: [], moreComing: false)
         }
         return results(for: output)
