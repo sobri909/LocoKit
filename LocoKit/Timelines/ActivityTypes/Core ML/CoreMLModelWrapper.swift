@@ -57,6 +57,10 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         ]
 
         self.init(dict: dict, in: store)
+
+        if #available(iOS 15, *) {
+            updateTheModel(in: store)
+        }
     }
 
     public init(dict: [String: Any?], in store: TimelineStore) {
