@@ -74,6 +74,7 @@ public class CoreMLModelUpdater {
 
         // not allowed to continue?
         if backgroundTaskExpired {
+            backgroundTaskExpired = false
             onUpdatesComplete?(true)
             return
         }
