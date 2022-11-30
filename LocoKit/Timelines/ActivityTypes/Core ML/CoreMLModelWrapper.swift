@@ -19,9 +19,8 @@ import CreateML
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
-    static let modelMaxTrainingSamples = 200_000
+    static let modelMaxTrainingSamples = 150_000
     static let modelMinTrainingSamples = 50_000 // for completenessScore
-    static let modelSamplesBatchSize = 50_000
 
     // MARK: -
 
@@ -59,7 +58,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         self.init(dict: dict, in: store)
 
         if #available(iOS 15, *) {
-            updateTheModel(in: store)
+            updateTheModel()
         }
     }
 
@@ -221,12 +220,12 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     // MARK: - Model building
 
     @available(iOS 15, *)
-    public func updateTheModel(task: BGProcessingTask? = nil, in store: TimelineStore) {
+    public func updateTheModel(task: BGProcessingTask? = nil) {
         #if canImport(CreateML)
         CoreMLModelUpdater.highlander.updatesQueue.addOperation {
             defer {
                 if let task {
-                    CoreMLModelUpdater.highlander.updateQueuedModels(task: task, store: store)
+                    CoreMLModelUpdater.highlander.updateQueuedModels(task: task, store: self.store)
                 }
             }
 
@@ -237,20 +236,17 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
             do {
                 var csvFile: URL?
-                var lastDate: Date?
                 var samplesCount = 0
                 var includedTypes: Set<ActivityTypeName> = []
-                repeat {
-                    let start = Date()
-                    let samples = self.fetchTrainingSamples(in: store, from: lastDate)
-                    print("buildModel() SAMPLES BATCH: \(samples.count), duration: \(start.age)")
-                    let (url, samplesAdded, typesAdded) = try self.exportCSV(samples: samples, appendingTo: csvFile)
-                    csvFile = url
-                    samplesCount += samplesAdded
-                    includedTypes.formUnion(typesAdded)
-                    if samplesCount >= Self.modelMaxTrainingSamples { break }
-                    lastDate = samples.last?.date
-                } while lastDate != nil
+
+                let start = Date()
+                let samples = self.fetchTrainingSamples()
+                print("buildModel() SAMPLES BATCH: \(samples.count), duration: \(start.age)")
+
+                let (url, samplesAdded, typesAdded) = try self.exportCSV(samples: samples, appendingTo: csvFile)
+                csvFile = url
+                samplesCount += samplesAdded
+                includedTypes.formUnion(typesAdded)
 
                 guard samplesCount > 0, includedTypes.count > 1 else {
                     logger.info("SKIPPED: \(self.geoKey) (samples: \(samplesCount), includedTypes: \(includedTypes.count))")
@@ -276,7 +272,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 let classifier = try MLBoostedTreeClassifier(trainingData: dataFrame, targetColumn: "confirmedType")
 
                 do {
-                    try FileManager.default.createDirectory(at: store.modelsDir, withIntermediateDirectories: true, attributes: nil)
+                    try FileManager.default.createDirectory(at: self.store.modelsDir, withIntermediateDirectories: true, attributes: nil)
                 } catch {
                     logger.error("Couldn't create MLModels directory.")
                 }
@@ -308,40 +304,20 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         #endif
     }
 
-    private func fetchTrainingSamples(in store: TimelineStore, from: Date? = nil) -> [PersistentSample] {
+    private func fetchTrainingSamples() -> [PersistentSample] {
         store.connectToDatabase()
-
         let rect = CoordinateRect(latitudeRange: latitudeRange, longitudeRange: longitudeRange)
-
-        if let from {
-            return store.samples(
-                inside: rect,
-                where: """
-                    date < ?
-                    AND confirmedType IS NOT NULL
-                    AND xyAcceleration IS NOT NULL
-                    AND zAcceleration IS NOT NULL
-                    AND stepHz IS NOT NULL
-                        ORDER BY date DESC
-                        LIMIT ?
-                """,
-                arguments: [from, Self.modelSamplesBatchSize]
-            )
-
-        } else {
-            return store.samples(
-                inside: rect,
-                where: """
+        return store.samples(
+            inside: rect,
+            where: """
                     confirmedType IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
                     AND stepHz IS NOT NULL
-                        ORDER BY date DESC
-                        LIMIT ?
+                    LIMIT ?
                 """,
-                arguments: [Self.modelSamplesBatchSize]
-            )
-        }
+            arguments: [Self.modelMaxTrainingSamples]
+        )
     }
 
     private func exportCSV(samples: [PersistentSample], appendingTo: URL? = nil) throws -> (URL, Int, Set<ActivityTypeName>) {

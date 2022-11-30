@@ -91,7 +91,7 @@ public class CoreMLModelUpdater {
         // do the job
         store.connectToDatabase()
         if let model = store.coreMLModel(where: "needsUpdate = 1") {
-            model.updateTheModel(task: task, in: store)
+            model.updateTheModel(task: task)
             return
         }
 
