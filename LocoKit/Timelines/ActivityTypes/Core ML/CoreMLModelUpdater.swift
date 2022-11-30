@@ -91,6 +91,12 @@ public class CoreMLModelUpdater {
         // do the job
         store.connectToDatabase()
         if let model = store.coreMLModel(where: "needsUpdate = 1") {
+
+            // TODO: remove this step eventually - it's only for backfilling existing dbs
+            CoreMLModelUpdater.highlander.updatesQueue.addOperation {
+                store.backfillSampleRTree(batchSize: CoreMLModelWrapper.modelMaxTrainingSamples)
+            }
+
             model.updateTheModel(task: task)
             return
         }
