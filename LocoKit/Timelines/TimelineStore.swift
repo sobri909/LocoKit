@@ -599,7 +599,7 @@ open class TimelineStore {
         }
     }
 
-    public func backfillSampleRTree(batchSize limit: Int = 20_000) {
+    public func backfillSampleRTree(batchSize limit: Int = 50_000) {
         let start = Date()
         let samples = samples(where: "confirmedType IS NOT NULL AND rtreeId IS NULL LIMIT ?", arguments: [limit])
         logger.info("SampleRTree backfill batch: \(samples.count) samples, fetchTime: \(start.age)")
