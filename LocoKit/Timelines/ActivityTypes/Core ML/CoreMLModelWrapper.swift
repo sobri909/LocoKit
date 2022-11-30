@@ -249,7 +249,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     samplesCount += samplesAdded
                     includedTypes.formUnion(typesAdded)
                     if samplesCount >= Self.modelMaxTrainingSamples { break }
-                    lastDate = samples.last?.lastSaved
+                    lastDate = samples.last?.date
                 } while lastDate != nil
 
                 guard samplesCount > 0, includedTypes.count > 1 else {
@@ -317,13 +317,12 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             return store.samples(
                 inside: rect,
                 where: """
-                    lastSaved < ?
+                    date < ?
                     AND confirmedType IS NOT NULL
-                    AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
                     AND stepHz IS NOT NULL
-                        ORDER BY lastSaved DESC
+                        ORDER BY date DESC
                         LIMIT ?
                 """,
                 arguments: [from, Self.modelSamplesBatchSize]
@@ -334,11 +333,10 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 inside: rect,
                 where: """
                     confirmedType IS NOT NULL
-                    AND lastSaved IS NOT NULL
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
                     AND stepHz IS NOT NULL
-                        ORDER BY lastSaved DESC
+                        ORDER BY date DESC
                         LIMIT ?
                 """,
                 arguments: [Self.modelSamplesBatchSize]
