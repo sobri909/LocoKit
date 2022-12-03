@@ -140,7 +140,11 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     // MARK: - DiscreteClassifier
 
     public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults {
-        guard let model else { print("[\(geoKey)] classify(classifiable:) NO MODEL!"); return ClassifierResults(results: [], moreComing: false) }
+        guard let model else {
+            totalSamples = 0 // if file used to exist, sample count will be wrong and will cause incorrect weighting
+            print("[\(geoKey)] classify(classifiable:) NO MODEL!")
+            return ClassifierResults(results: [], moreComing: false)
+        }
         let input = classifiable.coreMLFeatureProvider
         guard let output = mutex.sync(execute: { try? model.prediction(from: input, options: MLPredictionOptions()) }) else {
             return ClassifierResults(results: [], moreComing: false)
