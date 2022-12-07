@@ -274,10 +274,15 @@ open class TimelineStore {
 
     public func samples(for query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
-        let rows = try! pool.read { db in
-            return try Row.fetchAll(db, sql: query, arguments: arguments)
+        do {
+            let rows = try pool.read { db in
+                return try Row.fetchAll(db, sql: query, arguments: arguments)
+            }
+            return rows.map { sample(for: $0) }
+        } catch {
+            logger.error("\(String(describing: error))")
+            return []
         }
-        return rows.map { sample(for: $0) }
     }
 
     public func samples(inside coordRect: CoordinateRect, where extraWhere: String? = nil, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
