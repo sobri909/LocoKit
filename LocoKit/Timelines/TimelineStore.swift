@@ -552,15 +552,9 @@ open class TimelineStore {
 
     // MARK: - Background and Foreground
 
-    private func didBecomeActive() {
-        guard let segments = mutex.sync(execute: { segmentMap.objectEnumerator()?.allObjects as? [TimelineSegment] }) else { return }
-        segments.forEach { $0.shouldReclassifySamples = true }
-    }
+    open func didBecomeActive() {}
 
-    private func didEnterBackground() {
-        guard let segments = mutex.sync(execute: { segmentMap.objectEnumerator()?.allObjects as? [TimelineSegment] }) else { return }
-        segments.forEach { $0.shouldReclassifySamples = false }
-    }
+    open func didEnterBackground() {}
 
     // MARK: - Database housekeeping
 
