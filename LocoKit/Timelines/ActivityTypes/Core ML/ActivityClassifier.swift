@@ -37,9 +37,13 @@ public class ActivityClassifier {
 
         var combinedResults: ClassifierResults?
         var remainingWeight = 1.0
+        var moreComing = true
 
         for classifier in classifiers {
             let results = classifier.classify(classifiable, previousResults: previousResults)
+
+            // at least one classifier in the tree is complete?
+            if classifier.completenessScore >= 1 { moreComing = false }
 
             if combinedResults == nil {
                 combinedResults = results
@@ -61,6 +65,8 @@ public class ActivityClassifier {
 
             if remainingWeight <= 0 { break }
         }
+
+        combinedResults?.moreComing = moreComing
 
         // cache in the sample, and potentially update the stored value
         if let combinedResults, !combinedResults.moreComing {

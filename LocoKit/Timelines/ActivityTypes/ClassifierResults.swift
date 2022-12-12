@@ -81,13 +81,8 @@ public struct ClassifierResults: Sequence, IteratorProtocol {
     /**
      Indicates that the classifier does not yet have all relevant model data, so a subsequent attempt to classify the
      same sample again may produce new results with higher accuracy.
-
-     - Note: Classifiers manage the fetching and caching of model data internally, so if the classifier returns results
-         flagged with `moreComing` it will already have requested the missing model data from the server. Provided a
-         working internet connection is available, the missing model data should be available in the classifier in less
-         than a second.
      */
-    public let moreComing: Bool
+    public var moreComing: Bool
 
     /**
      Returns the result rows as a plain array.
