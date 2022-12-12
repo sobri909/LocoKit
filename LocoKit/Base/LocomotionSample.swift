@@ -262,6 +262,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         self.xyAcceleration = try? container.decode(Double.self, forKey: .xyAcceleration)
         self.zAcceleration = try? container.decode(Double.self, forKey: .zAcceleration)
         self.confirmedType = try? container.decode(ActivityTypeName.self, forKey: .confirmedType)
+        self._classifiedType = try? container.decode(ActivityTypeName.self, forKey: .classifiedType)
 
         if let codableLocation = try? container.decode(CodableLocation.self, forKey: .location) {
             self.location = CLLocation(from: codableLocation)
@@ -286,6 +287,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         if xyAcceleration != nil { try container.encode(xyAcceleration, forKey: .xyAcceleration) }
         if zAcceleration != nil { try container.encode(zAcceleration, forKey: .zAcceleration) }
         if confirmedType != nil { try container.encode(confirmedType, forKey: .confirmedType) }
+        if _classifiedType != nil { try container.encode(_classifiedType, forKey: .classifiedType) }
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -300,6 +302,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
         case xyAcceleration
         case zAcceleration
         case confirmedType
+        case classifiedType
     }
 }
 
