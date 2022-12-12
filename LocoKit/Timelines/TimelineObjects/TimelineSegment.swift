@@ -20,6 +20,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
     public var debugLogging = false
     public var shouldReprocessOnUpdate = false
     public var shouldUpdateMarkovValues = true
+    public var shouldReclassifySamples = true
 
     // MARK: -
 
@@ -100,6 +101,8 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
                 }
             }
             
+            self.reclassifySamples()
+
             if self.shouldReprocessOnUpdate {
                 self.updateMarkovValues()
                 self.process()
@@ -125,6 +128,41 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
         if freshItemCount != lastItemCount { return true }
         if freshLastSaveDate != lastSaveDate { return true }
         return false
+    }
+
+    // Note: this expects samples to be in date ascending order
+    private func reclassifySamples() {
+        guard shouldReclassifySamples else { return }
+        
+        guard let classifier = store.recorder?.classifier else { return }
+
+        var lastResults: ClassifierResults?
+
+        for item in timelineItems {
+            var count = 0
+
+            for sample in item.samples where sample.confirmedType == nil {
+
+                // don't reclassify samples if they've been done within the past few months
+                if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneYear { continue }
+
+                let oldClassifiedType = sample._classifiedType
+                sample._classifiedType = nil
+                sample.classifierResults = classifier.classify(sample, previousResults: lastResults)
+                if sample.classifiedType != oldClassifiedType {
+                    count += 1
+                }
+
+                lastResults = sample.classifierResults
+            }
+
+            // item needs rebuild?
+            if count > 0 { item.sampleTypesChanged() }
+
+            if debugLogging && count > 0 {
+                logger.debug("Reclassified samples: \(count)")
+            }
+        }
     }
 
     public func updateMarkovValues() {
