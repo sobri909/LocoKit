@@ -62,6 +62,9 @@ public class ActivityClassifier {
             if remainingWeight <= 0 { break }
         }
 
+        // cache in the sample
+        classifiable.classifierResults = combinedResults
+
         return combinedResults
     }
 
