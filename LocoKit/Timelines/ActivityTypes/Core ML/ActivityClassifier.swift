@@ -62,8 +62,13 @@ public class ActivityClassifier {
             if remainingWeight <= 0 { break }
         }
 
-        // cache in the sample
-        classifiable.classifierResults = combinedResults
+        // cache in the sample, and potentially update the stored value
+        if let combinedResults, !combinedResults.moreComing {
+            classifiable.classifierResults = combinedResults
+            if let sample = classifiable as? PersistentSample {
+                sample._classifiedType = combinedResults.best.name
+            }
+        }
 
         return combinedResults
     }
