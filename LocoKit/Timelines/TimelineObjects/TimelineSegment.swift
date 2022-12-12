@@ -142,9 +142,9 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
             var count = 0
 
             for sample in item.samples where sample.confirmedType == nil {
-
-                // don't reclassify samples if they've been done within the past few months
-                if sample._classifiedType != nil, let lastSaved = sample.lastSaved, lastSaved.age < .oneYear { continue }
+                
+                // only samples with no cached classified type
+                guard sample._classifiedType == nil else { continue }
 
                 let oldClassifiedType = sample._classifiedType
                 sample._classifiedType = nil
