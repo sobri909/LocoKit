@@ -160,7 +160,6 @@ public class ActivityClassifier {
         // get a CD2
         if updated.first(where: { ($0.1.id as? String)?.hasPrefix("CD2") == true }) == nil {
             if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
-                print("FETCHED: \(classifier.id)")
                 updated[3] = classifier // priority 3 (top)
             }
         }
@@ -168,7 +167,6 @@ public class ActivityClassifier {
         // get a GD2
         if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD2") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 2)  {
-                print("FETCHED: \(classifier.id)")
                 updated[2] = classifier
             }
         }
@@ -176,7 +174,6 @@ public class ActivityClassifier {
         // get a GD1
         if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD1") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 1)  {
-                print("FETCHED: \(classifier.id)")
                 updated[1] = classifier
             }
         }
@@ -184,7 +181,6 @@ public class ActivityClassifier {
         // get a GD0
         if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD0") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 0)  {
-                print("FETCHED: \(classifier.id)")
                 updated[0] = classifier
             }
         }
