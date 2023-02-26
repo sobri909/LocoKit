@@ -52,12 +52,14 @@ public extension Radians {
 
 public extension CLLocationDistance {
     static let feetPerMetre = 3.2808399
+    var feet: Double { self * CLLocationDistance.feetPerMetre }
     var measurement: Measurement<UnitLength> { return Measurement(value: self, unit: UnitLength.meters) }
 }
 
 public extension CLLocationSpeed {
     init(kmh: Double) { self.init(kmh / 3.6) }
     var kmh: Double { return self * 3.6 }
+    var mph: Double { return self * 2.23694 }
     var speedMeasurement: Measurement<UnitSpeed> { return Measurement(value: self, unit: UnitSpeed.metersPerSecond) }
 }
 
