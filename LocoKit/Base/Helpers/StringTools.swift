@@ -133,7 +133,7 @@ public extension String {
         if let style = style {
             formatter.unitStyle = style
         }
-        if mps.kmh < 10 {
+        if mps.kmh < 30 {
             formatter.numberFormatter.maximumFractionDigits = 1
         } else {
             formatter.numberFormatter.maximumFractionDigits = 0
