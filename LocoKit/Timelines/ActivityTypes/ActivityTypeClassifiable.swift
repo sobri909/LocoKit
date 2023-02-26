@@ -17,6 +17,7 @@ public protocol ActivityTypeClassifiable: AnyObject {
     var xyAcceleration: Double? { get }
     var zAcceleration: Double? { get }
     var timeOfDay: TimeInterval { get }
+    var sinceVisitStart: TimeInterval { get }
     var previousSampleConfirmedType: ActivityTypeName? { get }
     var classifierResults: ClassifierResults? { get set }
 }
@@ -36,7 +37,8 @@ extension ActivityTypeClassifiable {
             latitude: location?.coordinate.latitude,
             longitude: location?.coordinate.longitude,
             altitude: location?.altitude,
-            timeOfDay: timeOfDay
+            timeOfDay: timeOfDay,
+            sinceVisitStart: sinceVisitStart
         )
     }
 }

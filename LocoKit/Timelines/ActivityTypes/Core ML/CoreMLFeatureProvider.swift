@@ -24,6 +24,7 @@ class CoreMLFeatureProvider: MLFeatureProvider {
     var longitude: Double?
     var altitude: Double?
     var timeOfDay: Double
+    var sinceVisitStart: Double
 
     var featureNames: Set<String> {
         get {
@@ -32,7 +33,7 @@ class CoreMLFeatureProvider: MLFeatureProvider {
                 "verticalAccuracy", "horizontalAccuracy",
                 "courseVariance", "speed", "course",
                 "latitude", "longitude", "altitude",
-                "timeOfDay"
+                "timeOfDay", "sinceVisitStart"
             ]
         }
     }
@@ -77,6 +78,9 @@ class CoreMLFeatureProvider: MLFeatureProvider {
         if (featureName == "timeOfDay") {
             return MLFeatureValue(double: timeOfDay)
         }
+        if (featureName == "sinceVisitStart") {
+            return MLFeatureValue(double: sinceVisitStart)
+        }
         return nil
     }
 
@@ -85,7 +89,7 @@ class CoreMLFeatureProvider: MLFeatureProvider {
         verticalAccuracy: Double?, horizontalAccuracy: Double?,
         courseVariance: Double?, speed: Double?, course: Double?,
         latitude: Double?, longitude: Double?, altitude: Double?,
-        timeOfDay: Double
+        timeOfDay: Double, sinceVisitStart: Double
     ) {
         self.stepHz = stepHz
         self.xyAcceleration = xyAcceleration
@@ -100,6 +104,7 @@ class CoreMLFeatureProvider: MLFeatureProvider {
         self.longitude = longitude
         self.altitude = altitude
         self.timeOfDay = timeOfDay
+        self.sinceVisitStart = sinceVisitStart
     }
 
 }

@@ -49,6 +49,12 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         return super.hasUsableCoordinate
     }
 
+    public override var sinceVisitStart: TimeInterval {
+        guard let visit = timelineItem as? Visit else { return 0 }
+        guard let startDate = visit.startDate else { return 0 }
+        return date.timeIntervalSince(startDate)
+    }
+
     // MARK: - Convenience initialisers
 
     public convenience init(from dict: [String: Any?], in store: TimelineStore) {

@@ -244,6 +244,12 @@ public class TimelineRecorder: ObservableObject {
         if RecordingState.sleepStates.contains(sample.recordingState), let currentVisit = currentVisit {
             TimelineProcessor.pruneSamples(for: currentVisit)
         }
+
+        // reclassify the sample, now that there'll be a sinceVisitStart value
+        if classifier.canClassify(sample.location?.coordinate) {
+            sample.classifierResults = classifier.classify(sample, previousResults: lastClassifierResults)
+            lastClassifierResults = sample.classifierResults
+        }
     }
 
     private func updateSleepModeAcceptability() {

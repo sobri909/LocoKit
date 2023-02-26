@@ -101,10 +101,18 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
      mean + 3SD of the unsigned acceleration values.
      */
     public let zAcceleration: Double?
+
+    public var sinceVisitStart: Double { return 0 }
     
     // MARK: Activity Type Properties
     
-    public var classifierResults: ClassifierResults?
+    public var classifierResults: ClassifierResults? {
+        didSet {
+            if let results = classifierResults, results.best.score > 0, !results.moreComing {
+                _classifiedType = results.best.name
+            }
+        }
+    }
 
     public var activityType: ActivityTypeName? {
         return confirmedType ?? classifiedType
