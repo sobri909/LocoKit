@@ -329,7 +329,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             "stepHz", "xyAcceleration", "zAcceleration", "movingState",
             "verticalAccuracy", "horizontalAccuracy",
             "speed", "course", "latitude", "longitude", "altitude",
-            "timeOfDay", "confirmedType"
+            "timeOfDay", "confirmedType", "sinceVisitStart"
         ]
 
         let csvFile = appendingTo ?? FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -361,7 +361,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
             line += "\(stepHz),\(xyAcceleration),\(zAcceleration),\"\(sample.movingState.rawValue)\","
             line += "\(location.horizontalAccuracy),\(location.verticalAccuracy),"
             line += "\(location.speed),\(location.course),\(location.coordinate.latitude),\(location.coordinate.longitude),\(location.altitude),"
-            line += "\(sample.timeOfDay),\"\(sample.confirmedType!)\""
+            line += "\(sample.timeOfDay),\"\(sample.confirmedType!)\",\(sample.sinceVisitStart)"
 
             try line.appendLineToURL(fileURL: csvFile)
             samplesAdded += 1
