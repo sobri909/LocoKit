@@ -614,7 +614,7 @@ import CoreLocation
 
         // set the location manager to ask for almost nothing and ignore everything
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-        locationManager.distanceFilter = kCLDistanceFilterNone
+        locationManager.distanceFilter = CLLocationDistanceMax
 
         // make sure the location manager is alive
         locationManager.allowsBackgroundLocationUpdates = true
