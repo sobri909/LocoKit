@@ -237,7 +237,7 @@ import CoreLocation
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
 
-    @objc public var standbyCycleDuration: TimeInterval = 60 * 1
+    @objc public var standbyCycleDuration: TimeInterval = 60
 
     // MARK: - Raw, Filtered, and Smoothed Data
     
@@ -509,7 +509,7 @@ import CoreLocation
         stopCoreMotion()
 
         // set the location manager to ask for nothing and ignore everything
-        locationManager.desiredAccuracy = Double.greatestFiniteMagnitude
+        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
         locationManager.distanceFilter = CLLocationDistanceMax
 
         // no fallback updates while sleeping
@@ -590,7 +590,7 @@ import CoreLocation
             if let appGroup = appGroup, appGroup.shouldBeTheRecorder {
                 becomeTheActiveRecorder()
             } else {
-                startStandby()
+                delay(1) { self.startStandby() }
             }
             return
         }
