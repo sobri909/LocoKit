@@ -136,6 +136,8 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
         
         guard let classifier = store.recorder?.classifier else { return }
 
+        store.connectToDatabase()
+
         var lastResults: ClassifierResults?
 
         for item in timelineItems {
