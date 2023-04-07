@@ -237,7 +237,7 @@ import CoreLocation
      */
     @objc public var sleepCycleDuration: TimeInterval = 60
 
-    @objc public var standbyCycleDuration: TimeInterval = 60 * 1
+    @objc public var standbyCycleDuration: TimeInterval = 60 * 2
 
     // MARK: - Raw, Filtered, and Smoothed Data
     
