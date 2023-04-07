@@ -509,8 +509,8 @@ import CoreLocation
         stopCoreMotion()
 
         // set the location manager to ask for nothing and ignore everything
-        locationManager.desiredAccuracy = Double.greatestFiniteMagnitude
-        locationManager.distanceFilter = CLLocationDistanceMax
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.distanceFilter = 10
 
         // no fallback updates while sleeping
         stopTheUpdateTimer()
@@ -613,8 +613,8 @@ import CoreLocation
         stopCoreMotion()
 
         // set the location manager to ask for almost nothing and ignore everything
-        locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-        locationManager.distanceFilter = CLLocationDistanceMax
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.distanceFilter = 10
 
         // make sure the location manager is alive
         locationManager.allowsBackgroundLocationUpdates = true
