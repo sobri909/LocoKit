@@ -510,7 +510,7 @@ import CoreLocation
 
         // set the location manager to ask for nothing and ignore everything
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-        // locationManager.distanceFilter = CLLocationDistanceMax // is this the cause of iOS 16.4 troubles?
+        locationManager.distanceFilter = CLLocationDistanceMax
 
         // no fallback updates while sleeping
         stopTheUpdateTimer()
@@ -614,7 +614,7 @@ import CoreLocation
 
         // set the location manager to ask for almost nothing and ignore everything
         locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
-        // locationManager.distanceFilter = CLLocationDistanceMax // is this the cause of iOS 16.4 troubles?
+        locationManager.distanceFilter = CLLocationDistanceMax
 
         // make sure the location manager is alive
         locationManager.allowsBackgroundLocationUpdates = true
