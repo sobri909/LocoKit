@@ -200,7 +200,7 @@ public class AppGroup {
 
         public var isAlive: Bool {
             if isDeepSleeping { return true }
-            return updated.age < LocomotionManager.highlander.standbyCycleDuration + 2
+            return updated.age < LocomotionManager.highlander.standbyCycleDuration + 3
         }
         public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
         public var isDeepSleeping: Bool {
