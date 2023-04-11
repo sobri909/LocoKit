@@ -508,9 +508,9 @@ import CoreLocation
         // stop the gimps
         stopCoreMotion()
 
-        // set the location manager to ask for nothing and ignore everything
-        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        locationManager.distanceFilter = 10
+        // set the location manager to ask for as little accuracy as possible (without risking suspend)
+        locationManager.desiredAccuracy = 999
+        locationManager.distanceFilter = kCLDistanceFilterNone
 
         // no fallback updates while sleeping
         stopTheUpdateTimer()
@@ -613,8 +613,8 @@ import CoreLocation
         stopCoreMotion()
 
         // set the location manager to ask for almost nothing and ignore everything
-        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        locationManager.distanceFilter = 10
+        locationManager.desiredAccuracy = 999
+        locationManager.distanceFilter = kCLDistanceFilterNone
 
         // make sure the location manager is alive
         locationManager.allowsBackgroundLocationUpdates = true
