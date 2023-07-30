@@ -9,7 +9,7 @@
 import CoreLocation
 import Combine
 
-public class ItemSegment: Equatable, Identifiable, ObservableObject {
+public class ItemSegment: Hashable, Identifiable, ObservableObject {
 
     public weak var timelineItem: TimelineItem?
 
@@ -214,10 +214,17 @@ public class ItemSegment: Equatable, Identifiable, ObservableObject {
         onMain { self.objectWillChange.send() }
     }
 
+    // MARK: - Hashable
+
+    open func hash(into hasher: inout Hasher) {
+        hasher.combine(dateRange)
+        hasher.combine(samples.count)
+    }
+
     // MARK: - Equatable
 
     public static func ==(lhs: ItemSegment, rhs: ItemSegment) -> Bool {
-        return lhs.dateRange == rhs.dateRange && lhs.samples.count == rhs.samples.count
+        return lhs.hashValue == rhs.hashValue
     }
 
     // MARK: - Identifiable
