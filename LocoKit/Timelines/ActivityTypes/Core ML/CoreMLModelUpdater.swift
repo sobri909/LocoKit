@@ -90,6 +90,15 @@ public class CoreMLModelUpdater {
 
         // do the job
         store.connectToDatabase()
+
+        // do the current CD2 first, if it needs it
+        let currentModel = ActivityClassifier.highlander.discreteClassifiers.first { $0.value.geoKey.hasPrefix("CD2") }?.value
+        if let model = currentModel as? CoreMLModelWrapper, model.needsUpdate {
+            model.updateTheModel(task: task)
+            return
+        }
+
+        // grab a random pending model instead
         if let model = store.coreMLModel(where: "needsUpdate = 1") {
 
             // TODO: remove this step eventually - it's only for backfilling existing dbs
