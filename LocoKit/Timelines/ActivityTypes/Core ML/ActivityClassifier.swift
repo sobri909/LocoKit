@@ -158,28 +158,28 @@ public class ActivityClassifier {
         let cache = ActivityTypesCache.highlander
 
         // get a CD2
-        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("CD2") == true }) == nil {
+        if updated.first(where: { $0.value.geoKey.hasPrefix("CD2") == true }) == nil {
             if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
                 updated[3] = classifier // priority 3 (top)
             }
         }
 
         // get a GD2
-        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD2") == true }) == nil {
+        if updated.first(where: { $0.value.geoKey.hasPrefix("GD2") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 2)  {
                 updated[2] = classifier
             }
         }
 
         // get a GD1
-        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD1") == true }) == nil {
+        if updated.first(where: { $0.value.geoKey.hasPrefix("GD1") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 1)  {
                 updated[1] = classifier
             }
         }
 
         // get a GD0
-        if updated.first(where: { ($0.1.id as? String)?.hasPrefix("GD0") == true }) == nil {
+        if updated.first(where: { $0.value.geoKey.hasPrefix("GD0") == true }) == nil {
             if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 0)  {
                 updated[0] = classifier
             }
