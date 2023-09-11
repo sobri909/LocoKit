@@ -262,6 +262,7 @@ public class TimelineRecorder: ObservableObject {
         if loco.recordingState == .standby { return }
 
         // sleep mode requires currentItem to be a keeper visit
+        store.connectToDatabase()
         guard let currentVisit = currentVisit, currentVisit.isWorthKeeping else {
             loco.useLowPowerSleepModeWhileStationary = false
 
