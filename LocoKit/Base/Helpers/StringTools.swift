@@ -13,10 +13,15 @@ public extension String.StringInterpolation {
         appendLiteral(String(duration: duration, fractionalUnit: fractionalUnit, style: style,
                              maximumUnits: maximumUnits, alwaysIncludeSeconds: alwaysIncludeSeconds))
     }
+
     mutating func appendInterpolation(metres: CLLocationDistance,
                                       style: MeasurementFormatter.UnitStyle = .medium,
                                       isAltitude: Bool = false) {
         appendLiteral(String(metres: metres, style: style, isAltitude: isAltitude))
+    }
+
+    mutating func appendInterpolation(speed: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {
+        appendLiteral(String(speed: speed, style: style))
     }
 }
 
@@ -27,10 +32,15 @@ public extension LocalizedStringKey.StringInterpolation {
         appendLiteral(String(duration: duration, fractionalUnit: fractionalUnit, style: style,
                              maximumUnits: maximumUnits, alwaysIncludeSeconds: alwaysIncludeSeconds))
     }
+    
     mutating func appendInterpolation(metres: CLLocationDistance,
                                       style: MeasurementFormatter.UnitStyle = .medium,
                                       isAltitude: Bool = false) {
         appendLiteral(String(metres: metres, style: style, isAltitude: isAltitude))
+    }
+    
+    mutating func appendInterpolation(speed: CLLocationSpeed, style: Formatter.UnitStyle? = nil) {
+        appendLiteral(String(speed: speed, style: style))
     }
 }
 
