@@ -117,7 +117,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     private lazy var model: CoreML.MLModel? = {
         do {
-            return try CoreML.MLModel(contentsOf: modelURL)
+            return try mutex.sync { try CoreML.MLModel(contentsOf: modelURL) }
         } catch {
             logger.error("ERROR: \(error)")
             if !needsUpdate {
@@ -134,7 +134,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     }
 
     public func reloadModel() throws {
-        self.model = try CoreML.MLModel(contentsOf: modelURL)
+        try mutex.sync { self.model = try CoreML.MLModel(contentsOf: modelURL) }
     }
     
     // MARK: - DiscreteClassifier
