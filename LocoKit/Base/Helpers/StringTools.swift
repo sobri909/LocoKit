@@ -100,18 +100,10 @@ public extension String {
             formatter.unitOptions = .providedUnit
             formatter.numberFormatter.maximumFractionDigits = 0
 
-            if #available(iOS 16, *) {
-                if Locale.current.measurementSystem == .metric {
-                    self.init(format: formatter.string(from: metres.measurement))
-                } else {
-                    self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
-                }
+            if Locale.current.measurementSystem == .metric {
+                self.init(format: formatter.string(from: metres.measurement))
             } else {
-                if Locale.current.usesMetricSystem {
-                    self.init(format: formatter.string(from: metres.measurement))
-                } else {
-                    self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
-                }
+                self.init(format: formatter.string(from: metres.measurement.converted(to: UnitLength.feet)))
             }
             return
         }
