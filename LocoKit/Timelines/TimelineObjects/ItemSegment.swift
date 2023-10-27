@@ -214,6 +214,13 @@ public class ItemSegment: Hashable, Identifiable, ObservableObject {
         onMain { self.objectWillChange.send() }
     }
 
+    // MARK: -
+
+    public func distance(from location: CLLocation) -> CLLocationDistance? {
+        guard let center else { return nil }
+        return center.distance(from: location) - radius.with1sd
+    }
+
     // MARK: - Hashable
 
     open func hash(into hasher: inout Hasher) {
