@@ -33,7 +33,7 @@ public class ActivityClassifier {
         if let coordinate = classifiable.location?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
 
         // highest priorty first (ie CD2 first)
-        let classifiers = discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value }
+        let classifiers = mutex.sync { discreteClassifiers.sorted { $0.key > $1.key }.map { $0.value } }
 
         var combinedResults: ClassifierResults?
         var remainingWeight = 1.0
