@@ -29,6 +29,8 @@ public class ItemSegment: Hashable, Identifiable, ObservableObject {
         }
     }
 
+    public var tag: Int?
+
     // MARK: - Initialisers
 
     public init(samples: [PersistentSample], timelineItem: TimelineItem? = nil) {
