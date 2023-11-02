@@ -44,7 +44,9 @@ class CoordinateTrust: Record, Codable {
         // most common walking speed is 4.4 kmh
         // most common running speed is 9.7 kmh
 
-        let maximumDistrust = 5.0 // maximum distrusted stationary speed in kmh
+        // maximum distrusted stationary speed in kmh
+        // (lower this number to reduce the trust)
+        let maximumDistrust = 2.0
 
         trustFactor = 1.0 - (meanSpeed.kmh / maximumDistrust).clamped(min: 0, max: 1)
     }
