@@ -248,6 +248,14 @@ public class TimelineProcessor {
 
     // MARK: - ItemSegment brexiting
 
+    public static func extractItem(for segment: ItemSegment, in store: TimelineStore) async -> TimelineItem? {
+        return await withCheckedContinuation { continuation in
+            extractItem(for: segment, in: store) { item in
+                continuation.resume(returning: item)
+            }
+        }
+    }
+
     public static func extractItem(for segment: ItemSegment, in store: TimelineStore, completion: ((TimelineItem?) -> Void)? = nil) {
         store.process {
             guard let segmentRange = segment.dateRange else {

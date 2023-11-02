@@ -550,6 +550,18 @@ open class TimelineStore {
         }
     }
 
+    public func process<T>(changes: @escaping () -> T?) async -> T? {
+        return await withCheckedContinuation { continuation in
+            Jobs.addPrimaryJob("TimelineStore.process") {
+                self.processing = true
+                let result: T? = changes()
+                self.save()
+                self.processing = false
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
     // MARK: - Background and Foreground
 
     private func didBecomeActive() {
