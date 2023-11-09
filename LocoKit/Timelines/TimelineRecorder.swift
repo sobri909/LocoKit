@@ -29,7 +29,11 @@ public class TimelineRecorder: ObservableObject {
     private(set) public var store: TimelineStore
     public let classifier = ActivityClassifier.highlander
     private(set) public var lastClassifierResults: ClassifierResults? {
-        didSet { objectWillChange.send() }
+        didSet {
+            Task { @MainActor in
+                objectWillChange.send()
+            }
+        }
     }
 
     // MARK: - Recorder creation
