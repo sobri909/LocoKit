@@ -64,7 +64,7 @@ public extension ActivityBrain {
 
         // feed the kalmans
         if let trustFactor = trustFactor, trustFactor < 1 {
-            let accuracyFudge = kCLLocationAccuracyHundredMeters * (1.0 - trustFactor)
+            let accuracyFudge = 200 * (1.0 - trustFactor)
             let fudgedLocation = CLLocation(
                 coordinate: location.coordinate, altitude: location.altitude,
                 horizontalAccuracy: location.horizontalAccuracy + accuracyFudge,
