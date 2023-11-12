@@ -26,7 +26,7 @@ public class CoordinateTrustManager: TrustAssessor {
     }
 
     func modelFor(_ coordinate: CLLocationCoordinate2D) -> CoordinateTrust? {
-        let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 20)
+        let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30)
 
         // cached?
         if let model = cache.object(forKey: rounded) { return model }
@@ -76,7 +76,7 @@ public class CoordinateTrustManager: TrustAssessor {
         for sample in samples where sample.hasUsableCoordinate {
             guard let coordinate = sample.location?.coordinate else { continue }
 
-            let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 20)
+            let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30)
             if let samples = buckets[rounded] {
                 buckets[rounded] = samples + [sample]
             } else {
