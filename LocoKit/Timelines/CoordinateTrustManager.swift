@@ -69,7 +69,7 @@ public class CoordinateTrustManager: TrustAssessor {
         self.lastUpdated = Date()
 
         // fetch most recent X confirmed stationary samples
-        let samples = self.store.samples(where: "confirmedType = ? ORDER BY lastSaved DESC LIMIT 2000", arguments: ["stationary"])
+        let samples = self.store.samples(where: "confirmedType = ? ORDER BY lastSaved DESC LIMIT 10000", arguments: ["stationary"])
 
         // collate the samples into coordinate buckets
         var buckets: [Coordinate: [LocomotionSample]] = [:]
