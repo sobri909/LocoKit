@@ -26,7 +26,11 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     public var lastSaved: Date?
     public var hasChanges: Bool = false {
         didSet {
-            if hasChanges { onMain { self.objectWillChange.send() } }
+            if hasChanges {
+                Task { @MainActor in
+                    self.objectWillChange.send()
+                }
+            }
         }
     }
 
