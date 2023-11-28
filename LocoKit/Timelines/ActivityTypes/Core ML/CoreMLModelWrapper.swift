@@ -223,7 +223,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     // MARK: - Model building
 
-    @available(iOS 15, *)
     public func updateTheModel(task: BGProcessingTask? = nil) {
         #if canImport(CreateML)
         CoreMLModelUpdater.highlander.updatesQueue.addOperation {

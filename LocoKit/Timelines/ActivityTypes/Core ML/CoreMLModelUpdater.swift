@@ -66,7 +66,6 @@ public class CoreMLModelUpdater {
 
     private var onUpdatesComplete: ((Bool) -> Void)?
 
-    @available(iOS 15, *)
     public func updateQueuedModels(task: BGProcessingTask, store: TimelineStore, onComplete: ((Bool) -> Void)? = nil) {
         if let onComplete {
             onUpdatesComplete = onComplete
