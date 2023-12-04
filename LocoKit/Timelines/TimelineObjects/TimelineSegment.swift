@@ -247,6 +247,13 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
         return formatter.string(from: dateRange.middle)
     }
 
+    public var weekFilename: String? {
+        guard let dateRange else { return nil }
+        let formatter: ISO8601DateFormatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withYear, .withWeekOfYear, .withDashSeparatorInDate]
+        return formatter.string(from: dateRange.middle)
+    }
+
     public var monthFilename: String? {
         guard let dateRange = dateRange else { return nil }
         let formatter = DateFormatter()
