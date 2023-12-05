@@ -153,34 +153,27 @@ public class ActivityClassifier {
         }
 
         // all existing classifiers are good?
-        if updated.count == 4 { return }
+        if updated.count == 3 { return }
 
         let cache = ActivityTypesCache.highlander
 
         // get a CD2
         if updated.first(where: { $0.value.geoKey.hasPrefix("CD2") == true }) == nil {
             if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
-                updated[3] = classifier // priority 3 (top)
+                updated[2] = classifier // priority 2 (top)
             }
         }
 
-        // get a GD2
-        if updated.first(where: { $0.value.geoKey.hasPrefix("GD2") == true }) == nil {
-            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 2)  {
-                updated[2] = classifier
-            }
-        }
-
-        // get a GD1
-        if updated.first(where: { $0.value.geoKey.hasPrefix("GD1") == true }) == nil {
-            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 1)  {
+        // get a CD1
+        if updated.first(where: { $0.value.geoKey.hasPrefix("CD1") == true }) == nil {
+            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
                 updated[1] = classifier
             }
         }
-
-        // get a GD0
-        if updated.first(where: { $0.value.geoKey.hasPrefix("GD0") == true }) == nil {
-            if let classifier = ActivityTypeClassifier(coordinate: coordinate, depth: 0)  {
+        
+        // get a CD0
+        if updated.first(where: { $0.value.geoKey.hasPrefix("CD0") == true }) == nil {
+            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
                 updated[0] = classifier
             }
         }
