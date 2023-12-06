@@ -50,7 +50,12 @@ public extension TimelineStore {
 
             try db.create(table: "LocomotionSample") { table in
                 table.column("sampleId", .text).primaryKey()
-                table.column("rtreeId", .integer).indexed()
+                
+                // NOTE: indexing this column will make the SQLite query planner do dumb things
+                // make sure you've got a composite index that includes it instead
+                // and make sure rtreeId IS NOT the first column in the composite index,
+                // otherwise again the query planner will do dumb things
+                table.column("rtreeId", .integer)
 
                 table.column("date", .datetime).notNull().indexed()
                 table.column("deleted", .boolean).notNull().indexed()
@@ -86,8 +91,12 @@ public extension TimelineStore {
 
             try db.create(index: "LocomotionSample_on_timelineItemId_deleted_date", on: "LocomotionSample",
                           columns: ["timelineItemId", "deleted", "date"])
-            try db.create(index: "LocomotionSample_on_confirmedType_lastSaved", on: "LocomotionSample",
-                          columns: ["confirmedType", "lastSaved"])
+
+            try? db.create(
+                index: "LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz",
+                on: "LocomotionSample",
+                columns: ["lastSaved", "rtreeId", "confirmedType", "xyAcceleration", "zAcceleration", "stepHz"]
+            )
 
             // MARK: Triggers
 
@@ -272,8 +281,18 @@ public extension TimelineStore {
             try db.execute(sql: "DROP TABLE IF EXISTS SampleRTree")
             try db.execute(sql: "CREATE VIRTUAL TABLE SampleRTree USING rtree(id, latMin, latMax, lonMin, lonMax)")
             try? db.alter(table: "LocomotionSample") { table in
-                table.add(column: "rtreeId", .integer).indexed()
+                table.add(column: "rtreeId", .integer) // see note above for why not to index this
             }
+        }
+
+        migrator.registerMigration("LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz") { db in
+            try? db.drop(index: "LocomotionSample_on_rtreeId")
+            try? db.drop(index: "LocomotionSample_on_confirmedType_lastSaved")
+            try? db.create(
+                index: "LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz",
+                on: "LocomotionSample",
+                columns: ["lastSaved", "rtreeId", "confirmedType", "xyAcceleration", "zAcceleration", "stepHz"]
+            )
         }
     }
 

@@ -301,6 +301,11 @@ open class TimelineStore {
             "latMin": coordRect.latitudeRange.lowerBound, "latMax": coordRect.latitudeRange.upperBound,
             "longMin": coordRect.longitudeRange.lowerBound, "longMax": coordRect.longitudeRange.upperBound
         ])
+        print("EXPLAIN QUERY: \(query)")
+        try? pool?.read {
+            try $0.explain(query: query, arguments: boxArgs + arguments)
+        }
+
         return samples(for: query, arguments: boxArgs + arguments)
     }
 

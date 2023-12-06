@@ -324,6 +324,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     AND xyAcceleration IS NOT NULL
                     AND zAcceleration IS NOT NULL
                     AND stepHz IS NOT NULL
+                    ORDER BY lastSaved DESC
                     LIMIT ?
                 """,
             arguments: [Self.modelMaxTrainingSamples]
