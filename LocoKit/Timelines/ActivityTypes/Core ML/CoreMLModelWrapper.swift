@@ -316,10 +316,10 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
         return store.samples(
             inside: rect,
             where: """
-                    confirmedType IS NOT NULL
-                    AND xyAcceleration IS NOT NULL
-                    AND zAcceleration IS NOT NULL
-                    AND stepHz IS NOT NULL
+                    unlikely(confirmedType IS NOT NULL)
+                    AND likely(xyAcceleration IS NOT NULL)
+                    AND likely(zAcceleration IS NOT NULL)
+                    AND likely(stepHz IS NOT NULL)
                     ORDER BY lastSaved DESC
                     LIMIT ?
                 """,
