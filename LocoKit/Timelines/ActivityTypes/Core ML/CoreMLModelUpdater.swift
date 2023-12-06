@@ -116,7 +116,7 @@ public class CoreMLModelUpdater {
         // grab a random pending model instead
         if let model = store.coreMLModel(where: "needsUpdate = 1") {
 
-            // TODO: remove this step eventually - it's only for backfilling existing dbs
+            // backfill r-tree for old dbs or restores from backup
             CoreMLModelUpdater.highlander.updatesQueue.addOperation {
                 store.backfillSampleRTree(batchSize: CoreMLModelWrapper.modelMaxTrainingSamples)
             }
