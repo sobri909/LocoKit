@@ -19,8 +19,10 @@ import CreateML
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
-    static let modelMaxTrainingSamples = 150_000
-    static let modelMinTrainingSamples = 50_000 // for completenessScore
+    static let modelMaxTrainingSamples = 250_000
+    static let modelMinTrainingSamplesDepth2 = 50_000 // for completenessScore
+    static let modelMinTrainingSamplesDepth1 = 100_000 // for completenessScore
+    static let modelMinTrainingSamplesDepth0 = 200_000 // for completenessScore
 
     // MARK: -
 
@@ -163,7 +165,12 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     }
 
     public var completenessScore: Double {
-        return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamples))
+        switch depth {
+            case 0: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth0))
+            case 1: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth1))
+            case 2: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth2))
+            default: return 0.0
+        }
     }
 
     // MARK: - Core ML classifying

@@ -62,6 +62,7 @@ public extension String {
             case .brief: unitStyle = .medium
             case .full: unitStyle = .long
             case .spellOut: unitStyle = .long
+            default: unitStyle = .medium
             }
             self.init(String(duration: Measurement(value: duration, unit: UnitDuration.seconds), style: unitStyle))
             return

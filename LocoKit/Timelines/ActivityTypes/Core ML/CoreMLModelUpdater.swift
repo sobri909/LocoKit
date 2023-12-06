@@ -31,6 +31,14 @@ public class CoreMLModelUpdater {
                 models.insert(model)
                 lastModel = model
             }
+            
+            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
+                models.insert(model)
+            }
+            
+            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
+                models.insert(model)
+            }
         }
 
         for model in models {
@@ -55,6 +63,14 @@ public class CoreMLModelUpdater {
             if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
                 models.insert(model)
                 lastModel = model
+            }
+            
+            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
+                models.insert(model)
+            }
+            
+            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
+                models.insert(model)
             }
         }
 
