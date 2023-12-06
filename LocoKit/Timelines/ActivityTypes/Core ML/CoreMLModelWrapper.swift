@@ -13,9 +13,7 @@ import BackgroundTasks
 import Upsurge
 import GRDB
 import os.log
-#if canImport(CreateML)
 import CreateML
-#endif
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
@@ -231,7 +229,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     // MARK: - Model building
 
     public func updateTheModel(task: BGProcessingTask? = nil) {
-        #if canImport(CreateML)
         CoreMLModelUpdater.highlander.updatesQueue.addOperation {
             defer {
                 if let task {
@@ -311,7 +308,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 logger.error("buildModel() ERROR: \(error)")
             }
         }
-        #endif
     }
 
     private func fetchTrainingSamples() -> [PersistentSample] {
