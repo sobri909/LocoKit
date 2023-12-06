@@ -17,10 +17,10 @@ import CreateML
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
-    static let modelMaxTrainingSamples = 250_000
+    static let modelMaxTrainingSamples = 150_000
     static let modelMinTrainingSamplesDepth2 = 50_000 // for completenessScore
     static let modelMinTrainingSamplesDepth1 = 100_000 // for completenessScore
-    static let modelMinTrainingSamplesDepth0 = 200_000 // for completenessScore
+    static let modelMinTrainingSamplesDepth0 = 150_000 // for completenessScore
 
     // MARK: -
 
