@@ -45,7 +45,6 @@ open class TimelineStore {
 
     private let itemMap = NSMapTable<NSUUID, TimelineItem>.strongToWeakObjects()
     private let sampleMap = NSMapTable<NSUUID, PersistentSample>.strongToWeakObjects()
-    private let modelMap = NSMapTable<NSString, ActivityType>.strongToWeakObjects()
     private let coreMLModelMap = NSMapTable<NSString, CoreMLModelWrapper>.strongToWeakObjects()
     private let segmentMap = NSMapTable<NSNumber, TimelineSegment>.strongToWeakObjects()
 
@@ -59,7 +58,6 @@ open class TimelineStore {
 
     public var itemsInStore: Int { return mutex.sync { itemMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var samplesInStore: Int { return mutex.sync { sampleMap.objectEnumerator()?.allObjects.count ?? 0 } }
-    public var modelsInStore: Int { return mutex.sync { modelMap.objectEnumerator()?.allObjects.count ?? 0 } }
     public var segmentsInStore: Int { return mutex.sync { segmentMap.objectEnumerator()?.allObjects.count ?? 0 } }
 
     public var itemsToSave: Set<TimelineItem> = []
@@ -161,10 +159,6 @@ open class TimelineStore {
 
     open func add(_ sample: PersistentSample) {
         mutex.sync { sampleMap.setObject(sample, forKey: sample.sampleId as NSUUID) }
-    }
-
-    open func add(_ model: ActivityType) {
-        mutex.sync { modelMap.setObject(model, forKey: model.geoKey as NSString) }
     }
 
     open func add(_ model: CoreMLModelWrapper) {
@@ -315,38 +309,6 @@ open class TimelineStore {
         return PersistentSample(from: row.asDict(in: self), in: self)
     }
 
-    // MARK: - Model fetching
-
-    public func model(where query: String, arguments: StatementArguments = StatementArguments()) -> ActivityType? {
-        return model(for: "SELECT * FROM ActivityTypeModel WHERE " + query, arguments: arguments)
-    }
-
-    public func model(for query: String, arguments: StatementArguments = StatementArguments()) -> ActivityType? {
-        return try! auxiliaryPool.read { db in
-            guard let row = try Row.fetchOne(db, sql: query, arguments: arguments) else { return nil }
-            return model(for: row)
-        }
-    }
-
-    public func models(where query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
-        return models(for: "SELECT * FROM ActivityTypeModel WHERE " + query, arguments: arguments)
-    }
-
-    public func models(for query: String, arguments: StatementArguments = StatementArguments()) -> [ActivityType] {
-        let rows = try! auxiliaryPool.read { db in
-            return try Row.fetchAll(db, sql: query, arguments: arguments)
-        }
-        return rows.map { model(for: $0) }
-    }
-
-    func model(for row: Row) -> ActivityType {
-        guard let geoKey = row["geoKey"] as String? else { fatalError("MISSING GEOKEY") }
-        if let cached = mutex.sync(execute: { modelMap.object(forKey: geoKey as NSString) }) { return cached }
-        if let model = ActivityType(dict: row.asDict(in: self), in: self) { return model }
-        fatalError("FAILED MODEL INIT FROM ROW")
-    }
-
-
     // MARK: - Core ML model fetching
 
     public func coreMLModel(where query: String, arguments: StatementArguments = StatementArguments()) -> CoreMLModelWrapper? {
@@ -403,12 +365,6 @@ open class TimelineStore {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         return try! pool.read { db in
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM LocomotionSample WHERE " + query, arguments: arguments)!
-        }
-    }
-
-    public func countModels(where query: String = "1", arguments: StatementArguments = StatementArguments()) -> Int {
-        return try! auxiliaryPool.read { db in
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ActivityTypeModel WHERE " + query, arguments: arguments)!
         }
     }
 
@@ -588,19 +544,6 @@ open class TimelineStore {
             try pool.write { db in
                 try db.execute(sql: "DELETE FROM LocomotionSample WHERE deleted = 1 AND date < ?", arguments: [deadline])
                 try db.execute(sql: "DELETE FROM TimelineItem WHERE deleted = 1 AND (endDate < ? OR endDate IS NULL)", arguments: [deadline])
-            }
-        } catch {
-            logger.error("\(error.localizedDescription)")
-        }
-    }
-
-    open func deleteStaleSharedModels() {
-        let deadline = Date(timeIntervalSinceNow: -ActivityTypesCache.staleLastUpdatedAge)
-        do {
-            try auxiliaryPool.write { db in
-                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND version = 0")
-                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated IS NULL")
-                try db.execute(sql: "DELETE FROM ActivityTypeModel WHERE isShared = 1 AND lastUpdated < ?", arguments: [deadline])
             }
         } catch {
             logger.error("\(error.localizedDescription)")

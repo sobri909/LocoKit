@@ -22,6 +22,13 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     static let modelMinTrainingSamplesDepth1 = 100_000 // for completenessScore
     static let modelMinTrainingSamplesDepth0 = 150_000 // for completenessScore
 
+    static let numberOfLatBucketsDepth0 = 18
+    static let numberOfLongBucketsDepth0 = 36
+    static let numberOfLatBucketsDepth1 = 100
+    static let numberOfLongBucketsDepth1 = 100
+    static let numberOfLatBucketsDepth2 = 200
+    static let numberOfLongBucketsDepth2 = 200
+
     // MARK: -
 
     public internal(set) var geoKey: String = ""
@@ -44,8 +51,8 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     // MARK: -
 
     convenience init(coordinate: CLLocationCoordinate2D, depth: Int, in store: TimelineStore) {
-        let latitudeRange = ActivityType.latitudeRangeFor(depth: depth, coordinate: coordinate)
-        let longitudeRange = ActivityType.longitudeRangeFor(depth: depth, coordinate: coordinate)
+        let latitudeRange = Self.latitudeRangeFor(depth: depth, coordinate: coordinate)
+        let longitudeRange = Self.longitudeRangeFor(depth: depth, coordinate: coordinate)
 
         let dict: [String: Any] = [
             "depth": depth,
@@ -136,7 +143,77 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     public func reloadModel() throws {
         try mutex.sync { self.model = try CoreML.MLModel(contentsOf: modelURL) }
     }
-    
+
+    static func latitudeRangeFor(depth: Int, coordinate: CLLocationCoordinate2D) -> (min: Double, max: Double) {
+        let depth0Range = (min: -90.0, max: 90.0)
+
+        switch depth {
+        case 2:
+            let bucketSize = latitudeBinSizeFor(depth: 1)
+            let parentRange = latitudeRangeFor(depth: 1, coordinate: coordinate)
+            let bucket = Int((coordinate.latitude - parentRange.min) / bucketSize)
+            return (min: parentRange.min + (bucketSize * Double(bucket)),
+                    max: parentRange.min + (bucketSize * Double(bucket + 1)))
+
+        case 1:
+            let bucketSize = latitudeBinSizeFor(depth: 0)
+            let parentRange = latitudeRangeFor(depth: 0, coordinate: coordinate)
+            let bucket = Int((coordinate.latitude - parentRange.min) / bucketSize)
+            return (min: parentRange.min + (bucketSize * Double(bucket)),
+                    max: parentRange.min + (bucketSize * Double(bucket + 1)))
+
+        default:
+            return depth0Range
+        }
+    }
+
+    static func longitudeRangeFor(depth: Int, coordinate: CLLocationCoordinate2D) -> (min: Double, max: Double) {
+        let depth0Range = (min: -180.0, max: 180.0)
+
+        switch depth {
+        case 2:
+            let bucketSize = Self.longitudeBinSizeFor(depth: 1)
+            let parentRange = Self.longitudeRangeFor(depth: 1, coordinate: coordinate)
+            let bucket = Int((coordinate.longitude - parentRange.min) / bucketSize)
+            return (min: parentRange.min + (bucketSize * Double(bucket)),
+                    max: parentRange.min + (bucketSize * Double(bucket + 1)))
+
+        case 1:
+            let bucketSize = Self.longitudeBinSizeFor(depth: 0)
+            let parentRange = Self.longitudeRangeFor(depth: 0, coordinate: coordinate)
+            let bucket = Int((coordinate.longitude - parentRange.min) / bucketSize)
+            return (min: parentRange.min + (bucketSize * Double(bucket)),
+                    max: parentRange.min + (bucketSize * Double(bucket + 1)))
+
+        default:
+            return depth0Range
+        }
+    }
+
+    static func latitudeBinSizeFor(depth: Int) -> Double {
+        let depth0 = 180.0 / Double(Self.numberOfLatBucketsDepth0)
+        let depth1 = depth0 / Double(Self.numberOfLatBucketsDepth1)
+        let depth2 = depth1 / Double(Self.numberOfLatBucketsDepth2)
+
+        switch depth {
+        case 2: return depth2
+        case 1: return depth1
+        default: return depth0
+        }
+    }
+
+    static func longitudeBinSizeFor(depth: Int) -> Double {
+        let depth0 = 360.0 / Double(Self.numberOfLongBucketsDepth0)
+        let depth1 = depth0 / Double(Self.numberOfLongBucketsDepth1)
+        let depth2 = depth1 / Double(Self.numberOfLongBucketsDepth2)
+
+        switch depth {
+        case 2: return depth2
+        case 1: return depth1
+        default: return depth0
+        }
+    }
+
     // MARK: - DiscreteClassifier
 
     public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults {
