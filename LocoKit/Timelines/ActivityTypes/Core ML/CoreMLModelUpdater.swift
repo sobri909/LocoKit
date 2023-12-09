@@ -12,10 +12,15 @@ public class CoreMLModelUpdater {
 
     public static var highlander = CoreMLModelUpdater()
 
+    public var store: TimelineStore?
+
     var backgroundTaskExpired = false
 
     public func queueUpdatesForModelsContaining(_ timelineItem: TimelineItem) {
-        let cache = ActivityTypesCache.highlander
+        guard let store else {
+            logger.error("Called queueUpdatesForModelsContaining() on a CoreMLModelUpdater with nil store")
+            return
+        }
 
         var lastModel: CoreMLModelWrapper?
         var models: Set<CoreMLModelWrapper> = []
@@ -27,16 +32,16 @@ public class CoreMLModelUpdater {
                 continue
             }
 
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 2) {
                 models.insert(model)
                 lastModel = model
             }
             
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 1) {
                 models.insert(model)
             }
             
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 0) {
                 models.insert(model)
             }
         }
@@ -48,7 +53,10 @@ public class CoreMLModelUpdater {
     }
 
     public func queueUpdatesForModelsContaining(_ segment: ItemSegment) {
-        let cache = ActivityTypesCache.highlander
+        guard let store else {
+            logger.error("Called queueUpdatesForModelsContaining() on a CoreMLModelUpdater with nil store")
+            return
+        }
 
         var lastModel: CoreMLModelWrapper?
         var models: Set<CoreMLModelWrapper> = []
@@ -60,16 +68,16 @@ public class CoreMLModelUpdater {
                 continue
             }
 
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 2) {
                 models.insert(model)
                 lastModel = model
             }
             
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 1) {
                 models.insert(model)
             }
             
-            if let model = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
+            if let model = store.coreMLModelFor(coordinate: coordinate, depth: 0) {
                 models.insert(model)
             }
         }
@@ -82,7 +90,12 @@ public class CoreMLModelUpdater {
 
     private var onUpdatesComplete: ((Bool) -> Void)?
 
-    public func updateQueuedModels(task: BGProcessingTask, store: TimelineStore, onComplete: ((Bool) -> Void)? = nil) {
+    public func updateQueuedModels(task: BGProcessingTask, currentClassifier classifier: ActivityClassifier?, onComplete: ((Bool) -> Void)? = nil) {
+        guard let store else {
+            logger.error("Called updateQueuedModels() on a CoreMLModelUpdater with nil store")
+            return
+        }
+
         if let onComplete {
             onUpdatesComplete = onComplete
         }
@@ -107,9 +120,9 @@ public class CoreMLModelUpdater {
         store.connectToDatabase()
 
         // do the current CD2 first, if it needs it
-        let currentModel = ActivityClassifier.highlander.discreteClassifiers.first { $0.value.geoKey.hasPrefix("CD2") }?.value
+        let currentModel = classifier?.discreteClassifiers.first { $0.value.geoKey.hasPrefix("CD2") }?.value
         if let model = currentModel as? CoreMLModelWrapper, model.needsUpdate {
-            model.updateTheModel(task: task)
+            model.updateTheModel(task: task, currentClassifier: classifier)
             return
         }
 
@@ -121,7 +134,7 @@ public class CoreMLModelUpdater {
                 store.backfillSampleRTree(batchSize: CoreMLModelWrapper.modelMaxTrainingSamples)
             }
 
-            model.updateTheModel(task: task)
+            model.updateTheModel(task: task, currentClassifier: classifier)
             return
         }
 

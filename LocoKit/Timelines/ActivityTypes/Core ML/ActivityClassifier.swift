@@ -14,11 +14,13 @@ import BackgroundTasks
 
 public class ActivityClassifier {
 
-    public static var highlander = ActivityClassifier()
+    private let store: TimelineStore
     public private(set) var discreteClassifiers: [Int: any DiscreteClassifier] = [:] // index = priority
     private let mutex = PThreadMutex(type: .recursive)
 
-    private init() {}
+    public init(store: TimelineStore) {
+        self.store = store
+    }
 
     // MARK: - MLCompositeClassifier
 
@@ -155,25 +157,23 @@ public class ActivityClassifier {
         // all existing classifiers are good?
         if updated.count == 3 { return }
 
-        let cache = ActivityTypesCache.highlander
-
         // get a CD2
         if updated.first(where: { $0.value.geoKey.hasPrefix("CD2") == true }) == nil {
-            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 2) {
+            if let classifier = store.coreMLModelFor(coordinate: coordinate, depth: 2) {
                 updated[2] = classifier // priority 2 (top)
             }
         }
 
         // get a CD1
         if updated.first(where: { $0.value.geoKey.hasPrefix("CD1") == true }) == nil {
-            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 1) {
+            if let classifier = store.coreMLModelFor(coordinate: coordinate, depth: 1) {
                 updated[1] = classifier
             }
         }
         
         // get a CD0
         if updated.first(where: { $0.value.geoKey.hasPrefix("CD0") == true }) == nil {
-            if let classifier = cache.coreMLModelFor(coordinate: coordinate, depth: 0) {
+            if let classifier = store.coreMLModelFor(coordinate: coordinate, depth: 0) {
                 updated[0] = classifier
             }
         }

@@ -64,9 +64,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
         self.init(dict: dict, in: store)
 
-        if #available(iOS 15, *) {
-            updateTheModel()
-        }
+        updateTheModel()
     }
 
     public init(dict: [String: Any?], in store: TimelineStore) {
@@ -305,11 +303,11 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     // MARK: - Model building
 
-    public func updateTheModel(task: BGProcessingTask? = nil) {
+    public func updateTheModel(task: BGProcessingTask? = nil, currentClassifier classifier: ActivityClassifier? = nil) {
         CoreMLModelUpdater.highlander.updatesQueue.addOperation {
             defer {
                 if let task {
-                    CoreMLModelUpdater.highlander.updateQueuedModels(task: task, store: self.store)
+                    CoreMLModelUpdater.highlander.updateQueuedModels(task: task, currentClassifier: classifier)
                 }
             }
 

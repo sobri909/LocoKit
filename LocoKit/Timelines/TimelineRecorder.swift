@@ -27,7 +27,11 @@ public class TimelineRecorder: ObservableObject {
     public var samplesPerMinute: Double = 10
 
     private(set) public var store: TimelineStore
-    public let classifier = ActivityClassifier.highlander
+    
+    public lazy var classifier = {
+        return ActivityClassifier(store: store)
+    }()
+
     private(set) public var lastClassifierResults: ClassifierResults? {
         didSet {
             Task { @MainActor in
