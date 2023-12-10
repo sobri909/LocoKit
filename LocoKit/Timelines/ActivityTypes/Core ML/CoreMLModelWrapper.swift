@@ -21,7 +21,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     static let modelMaxTrainingSamples: [Int: Int] = [
         2: 60_000,
         1: 110_000,
-        0: 160_000
+        0: 260_000
     ]
 
     // for completenessScore
@@ -29,7 +29,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     static let modelMinTrainingSamples: [Int: Int] = [
         2: 50_000,
         1: 100_000,
-        0: 150_000
+        0: 250_000
     ]
 
     static let numberOfLatBucketsDepth0 = 18
@@ -392,11 +392,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     private func fetchTrainingSamples() -> [PersistentSample] {
         store.connectToDatabase()
-
         let rect = CoordinateRect(latitudeRange: latitudeRange, longitudeRange: longitudeRange)
-        let activityTypeMarks = databaseQuestionMarks(count: ActivityTypeName.allTypes.count)
-        let activityTypeNames: [DatabaseValueConvertible] = ActivityTypeName.allTypes.map { $0.rawValue }
-
         if depth == 0 {
             return store.samples(
                 where: """
@@ -408,7 +404,6 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                 explain: true
             )
         }
-
         return store.samples(
             inside: rect,
             where: """
