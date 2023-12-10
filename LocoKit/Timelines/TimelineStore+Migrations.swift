@@ -285,13 +285,21 @@ public extension TimelineStore {
             }
         }
 
-        migrator.registerMigration("LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz") { db in
+        migrator.registerMigration("LocomotionSample composite indexes") { db in
             try? db.drop(index: "LocomotionSample_on_rtreeId")
+            try? db.drop(index: "LocomotionSample_on_confirmedType_date")
             try? db.drop(index: "LocomotionSample_on_confirmedType_lastSaved")
+            try? db.drop(index: "LocomotionSample_on_confirmedType_lastSaved_rtreeId")
+            try? db.drop(index: "LocomotionSample_on_lastSaved_confirmedType_rtreeId")
+            try? db.drop(index: "LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz")
+
             try? db.create(
-                index: "LocomotionSample_on_lastSaved_rtreeId_confirmedType_xyAcceleration_zAcceleration_stepHz",
-                on: "LocomotionSample",
-                columns: ["lastSaved", "rtreeId", "confirmedType", "xyAcceleration", "zAcceleration", "stepHz"]
+                index: "LocomotionSample_on_rtreeId_lastSaved_confirmedType", on: "LocomotionSample",
+                columns: ["rtreeId", "lastSaved", "confirmedType"]
+            )
+            try? db.create(
+                index: "LocomotionSample_on_lastSaved_confirmedType", on: "LocomotionSample",
+                columns: ["lastSaved", "confirmedType"]
             )
         }
     }

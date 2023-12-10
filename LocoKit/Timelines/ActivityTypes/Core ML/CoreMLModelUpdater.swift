@@ -131,7 +131,7 @@ public class CoreMLModelUpdater {
 
             // backfill r-tree for old dbs or restores from backup
             CoreMLModelUpdater.highlander.updatesQueue.addOperation {
-                store.backfillSampleRTree(batchSize: CoreMLModelWrapper.modelMaxTrainingSamples)
+                store.backfillSampleRTree(batchSize: CoreMLModelWrapper.modelMaxTrainingSamples[0]!)
             }
 
             model.updateTheModel(task: task, currentClassifier: classifier)

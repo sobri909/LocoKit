@@ -17,10 +17,20 @@ import CreateML
 
 public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable {
 
-    static let modelMaxTrainingSamples = 150_000
-    static let modelMinTrainingSamplesDepth2 = 50_000 // for completenessScore
-    static let modelMinTrainingSamplesDepth1 = 100_000 // for completenessScore
-    static let modelMinTrainingSamplesDepth0 = 150_000 // for completenessScore
+    // [Depth: Samples]
+    static let modelMaxTrainingSamples: [Int: Int] = [
+        2: 60_000,
+        1: 110_000,
+        0: 160_000
+    ]
+
+    // for completenessScore
+    // [Depth: Samples]
+    static let modelMinTrainingSamples: [Int: Int] = [
+        2: 50_000,
+        1: 100_000,
+        0: 150_000
+    ]
 
     static let numberOfLatBucketsDepth0 = 18
     static let numberOfLongBucketsDepth0 = 36
@@ -238,12 +248,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     }
 
     public var completenessScore: Double {
-        switch depth {
-            case 0: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth0))
-            case 1: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth1))
-            case 2: return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamplesDepth2))
-            default: return 0.0
-        }
+        return min(1.0, Double(totalSamples) / Double(Self.modelMinTrainingSamples[depth]!))
     }
 
     // MARK: - Core ML classifying
@@ -387,18 +392,32 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     private func fetchTrainingSamples() -> [PersistentSample] {
         store.connectToDatabase()
+
         let rect = CoordinateRect(latitudeRange: latitudeRange, longitudeRange: longitudeRange)
-        return store.samples(
-            inside: rect,
-            where: """
-                    unlikely(confirmedType IS NOT NULL)
-                    AND likely(xyAcceleration IS NOT NULL)
-                    AND likely(zAcceleration IS NOT NULL)
-                    AND likely(stepHz IS NOT NULL)
+        let activityTypeMarks = databaseQuestionMarks(count: ActivityTypeName.allTypes.count)
+        let activityTypeNames: [DatabaseValueConvertible] = ActivityTypeName.allTypes.map { $0.rawValue }
+
+        if depth == 0 {
+            return store.samples(
+                where: """
+                    confirmedType IS NOT NULL
                     ORDER BY lastSaved DESC
                     LIMIT ?
                 """,
-            arguments: [Self.modelMaxTrainingSamples]
+                arguments: [Self.modelMaxTrainingSamples[depth]!],
+                explain: true
+            )
+        }
+
+        return store.samples(
+            inside: rect,
+            where: """
+                    confirmedType IS NOT NULL
+                    ORDER BY lastSaved DESC
+                    LIMIT ?
+                """,
+            arguments: [Self.modelMaxTrainingSamples[depth]!],
+            explain: true
         )
     }
 

@@ -254,8 +254,8 @@ open class TimelineStore {
         return sample(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments)
     }
 
-    public func samples(where query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
-        return samples(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments)
+    public func samples(where query: String, arguments: StatementArguments = StatementArguments(), explain: Bool = false) -> [PersistentSample] {
+        return samples(for: "SELECT * FROM LocomotionSample WHERE " + query, arguments: arguments, explain: explain)
     }
 
     public func sample(for query: String, arguments: StatementArguments = StatementArguments()) -> PersistentSample? {
@@ -266,8 +266,16 @@ open class TimelineStore {
         }
     }
 
-    public func samples(for query: String, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
-        guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
+    public func samples(for query: String, arguments: StatementArguments = StatementArguments(), explain: Bool = false) -> [PersistentSample] {
+        guard let pool else { fatalError("Attempting to access the database when disconnected") }
+        
+        if explain {
+            print("EXPLAIN QUERY: \(query)")
+            try? pool.read {
+                try $0.explain(query: query, arguments: arguments)
+            }
+        }
+
         do {
             let rows = try pool.read { db in
                 return try Row.fetchAll(db, sql: query, arguments: arguments)
@@ -279,7 +287,11 @@ open class TimelineStore {
         }
     }
 
-    public func samples(inside coordRect: CoordinateRect, where extraWhere: String? = nil, arguments: StatementArguments = StatementArguments()) -> [PersistentSample] {
+    public func samples(
+        inside coordRect: CoordinateRect, where extraWhere: String? = nil, 
+        arguments: StatementArguments = StatementArguments(),
+        explain: Bool = false
+    ) -> [PersistentSample] {
         var query = """
             SELECT *
             FROM LocomotionSample, SampleRTree AS r
@@ -295,12 +307,7 @@ open class TimelineStore {
             "latMin": coordRect.latitudeRange.lowerBound, "latMax": coordRect.latitudeRange.upperBound,
             "longMin": coordRect.longitudeRange.lowerBound, "longMax": coordRect.longitudeRange.upperBound
         ])
-        print("EXPLAIN QUERY: \(query)")
-        try? pool?.read {
-            try $0.explain(query: query, arguments: boxArgs + arguments)
-        }
-
-        return samples(for: query, arguments: boxArgs + arguments)
+        return samples(for: query, arguments: boxArgs + arguments, explain: explain)
     }
 
     open func sample(for row: Row) -> PersistentSample {
