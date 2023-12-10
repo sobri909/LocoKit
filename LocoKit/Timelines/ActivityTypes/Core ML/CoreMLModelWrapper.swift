@@ -328,7 +328,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
                 let start = Date()
                 let samples = self.fetchTrainingSamples()
-                print("buildModel() SAMPLES BATCH: \(samples.count), duration: \(start.age)")
+                logger.info("UPDATING: \(self.geoKey), SAMPLES BATCH: \(samples.count), duration: \(start.age)")
 
                 let (url, samplesAdded, typesAdded) = try self.exportCSV(samples: samples, appendingTo: csvFile)
                 csvFile = url
@@ -345,7 +345,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     return
                 }
 
-                print("buildModel() FINISHED WRITING CSV FILE")
+                logger.info("UPDATING: \(self.geoKey), FINISHED WRITING CSV FILE")
 
                 guard let csvFile else {
                     logger.error("Missing CSV file for model build.")
