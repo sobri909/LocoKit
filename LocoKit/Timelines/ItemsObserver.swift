@@ -44,7 +44,7 @@ class ItemsObserver: TransactionObserver {
         /** maintain the timeline items linked list locally, for changes made outside the managed environment **/
 
         do {
-            let marks = repeatElement("?", count: rowIds.count).joined(separator: ",")
+            let marks = databaseQuestionMarks(count: rowIds.count)
             let query = "SELECT itemId, previousItemId, nextItemId FROM TimelineItem WHERE rowId IN (\(marks))"
             let rows = try Row.fetchCursor(db, sql: query, arguments: StatementArguments(rowIds))
 
