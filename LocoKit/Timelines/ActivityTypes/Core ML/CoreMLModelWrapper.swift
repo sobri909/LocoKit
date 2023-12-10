@@ -19,16 +19,16 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
 
     // [Depth: Samples]
     static let modelMaxTrainingSamples: [Int: Int] = [
-        2: 60_000,
-        1: 110_000,
+        2: 110_000,
+        1: 160_000,
         0: 260_000
     ]
 
     // for completenessScore
     // [Depth: Samples]
     static let modelMinTrainingSamples: [Int: Int] = [
-        2: 50_000,
-        1: 100_000,
+        2: 100_000,
+        1: 150_000,
         0: 250_000
     ]
 
