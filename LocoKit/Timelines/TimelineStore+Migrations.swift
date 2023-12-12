@@ -75,7 +75,6 @@ public extension TimelineStore {
                 table.column("zAcceleration", .double)
                 table.column("classifiedType", .text)
                 table.column("confirmedType", .text)
-                table.column("previousSampleConfirmedType", .text)
 
                 // sample.location
                 table.column("latitude", .double)

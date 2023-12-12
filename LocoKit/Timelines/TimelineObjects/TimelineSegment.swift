@@ -104,7 +104,6 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
             self.reclassifySamples()
 
             if self.shouldReprocessOnUpdate {
-                self.updateMarkovValues()
                 self.process()
             }
 
@@ -163,16 +162,6 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
 
             if debugLogging && count > 0 {
                 logger.debug("Reclassified samples: \(count)")
-            }
-        }
-    }
-
-    public func updateMarkovValues() {
-        guard shouldUpdateMarkovValues else { return }
-
-        for item in timelineItems {
-            for sample in item.samples where sample.confirmedType != nil {
-                sample.nextSample?.previousSampleConfirmedType = sample.confirmedType
             }
         }
     }

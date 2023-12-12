@@ -18,7 +18,6 @@ public protocol ActivityTypeClassifiable: AnyObject {
     var zAcceleration: Double? { get }
     var timeOfDay: TimeInterval { get }
     var sinceVisitStart: TimeInterval { get }
-    var previousSampleConfirmedType: ActivityTypeName? { get }
     var classifierResults: ClassifierResults? { get set }
 }
 

@@ -34,14 +34,9 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         didSet {
             if oldValue != confirmedType {
                 hasChanges = true
-                nextSample?.previousSampleConfirmedType = confirmedType
                 save()
             }
         }
-    }
-
-    public override var previousSampleConfirmedType: ActivityTypeName? {
-        didSet { if oldValue != previousSampleConfirmedType { hasChanges = true; save() } }
     }
 
     public override var hasUsableCoordinate: Bool {
@@ -243,7 +238,6 @@ open class PersistentSample: LocomotionSample, TimelineObject {
         container["zAcceleration"] = zAcceleration
         container["confirmedType"] = confirmedType?.rawValue
         container["classifiedType"] = _classifiedType?.rawValue
-        container["previousSampleConfirmedType"] = previousSampleConfirmedType?.rawValue
 
         // location
         container["latitude"] = location?.coordinate.latitude

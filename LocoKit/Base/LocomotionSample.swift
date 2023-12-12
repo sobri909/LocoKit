@@ -120,8 +120,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     public var confirmedType: ActivityTypeName?
 
-    public var previousSampleConfirmedType: ActivityTypeName?
-
     internal var _classifiedType: ActivityTypeName?
     public var classifiedType: ActivityTypeName? {
         if let cached = _classifiedType { return cached }
@@ -224,11 +222,6 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
             self._classifiedType = ActivityTypeName(rawValue: rawValue)
         } else {
             self._classifiedType = nil
-        }
-        if let rawValue = dict["previousSampleConfirmedType"] as? String {
-            self.previousSampleConfirmedType = ActivityTypeName(rawValue: rawValue)
-        } else {
-            self.previousSampleConfirmedType = nil
         }
 
         self.rawLocations = nil
