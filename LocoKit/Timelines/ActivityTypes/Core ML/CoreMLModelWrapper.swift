@@ -29,7 +29,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
     static let modelMinTrainingSamples: [Int: Int] = [
         2: 100_000,
         1: 150_000,
-        0: 250_000
+        0: 200_000
     ]
 
     static let numberOfLatBucketsDepth0 = 18
