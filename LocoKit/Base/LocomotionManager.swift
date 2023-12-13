@@ -239,6 +239,12 @@ import CoreLocation
 
     @objc public var standbyCycleDuration: TimeInterval = 60 * 2
 
+    public var showsBackgroundLocationIndicator: Bool = true {
+        didSet {
+            locationManager.showsBackgroundLocationIndicator = self.showsBackgroundLocationIndicator
+        }
+    }
+
     // MARK: - Raw, Filtered, and Smoothed Data
     
     /**
@@ -508,9 +514,24 @@ import CoreLocation
         // stop the gimps
         stopCoreMotion()
 
-        // set the location manager to ask for as little accuracy as possible (without risking suspend)
-        locationManager.desiredAccuracy = 999
-        locationManager.distanceFilter = kCLDistanceFilterNone
+        /**
+         * NOTE: because of iOS 16.4 change, have to either show the blue status bar 
+         * indicator or use less efficient settings in sleep mode.
+         *
+         * Apple Core Location Peeps: if you're reading this, please reconsider.
+         * it breaks all the things, and makes the user experience either weird or worse,
+         * with no option of better.
+         */
+
+        // efficient, but with annoying status bar / dynamic island indicator
+        if showsBackgroundLocationIndicator {
+            locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+            locationManager.distanceFilter = kCLLocationAccuracyThreeKilometers
+
+        } else { // inefficient, but no annoying status bar / dynamic island indicator
+            locationManager.desiredAccuracy = 999
+            locationManager.distanceFilter = kCLDistanceFilterNone
+        }
 
         // no fallback updates while sleeping
         stopTheUpdateTimer()
@@ -612,9 +633,24 @@ import CoreLocation
         // stop the gimps
         stopCoreMotion()
 
-        // set the location manager to ask for almost nothing and ignore everything
-        locationManager.desiredAccuracy = 999
-        locationManager.distanceFilter = kCLDistanceFilterNone
+        /**
+         * NOTE: because of iOS 16.4 change, have to either show the blue status bar
+         * indicator or use less efficient settings in sleep mode.
+         *
+         * Apple Core Location Peeps: if you're reading this, please reconsider.
+         * it breaks all the things, and makes the user experience either weird or worse,
+         * with no option of better.
+         */
+
+        // efficient, but with annoying status bar / dynamic island indicator
+        if showsBackgroundLocationIndicator {
+            locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+            locationManager.distanceFilter = kCLLocationAccuracyThreeKilometers
+
+        } else { // inefficient, but no annoying status bar / dynamic island indicator
+            locationManager.desiredAccuracy = 999
+            locationManager.distanceFilter = kCLDistanceFilterNone
+        }
 
         // make sure the location manager is alive
         locationManager.allowsBackgroundLocationUpdates = true
@@ -711,6 +747,7 @@ import CoreLocation
         lastLocationManagerCreated = Date()
 
         let freshManager = CLLocationManager()
+        freshManager.showsBackgroundLocationIndicator = showsBackgroundLocationIndicator
         freshManager.distanceFilter = locationManager.distanceFilter
         freshManager.desiredAccuracy = locationManager.desiredAccuracy
         freshManager.pausesLocationUpdatesAutomatically = false
