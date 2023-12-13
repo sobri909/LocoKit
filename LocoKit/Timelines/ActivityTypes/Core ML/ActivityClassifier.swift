@@ -154,8 +154,11 @@ public class ActivityClassifier {
             return classifier.contains(coordinate: coordinate)
         }
 
+        let bundledModelURL = Bundle.main.url(forResource: "BD0", withExtension: "mlmodelc")
+        let targetModelsCount = bundledModelURL != nil ? 4 : 3
+
         // all existing classifiers are good?
-        if updated.count == 3 { return }
+        if updated.count == targetModelsCount { return }
 
         // get a CD2
         if updated.first(where: { $0.value.geoKey.hasPrefix("CD2") == true }) == nil {
@@ -176,6 +179,11 @@ public class ActivityClassifier {
             if let classifier = store.coreMLModelFor(coordinate: coordinate, depth: 0) {
                 updated[0] = classifier
             }
+        }
+
+        // get bundled CD0 (BD0)
+        if let bundledModelURL, updated.first(where: { $0.value.geoKey.hasPrefix("BD0") == true }) == nil {
+            updated[-1] = CoreMLModelWrapper(bundledURL: bundledModelURL, in: store)
         }
 
         discreteClassifiers = updated
