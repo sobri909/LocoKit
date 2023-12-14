@@ -91,9 +91,8 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
         guard updatingEnabled else { return }
         Jobs.addSecondaryJob("TimelineSegment.\(self.hashValue).update", dontDupe: true) {
             guard self.updatingEnabled else { return }
+            guard self.store.pool != nil else { return }
             guard self.hasChanged else { return }
-            
-            self.store.connectToDatabase()
 
             if self.shouldReprocessOnUpdate {
                 self.timelineItems.forEach {
