@@ -527,6 +527,7 @@ open class TimelineStore {
 
     open func invalidate(objectIds: Set<UUID>) {
         for objectId in objectIds {
+            connectToDatabase()
             object(for: objectId)?.invalidate()
         }
     }
