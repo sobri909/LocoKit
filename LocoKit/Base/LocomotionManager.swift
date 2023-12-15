@@ -481,8 +481,9 @@ import CoreLocation
         let manager = CLLocationManager()
         manager.distanceFilter = kCLDistanceFilterNone
         manager.desiredAccuracy = self.maximumDesiredLocationAccuracy
+        manager.showsBackgroundLocationIndicator = showsBackgroundLocationIndicator
         manager.pausesLocationUpdatesAutomatically = false
-        
+
         manager.delegate = self
 
         return manager
