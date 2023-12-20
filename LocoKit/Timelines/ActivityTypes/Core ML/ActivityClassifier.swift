@@ -53,10 +53,14 @@ public class ActivityClassifier {
                 if remainingWeight <= 0 { break } else { continue }
             }
 
-            // if it's the last classifier treat it as 1.0 completeness, to make the weights add up to 1
             var completeness = classifier.completenessScore
             if classifier.id == classifiers.last?.id {
-                completeness = 1.0
+                // if last is a BD0, give it half as much weight
+                if classifier.geoKey.hasPrefix("B") {
+                    completeness = 0.5
+                } else { // otherwise let the last one take up all remaining weight
+                    completeness = 1.0
+                }
             }
 
             // merge in the results
