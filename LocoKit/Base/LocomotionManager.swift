@@ -526,7 +526,7 @@ import CoreLocation
 
         // efficient, but with annoying status bar / dynamic island indicator
         if showsBackgroundLocationIndicator {
-            locationManager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
             locationManager.distanceFilter = kCLLocationAccuracyThreeKilometers
 
         } else { // inefficient, but no annoying status bar / dynamic island indicator
