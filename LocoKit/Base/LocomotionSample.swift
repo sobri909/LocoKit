@@ -30,7 +30,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
     public let date: Date
 
-    public let secondsFromGMT: Int?
+    public var secondsFromGMT: Int?
     
     // MARK: Location Properties
 
