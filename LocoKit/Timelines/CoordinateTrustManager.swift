@@ -26,7 +26,7 @@ public class CoordinateTrustManager: TrustAssessor {
     }
 
     func modelFor(_ coordinate: CLLocationCoordinate2D) -> CoordinateTrust? {
-        let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30)
+        let rounded = Coordinate(coordinate: CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30))
 
         // cached?
         if let model = cache.object(forKey: rounded) { return model }
@@ -44,18 +44,17 @@ public class CoordinateTrustManager: TrustAssessor {
 
     // MARK: -
 
-    static func roundedCoordinateFor(_ coordinate: CLLocationCoordinate2D, roundingDistance distance: Double) -> Coordinate {
+    public static func roundedCoordinateFor(_ coordinate: CLLocationCoordinate2D, roundingDistance distance: Double) -> CLLocationCoordinate2D {
         let metersPerDegreeLatitude = 111000.0 // approximate meters in one degree of latitude
         let latitudeMultiplier = metersPerDegreeLatitude / distance
 
         // for more accuracy at different latitudes, this would need to be adjusted based on the latitude
         let longitudeMultiplier = latitudeMultiplier
 
-        let rounded = CLLocationCoordinate2D(
+        return CLLocationCoordinate2D(
             latitude: round(coordinate.latitude * latitudeMultiplier) / latitudeMultiplier,
             longitude: round(coordinate.longitude * longitudeMultiplier) / longitudeMultiplier
         )
-        return Coordinate(coordinate: rounded)
     }
 
     // MARK: - Updating
@@ -76,7 +75,7 @@ public class CoordinateTrustManager: TrustAssessor {
         for sample in samples where sample.hasUsableCoordinate {
             guard let coordinate = sample.location?.coordinate else { continue }
 
-            let rounded = CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30)
+            let rounded = Coordinate(coordinate: CoordinateTrustManager.roundedCoordinateFor(coordinate, roundingDistance: 30))
             if let samples = buckets[rounded] {
                 buckets[rounded] = samples + [sample]
             } else {
