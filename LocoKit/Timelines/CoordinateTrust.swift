@@ -46,7 +46,7 @@ class CoordinateTrust: Record, Codable {
 
         // maximum distrusted stationary speed in kmh
         // (lower this number to reduce the trust)
-        let maximumDistrust = 2.0 // kmh
+        let maximumDistrust = 3.0 // kmh
 
         trustFactor = 1.0 - (meanSpeed.kmh / maximumDistrust).clamped(min: 0, max: 1)
     }
