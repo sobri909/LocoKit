@@ -29,7 +29,7 @@ public class ActivityClassifier {
         return !discreteClassifiers.isEmpty
     }
 
-    public func classify(_ classifiable: ActivityTypeClassifiable, previousResults: ClassifierResults?) -> ClassifierResults? {
+    public func classify(_ classifiable: ActivityTypeClassifiable) -> ClassifierResults? {
 
         // make sure have suitable classifiers
         if let coordinate = classifiable.location?.coordinate { mutex.sync { updateDiscreteClassifiers(for: coordinate) } }
@@ -42,7 +42,7 @@ public class ActivityClassifier {
         var moreComing = true
 
         for classifier in classifiers {
-            let results = classifier.classify(classifiable, previousResults: previousResults)
+            let results = classifier.classify(classifiable)
 
             // at least one classifier in the tree is complete?
             if classifier.completenessScore >= 1 { moreComing = false }
@@ -97,7 +97,6 @@ public class ActivityClassifier {
         }
 
         var moreComing = false
-        var lastResults: ClassifierResults?
 
         for sample in samples {
             if let timeout = timeout, start.age >= timeout {
@@ -110,7 +109,7 @@ public class ActivityClassifier {
 
             // nil or incomplete existing results? get fresh results
             if tmpResults == nil || tmpResults?.moreComing == true {
-                sample.classifierResults = classify(sample, previousResults: lastResults)
+                sample.classifierResults = classify(sample)
                 tmpResults = sample.classifierResults ?? tmpResults
             }
 
@@ -125,8 +124,6 @@ public class ActivityClassifier {
                     allScores[typeName]!.append(0)
                 }
             }
-
-            lastResults = results
         }
 
         var finalResults: [ClassifierResultItem] = []

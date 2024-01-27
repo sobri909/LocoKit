@@ -175,7 +175,7 @@ public class TimelineRecorder: ObservableObject {
 
         // classify the sample, if a classifier has been provided
         if classifier.canClassify(sample.location?.coordinate) {
-            sample.classifierResults = classifier.classify(sample, previousResults: lastClassifierResults)
+            sample.classifierResults = classifier.classify(sample)
             lastClassifierResults = sample.classifierResults
         }
 
@@ -255,7 +255,7 @@ public class TimelineRecorder: ObservableObject {
 
         // reclassify the sample, now that there'll be a sinceVisitStart value
         if classifier.canClassify(sample.location?.coordinate) {
-            sample.classifierResults = classifier.classify(sample, previousResults: lastClassifierResults)
+            sample.classifierResults = classifier.classify(sample)
             lastClassifierResults = sample.classifierResults
         }
     }

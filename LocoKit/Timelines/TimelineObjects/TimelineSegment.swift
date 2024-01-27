@@ -136,8 +136,6 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
 
         store.connectToDatabase()
 
-        var lastResults: ClassifierResults?
-
         for item in timelineItems {
             var count = 0
 
@@ -148,12 +146,10 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
 
                 let oldClassifiedType = sample._classifiedType
                 sample._classifiedType = nil
-                sample.classifierResults = classifier.classify(sample, previousResults: lastResults)
+                sample.classifierResults = classifier.classify(sample)
                 if sample.classifiedType != oldClassifiedType {
                     count += 1
                 }
-
-                lastResults = sample.classifierResults
             }
 
             // item needs rebuild?
