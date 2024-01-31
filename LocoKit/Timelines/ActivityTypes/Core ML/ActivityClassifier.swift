@@ -74,7 +74,7 @@ public class ActivityClassifier {
 
         combinedResults?.moreComing = moreComing
 
-        // cache in the sample, and potentially update the stored value
+        // cache in the sample
         if let combinedResults, !combinedResults.moreComing {
             classifiable.classifierResults = combinedResults
             if let sample = classifiable as? PersistentSample {
