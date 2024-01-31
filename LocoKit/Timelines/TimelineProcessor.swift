@@ -656,13 +656,13 @@ public class TimelineProcessor {
 
     // MARK: - Enabling/disabling items
 
-    public static func enable(timelineItem: TimelineItem) {
+    public static func enable(timelineItem: TimelineItem) async {
         guard let store = timelineItem.store else { return }
         guard let dateRange = timelineItem.dateRange else { return }
 
         print("TimelineProcessor.enable(timelineItem:) duration: \(duration: dateRange.duration), dateRange: \(dateRange.debugDescription)")
 
-        store.process {
+        await store.process {
             // 1. disable all overlapped samples
             let overlappedSamples = store.samples(
                 where: "date BETWEEN ? AND ? AND timelineItemId IS NOT ? AND disabled = 0",
@@ -742,13 +742,13 @@ public class TimelineProcessor {
         }
     }
 
-    public static func disable(timelineItem: TimelineItem) {
+    public static func disable(timelineItem: TimelineItem) async {
         guard let store = timelineItem.store else { return }
         guard let dateRange = timelineItem.dateRange else { return }
 
         print("TimelineProcessor.disable(timelineItem:) duration: \(duration: dateRange.duration), dateRange: \(dateRange.debugDescription)")
 
-        store.process {
+        await store.process {
             // 1. enable all disabled samples inside the range
             let overlappedSamples = store.samples(
                 where: "date BETWEEN ? AND ? AND timelineItemId IS NOT ? and disabled = 1",
