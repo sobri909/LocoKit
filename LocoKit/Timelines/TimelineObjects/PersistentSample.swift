@@ -27,7 +27,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     }
 
     internal override var _classifiedType: ActivityTypeName? {
-        didSet { if oldValue != _classifiedType { hasChanges = true; save() } }
+        didSet { if oldValue != _classifiedType { hasChanges = true } }
     }
 
     public override var confirmedType: ActivityTypeName? {
