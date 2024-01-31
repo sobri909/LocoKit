@@ -237,6 +237,9 @@ open class Path: TimelineItem, CustomStringConvertible {
         if self.isDataGap || otherPath.isDataGap { return nil }
         if self.deleted || otherPath.deleted { return nil }
 
+        // no stealing between incompatible sources
+        guard otherPath.source == self.source else { return nil }
+        
         // edge cleansing isn't allowed to push a path into invalid state
         guard otherPath.samples.count > Path.minimumValidSamples else { return nil }
 

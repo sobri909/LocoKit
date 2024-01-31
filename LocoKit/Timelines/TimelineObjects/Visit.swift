@@ -145,6 +145,9 @@ open class Visit: TimelineItem {
         if self.isDataGap || path.isDataGap { return nil }
         if self.deleted || path.deleted { return nil }
 
+        // no stealing between incompatible sources
+        guard path.source == self.source else { return nil }
+
         // edge cleansing isn't allowed to push a path into invalid state
         guard path.samples.count > Path.minimumValidSamples else { return nil }
 

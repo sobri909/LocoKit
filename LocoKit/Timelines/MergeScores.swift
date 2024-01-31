@@ -30,7 +30,10 @@ class MergeScores {
 
         // disabled can't consume or be consumed
         if consumer.disabled || consumee.disabled { return .impossible }
-        
+
+        // can't consume a different source
+        if consumer.source != consumee.source { return .impossible }
+
         // if consumee has zero samples, call it a perfect merge
         if consumee.samples.isEmpty { return .perfect }
         
@@ -77,7 +80,7 @@ class MergeScores {
         // path <- visit
         if let visit = consumee as? Visit { return consumptionScoreFor(path: consumer, toConsumeVisit: visit) }
 
-        // path <- vpath
+        // path <- path
         if let path = consumee as? Path { return consumptionScoreFor(path: consumer, toConsumePath: path) }
 
         return .impossible
