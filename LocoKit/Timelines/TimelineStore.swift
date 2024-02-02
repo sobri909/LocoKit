@@ -116,24 +116,32 @@ open class TimelineStore {
 
     open func createVisit(from sample: PersistentSample) -> Visit {
         let visit = Visit(in: self)
+        visit.source = sample.source
         visit.add(sample)
         return visit
     }
 
     open func createPath(from sample: PersistentSample) -> Path {
         let path = Path(in: self)
+        path.source = sample.source
         path.add(sample)
         return path
     }
 
     open func createVisit(from samples: [PersistentSample]) -> Visit {
         let visit = Visit(in: self)
+        if let first = samples.first {
+            visit.source = first.source
+        }
         visit.add(samples)
         return visit
     }
 
     open func createPath(from samples: [PersistentSample]) -> Path {
         let path = Path(in: self)
+        if let first = samples.first {
+            path.source = first.source
+        }
         path.add(samples)
         return path
     }
