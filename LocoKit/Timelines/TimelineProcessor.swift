@@ -686,7 +686,7 @@ public class TimelineProcessor {
 
             store.save() // flush to db
 
-            // 2. disable and break egdges of fully overlapped items
+            // 2. disable and break edges of fully overlapped items
             let overlappedItems = store.items(
                 where: "startDate >= ? AND endDate <= ? AND itemId != ? AND disabled = 0",
                 arguments: [dateRange.start, dateRange.end, timelineItem.itemId.uuidString]
