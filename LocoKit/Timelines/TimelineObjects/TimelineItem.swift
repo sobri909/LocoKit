@@ -249,6 +249,9 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
                 if newValue?.previousItemId != self.itemId {
                     newValue?.previousItemId = self.itemId
                 }
+
+                // end date will be different now
+                _dateRange = nil
             }
         }
     }
