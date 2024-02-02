@@ -123,9 +123,11 @@ public class TimelineProcessor {
                     }
                 }
 
-                // if keepness scores allow, add in a bridge merge over top of working item
-                if let previous = workingItem.previousItem, let next = workingItem.nextItem,
-                    previous.keepnessScore > workingItem.keepnessScore, next.keepnessScore > workingItem.keepnessScore,
+                // if keepness scores and sources allow, add in a bridge merge over top of working item
+                if let previous = workingItem.previousItem, previous.source == workingItem.source,
+                   let next = workingItem.nextItem, next.source == workingItem.source,
+                    previous.keepnessScore > workingItem.keepnessScore,
+                    next.keepnessScore > workingItem.keepnessScore,
                     !previous.isDataGap, !next.isDataGap
                 {
                     merges.insert(Merge(keeper: previous, betweener: workingItem, deadman: next))
@@ -442,9 +444,7 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenNextItemEdge else { return }
         guard let dateRange = brokenItem.dateRange else { return }
 
-        // TODO: this looks wrong
-        // it's an item that only overlaps the start of the broken item,
-        // but it's being used to consume the whole broken item
+        // if edge overlaps, do a merge
         if !brokenItem.isMergeLocked {
             let overlapper = store.item(
                 where: """
@@ -510,9 +510,7 @@ public class TimelineProcessor {
         guard brokenItem.hasBrokenPreviousItemEdge else { return }
         guard let dateRange = brokenItem.dateRange else { return }
 
-        // TODO: this looks wrong
-        // it's an item that only overlaps the start of the broken item,
-        // but it's being used to consume the whole broken item
+        // if edge overlaps, do a merge
         if !brokenItem.isMergeLocked {
             let overlapper = store.item(
                 where: """

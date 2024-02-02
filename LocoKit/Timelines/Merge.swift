@@ -22,9 +22,6 @@ internal class Merge: Hashable, CustomStringConvertible {
         if keeper.deleted || deadman.deleted || betweener?.deleted == true { return false }
         if keeper.invalidated || deadman.invalidated || betweener?.invalidated == true { return false }
 
-        if keeper.source != deadman.source { return false }
-        if let betweener, keeper.source != betweener.source { return false }
-
         // check for dupes (which should be impossible, but weird stuff happens)
         var itemIds: Set<UUID> = [keeper.itemId, deadman.itemId]
         if let betweener = betweener {
