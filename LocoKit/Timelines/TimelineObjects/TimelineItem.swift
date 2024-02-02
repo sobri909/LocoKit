@@ -622,6 +622,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     }
 
     public func breakEdges() {
+        _dateRange = nil
         previousItemId = nil
         nextItemId = nil
     }
