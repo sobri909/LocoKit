@@ -417,15 +417,18 @@ public class TimelineProcessor {
             if !brokenItem.isMergeLocked, let dateRange = brokenItem.dateRange {
                 guard brokenItem.hasBrokenPreviousItemEdge && brokenItem.hasBrokenNextItemEdge else { return }
 
-                if let overlapper = store.item(
+                let overlapper = store.item(
                     where: """
-                startDate <= :startDate AND endDate >= :endDate AND startDate IS NOT NULL AND endDate IS NOT NULL
-                AND deleted = 0 AND disabled = 0 AND itemId != :itemId
-                """,
-                    arguments: ["startDate": dateRange.start, "endDate": dateRange.end,
-                                "itemId": brokenItem.itemId.uuidString]),
-                   !overlapper.deleted && !overlapper.isMergeLocked
-                {
+                        startDate <= :startDate AND endDate >= :endDate AND startDate IS NOT NULL AND endDate IS NOT NULL
+                        AND deleted = 0 AND disabled = 0 AND itemId != :itemId
+                        """,
+                    arguments: [
+                        "startDate": dateRange.start, "endDate": dateRange.end,
+                        "itemId": brokenItem.itemId.uuidString
+                    ]
+                )
+
+                if let overlapper, !overlapper.deleted, !overlapper.isMergeLocked, overlapper.source == brokenItem.source {
                     overlapper.add(brokenItem.samples)
                     brokenItem.delete()
                     return
@@ -443,15 +446,18 @@ public class TimelineProcessor {
         // it's an item that only overlaps the start of the broken item,
         // but it's being used to consume the whole broken item
         if !brokenItem.isMergeLocked {
-            if let overlapper = store.item(
+            let overlapper = store.item(
                 where: """
-            startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
-            """,
-                arguments: ["endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
-                            "itemId": brokenItem.itemId.uuidString]),
-               !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source
-            {
+                    startDate < :endDate1 AND endDate > :endDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+                    AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
+                    """,
+                arguments: [
+                    "endDate1": dateRange.end, "endDate2": dateRange.end, "isVisit": brokenItem is Visit,
+                    "itemId": brokenItem.itemId.uuidString
+                ]
+            )
+
+            if let overlapper, !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source {
                 overlapper.add(brokenItem.samples)
                 brokenItem.delete()
                 return
@@ -508,15 +514,18 @@ public class TimelineProcessor {
         // it's an item that only overlaps the start of the broken item,
         // but it's being used to consume the whole broken item
         if !brokenItem.isMergeLocked {
-            if let overlapper = store.item(
+            let overlapper = store.item(
                 where: """
-            startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
-            AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
-            """,
-                arguments: ["startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
-                            "itemId": brokenItem.itemId.uuidString]),
-               !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source
-            {
+                    startDate < :startDate1 AND endDate > :startDate2 AND startDate IS NOT NULL AND endDate IS NOT NULL
+                    AND isVisit = :isVisit AND deleted = 0 AND disabled = 0 AND itemId != :itemId
+                    """,
+                arguments: [
+                    "startDate1": dateRange.start, "startDate2": dateRange.start, "isVisit": brokenItem is Visit,
+                    "itemId": brokenItem.itemId.uuidString
+                ]
+            )
+
+            if let overlapper, !overlapper.deleted && !overlapper.isMergeLocked && overlapper.source == brokenItem.source {
                 overlapper.add(brokenItem.samples)
                 brokenItem.delete()
                 return
