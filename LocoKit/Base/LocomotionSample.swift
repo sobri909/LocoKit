@@ -28,10 +28,12 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     public let sampleId: UUID
 
     /// The timestamp for the weighted centre of the sample period. Equivalent to `location.timestamp`.
-    public let date: Date
+    public var date: Date
 
-    public var secondsFromGMT: Int?
-    
+    public var secondsFromGMT: Int? {
+        didSet { _localTimeZone = nil }
+    }
+
     // MARK: Location Properties
 
     /** 
