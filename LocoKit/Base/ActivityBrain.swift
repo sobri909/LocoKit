@@ -13,12 +13,12 @@ public class ActivityBrain {
     internal static let worstAllowedPastSampleRadius: CLLocationDistance = 65 // small enough for slow walking to be detected
 
     internal static let maximumSampleAge: TimeInterval = 60
-    internal static let minimumWakeupConfidenceN = 6
-    internal static let minimumConfidenceN = 4
-    internal static let minimumRequiredN = 4
+    internal static let minimumWakeupConfidenceN = 7
+    internal static let minimumConfidenceN = 5
+    internal static let minimumRequiredN = 5
     internal static let maximumRequiredN = 60
-    internal static let maxSpeedReq: Double = 6 // maximum extra required N for slow speeds
-    internal static let speedReqKmh: Double = 5 // faster than this requires no extra N
+    internal static let maxSpeedReq: Double = 7 // maximum extra required N for slow speeds
+    internal static let speedReqKmh: Double = 6 // faster than this requires no extra N
     internal static let speedSampleN: Int = 4 // number of samples to avg speed over if reported speed is nil
 
     public var processHistoricalLocations = false
