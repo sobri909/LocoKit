@@ -173,12 +173,6 @@ public class TimelineRecorder: ObservableObject {
         let sample = store.createSample(from: ActivityBrain.highlander.presentSample)
         Task(priority: .background) { sample.updateRTree() }
 
-        // classify the sample, if a classifier has been provided
-        if classifier.canClassify(sample.location?.coordinate) {
-            sample.classifierResults = classifier.classify(sample)
-            lastClassifierResults = sample.classifierResults
-        }
-
         // make sure sleep mode doesn't happen prematurely
         updateSleepModeAcceptability()
 
@@ -225,18 +219,23 @@ public class TimelineRecorder: ObservableObject {
         /** moving -> moving **/
         if previouslyMoving && currentlyMoving {
 
-            // if activityType hasn't changed, reuse current
-            if sample.activityType == currentItem.movingActivityType {
-                currentItem.add(sample)
-                return
-            }
-
             // if edge speeds are above the mode change threshold, reuse current
             if let currentSpeed = currentItem.samples.last?.location?.speed, let sampleSpeed = sample.location?.speed {
                 if currentSpeed > Path.maximumModeShiftSpeed && sampleSpeed > Path.maximumModeShiftSpeed {
                     currentItem.add(sample)
                     return
                 }
+            }
+
+            // it will help to classify the sample in this case
+            if classifier.canClassify(sample.location?.coordinate) {
+                lastClassifierResults = classifier.classify(sample)
+            }
+            
+            // if activityType hasn't changed, reuse current
+            if sample.activityType == currentItem.movingActivityType {
+                currentItem.add(sample)
+                return
             }
 
             // couldn't reuse current path
