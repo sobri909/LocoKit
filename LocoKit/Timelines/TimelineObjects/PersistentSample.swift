@@ -27,11 +27,11 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     }
     
     public override var date: Date {
-        didSet { if oldValue != date { hasChanges = true } }
+        didSet { if oldValue != date { hasChanges = true; save() } }
     }
     
     public override var secondsFromGMT: Int? {
-        didSet { if oldValue != secondsFromGMT { hasChanges = true } }
+        didSet { if oldValue != secondsFromGMT { hasChanges = true; save() } }
     }
 
     internal override var _classifiedType: ActivityTypeName? {
@@ -39,12 +39,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     }
 
     public override var confirmedType: ActivityTypeName? {
-        didSet {
-            if oldValue != confirmedType {
-                hasChanges = true
-                save()
-            }
-        }
+        didSet { if oldValue != confirmedType { hasChanges = true; save() } }
     }
 
     public override var hasUsableCoordinate: Bool {
