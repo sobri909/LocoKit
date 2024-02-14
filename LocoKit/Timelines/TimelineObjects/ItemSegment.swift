@@ -19,8 +19,9 @@ public class ItemSegment: Hashable, Identifiable, ObservableObject {
     public var samples: [PersistentSample] {
         get {
             if let cached = _samples { return cached }
-            _samples = unsortedSamples.sorted { $0.date < $1.date }
-            return _samples!
+            let sorted = unsortedSamples.sorted { $0.date < $1.date }
+            _samples = sorted
+            return sorted
         }
         set(newSamples) {
             unsortedSamples.removeAll()
