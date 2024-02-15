@@ -17,7 +17,9 @@ open class PersistentSample: LocomotionSample, TimelineObject {
     public weak var store: TimelineStore? { didSet { if store != nil { store?.add(self) } } }
     public var source: String = "LocoKit"
 
-    public var rtreeId: Int64?
+    public var rtreeId: Int64? {
+        didSet { if oldValue != rtreeId { hasChanges = true; save() } }
+    }
 
     private var _invalidated = false
     public var invalidated: Bool { return _invalidated }
