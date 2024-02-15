@@ -92,20 +92,16 @@ public class AppGroup {
     }
 
     var currentAppState: AppState {
-        var deepSleepUntil: Date?
-        if let until = LocoKitService.requestedWakeupCall, until.age < 0 {
-            deepSleepUntil = until
-        }
         if let currentItem = timelineRecorder?.currentItem {
             if currentRecorder?.appName == thisApp {
                 return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title, deepSleepingUntil: deepSleepUntil)
+                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title, deepSleepingUntil: nil)
             } else {
                 return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, deepSleepingUntil: deepSleepUntil)
+                                currentItemId: currentItem.itemId, deepSleepingUntil: nil)
             }
         }
-        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: deepSleepUntil)
+        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: nil)
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {

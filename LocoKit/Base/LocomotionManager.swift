@@ -572,9 +572,6 @@ import CoreLocation
         let note = Notification(name: .willStartDeepSleepMode, object: self, userInfo: nil)
         NotificationCenter.default.post(note)
 
-        // request a wakeup call silent push
-        LocoKitService.requestWakeup(at: wakeupTime)
-
         // start the safety nets
         locationManager.startMonitoringVisits()
         locationManager.startMonitoringSignificantLocationChanges()
