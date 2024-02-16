@@ -59,11 +59,11 @@ class CoordinateTrust: Record, Codable {
         case latitude, longitude, trustFactor
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         self.latitude = row[Columns.latitude]
         self.longitude = row[Columns.longitude]
         self.trustFactor = row[Columns.trustFactor]
-        super.init(row: row)
+        try super.init(row: row)
     }
 
     override func encode(to container: inout PersistenceContainer) {

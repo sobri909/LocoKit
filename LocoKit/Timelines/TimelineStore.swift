@@ -453,7 +453,7 @@ open class TimelineStore {
                     for case let item as TimelineObject in savingItems {
                         item.transactionDate = now
                         do { try item.save(in: db) }
-                        catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
+                        catch RecordError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
                         catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
                             // constraint fails (linked list inconsistencies) are non fatal
                             // so let's break the edges and put the item back in the queue
@@ -467,7 +467,7 @@ open class TimelineStore {
                         }
                         savedObjectIds.insert(item.objectId)
                     }
-                    db.afterNextTransactionCommit { db in
+                    db.afterNextTransaction { db in
                         for case let item as TimelineObject in savingItems where !item.hasChanges {
                             item.lastSaved = item.transactionDate
                         }
@@ -485,7 +485,7 @@ open class TimelineStore {
                     for case let sample as TimelineObject in savingSamples {
                         sample.transactionDate = now
                         do { try sample.save(in: db) }
-                        catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
+                        catch RecordError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
                         catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
                             // break the edge and put it back in the queue
                             (sample as? PersistentSample)?.timelineItem = nil
@@ -497,7 +497,7 @@ open class TimelineStore {
                         }
                         savedObjectIds.insert(sample.objectId)
                     }
-                    db.afterNextTransactionCommit { db in
+                    db.afterNextTransaction { db in
                         for case let sample as TimelineObject in savingSamples where !sample.hasChanges {
                             sample.lastSaved = sample.transactionDate
                         }
@@ -521,8 +521,8 @@ open class TimelineStore {
             try pool.write { db in
                 object.transactionDate = Date()
                 do { try object.save(in: db) }
-                catch PersistenceError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
-                db.afterNextTransactionCommit { db in
+                catch RecordError.recordNotFound { logger.error("PersistenceError.recordNotFound") }
+                db.afterNextTransaction { db in
                     object.lastSaved = object.transactionDate
                 }
             }
