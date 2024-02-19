@@ -144,22 +144,8 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
     private var _localTimeZone: TimeZone?
     public var localTimeZone: TimeZone? {
         if let cached = _localTimeZone { return cached }
-
-        // create one from utc offset
-        if let secondsFromGMT = secondsFromGMT {
-            _localTimeZone = TimeZone(secondsFromGMT: secondsFromGMT)
-            return _localTimeZone
-        }
-
-        guard let location = location else { return nil }
-        guard location.hasUsableCoordinate else { return nil }
-
-        // try to fetch one from remote, hopefully available on next access
-        CLPlacemarkCache.fetchPlacemark(for: location) { [weak self] placemark in
-            self?._localTimeZone = placemark?.timeZone
-        }
-
-        return nil
+        if let secondsFromGMT { _localTimeZone = TimeZone(secondsFromGMT: secondsFromGMT) }
+        return _localTimeZone
     }
 
     public func distance(from otherSample: LocomotionSample) -> CLLocationDistance? {
