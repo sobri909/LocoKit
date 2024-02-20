@@ -135,7 +135,7 @@ open class LocomotionSample: ActivityTypeTrainable, Codable {
 
     // MARK: - Convenience Getters
     
-    public lazy var timeOfDay: TimeInterval = { return self.date.sinceStartOfDay }()
+    public lazy var timeOfDay: TimeInterval = { return self.date.sinceStartOfDay() }()
 
     public var hasUsableCoordinate: Bool { return location?.hasUsableCoordinate ?? false }
 

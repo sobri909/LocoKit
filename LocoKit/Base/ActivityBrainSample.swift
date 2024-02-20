@@ -54,7 +54,7 @@ public class ActivityBrainSample {
     private var _range: DateInterval? { return _filteredLocations.dateInterval }
     var range: DateInterval? { return mutex.sync { _range } }
     
-    var timeOfDay: Double { return date.sinceStartOfDay }
+    var timeOfDay: Double { return date.sinceStartOfDay() }
 
     var hasUsableLatLong: Bool { return location != nil }
     

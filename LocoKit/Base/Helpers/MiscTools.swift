@@ -54,8 +54,8 @@ public extension DateInterval {
 
 public extension Date {
     var age: TimeInterval { return -timeIntervalSinceNow }
-    var startOfDay: Date { return Calendar.current.startOfDay(for: self) }
-    var sinceStartOfDay: TimeInterval { return self.timeIntervalSince(self.startOfDay) }
+    func startOfDay(in calendar: Calendar = Calendar.current) -> Date { calendar.startOfDay(for: self) }
+    func sinceStartOfDay(in calendar: Calendar = Calendar.current) -> TimeInterval { timeIntervalSince(startOfDay(in: calendar)) }
     func isSameDayAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, inSameDayAs: self) }
     func isSameMonthAs(_ date: Date) -> Bool { return Calendar.current.isDate(date, equalTo: self, toGranularity: .month) }
 }
