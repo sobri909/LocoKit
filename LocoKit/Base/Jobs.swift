@@ -34,7 +34,7 @@ public class Jobs: ObservableObject {
         let loco = LocomotionManager.highlander
         let queue = OperationQueue()
         queue.name = "LocoKit.secondaryQueue"
-        queue.qualityOfService = loco.applicationState == .active ? .utility : .background
+        queue.qualityOfService = loco.applicationState == .active ? .userInitiated : .background
         queue.maxConcurrentOperationCount = loco.applicationState == .active ? 4 : 1
         return queue
     }()
@@ -170,10 +170,10 @@ public class Jobs: ObservableObject {
 
         // promote queues and operations to .utility priority
         for queue in queues {
-            queue.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
+            queue.qualityOfService = .userInitiated
             for operation in queue.operations where operation.qualityOfService == .background {
                 if Jobs.debugLogging { logger.debug("PROMOTING: \(queue.name ?? "Unnamed"):\(operation.name ?? "Unnamed")") }
-                operation.qualityOfService = queue == primaryQueue ? .userInitiated : .utility
+                operation.qualityOfService = .userInitiated
             }
         }
 
