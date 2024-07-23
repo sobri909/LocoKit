@@ -149,6 +149,7 @@ public class TimelineRecorder: ObservableObject {
     }
 
     public func updateCurrentItem() {
+        store.connectToDatabase()
         let beforeId = _currentItem?.itemId
         _currentItem = store.mostRecentItem
         onMain { self.objectWillChange.send() }
