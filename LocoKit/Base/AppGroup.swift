@@ -168,7 +168,7 @@ public final class AppGroup: @unchecked Sendable {
         case .updatedState:
             appStateUpdated(by: messageInfo.appName)
         case .modifiedObjects:
-            break
+            objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
         case .tookOverRecording:
             recordingWasTakenOver(by: messageInfo.appName, messageInfo: messageInfo)
         }
@@ -198,6 +198,14 @@ public final class AppGroup: @unchecked Sendable {
 
             let appName = LocomotionManager.highlander.appGroup?.currentRecorder?.appName.rawValue ?? "UNKNOWN"
             logger.info("concededRecording to \(appName)")
+        }
+    }
+
+    private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
+        logger.debug("AppGroup received modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0) by: \(by.rawValue)")
+        if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
+            let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
+            NotificationCenter.default.post(note)
         }
     }
 
