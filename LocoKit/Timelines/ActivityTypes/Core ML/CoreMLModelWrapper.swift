@@ -439,7 +439,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     LIMIT ?
                 """,
                 arguments: [Self.modelMaxTrainingSamples[depth]!],
-                explain: true
+                explain: false
             )
         }
         return store.samples(
@@ -453,7 +453,7 @@ public class CoreMLModelWrapper: DiscreteClassifier, PersistableRecord, Hashable
                     LIMIT ?
                 """,
             arguments: [Self.modelMaxTrainingSamples[depth]!],
-            explain: true
+            explain: false
         )
     }
 
