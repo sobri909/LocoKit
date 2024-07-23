@@ -104,7 +104,6 @@ public final class AppGroup: @unchecked Sendable {
     }
 
     public func save() {
-        print("AppGroup.save()")
         let fileManager = FileManager.default
         guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: suiteName) else {
             return
