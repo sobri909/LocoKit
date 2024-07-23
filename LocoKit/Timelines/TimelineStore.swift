@@ -590,6 +590,7 @@ open class TimelineStore {
         }
     }
 
+    // TODO: runs way too slow
     public func pruneSampleRTreeRows() {
         guard let pool = pool else { fatalError("Attempting to access the database when disconnected") }
         logger.info("TimelineStore.pruneSampleRTreeRows() START")
