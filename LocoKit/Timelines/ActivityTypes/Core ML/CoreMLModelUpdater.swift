@@ -116,7 +116,6 @@ public class CoreMLModelUpdater {
             }
         }
 
-        // do the job
         store.connectToDatabase()
 
         // do the current CD2 first, if it needs it
@@ -126,9 +125,26 @@ public class CoreMLModelUpdater {
             return
         }
 
-        // grab a random pending model instead
-        if let model = store.coreMLModel(where: "needsUpdate = 1 ORDER BY depth DESC") {
+        // CD0 update intervals
+        let cd0UpdateInterval: TimeInterval = 7 * 24 * 60 * 60 // 7 days
+        let cd0FrequentUpdateInterval: TimeInterval = 24 * 60 * 60 // 1 day
 
+        // check for any queued model, prioritising by depth and completeness
+        if let model = store.coreMLModel(
+            where: """
+                needsUpdate = 1 AND 
+                (depth > 0 OR 
+                 (depth = 0 AND 
+                  (lastUpdated IS NULL OR 
+                   (totalSamples < ? AND lastUpdated < datetime('now', '-\(Int(cd0FrequentUpdateInterval)) seconds')) OR
+                   (totalSamples >= ? AND lastUpdated < datetime('now', '-\(Int(cd0UpdateInterval)) seconds'))
+                  )
+                 )
+                )
+                ORDER BY depth DESC, totalSamples ASC
+                """,
+            arguments: [CoreMLModelWrapper.modelMinTrainingSamples[0]!, CoreMLModelWrapper.modelMinTrainingSamples[0]!]
+        ) {
             // backfill r-tree for old dbs or restores from backup
             CoreMLModelUpdater.highlander.updatesQueue.addOperation {
                 store.connectToDatabase()
