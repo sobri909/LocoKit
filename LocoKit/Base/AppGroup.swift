@@ -1,25 +1,24 @@
 //
 //  AppGroup.swift
-//  Arc
 //
 //  Created by Matt Greenfield on 28/5/20.
-//  Copyright © 2020 Big Paua. All rights reserved.
 //
 
 import Foundation
+import UIKit
 
-public class AppGroup {
+public final class AppGroup: @unchecked Sendable {
 
-    private static let encoder = JSONEncoder()
-    private static let decoder = JSONDecoder()
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     // MARK: - Properties
 
     public let thisApp: AppName
     public let suiteName: String
-    public var timelineRecorder: TimelineRecorder?
 
     public private(set) var apps: [AppName: AppState] = [:]
+    public private(set) var applicationState: UIApplication.State = .background
     public private(set) lazy var groupDefaults: UserDefaults? = { UserDefaults(suiteName: suiteName) }()
 
     public var sortedApps: [AppState] { apps.values.sorted { $0.updated > $1.updated } }
@@ -28,6 +27,9 @@ public class AppGroup {
     public var haveAppsInStandby: Bool { apps.values.filter({ $0.recordingState == .standby }).count > 0 }
 
     private lazy var talker: AppGroupTalk = { AppGroupTalk(messagePrefix: suiteName, appName: thisApp) }()
+
+    private let loco = LocomotionManager.highlander
+    public var timeline: TimelineRecorder?
 
     // MARK: - Public methods
 
@@ -39,19 +41,28 @@ public class AppGroup {
 
         save()
 
-        NotificationCenter.default.addObserver(forName: .receivedAppGroupMessage, object: nil, queue: nil) { note in
+        let center = NotificationCenter.default
+        center.addObserver(forName: .receivedAppGroupMessage, object: nil, queue: nil) { [weak self] note in
             guard let messageRaw = note.userInfo?["message"] as? String else { return }
             guard let message = AppGroup.Message(rawValue: messageRaw.deletingPrefix(suiteName + ".")) else { return }
-            self.received(message)
+            self?.received(message)
+        }
+        center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .active
+        }
+        center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: nil) { [weak self] note in
+            self?.applicationState = .background
         }
     }
 
     public var shouldBeTheRecorder: Bool {
         // should always be current recorder in foreground
-        if LocomotionManager.highlander.applicationState == .active { return true }
+        if applicationState == .active { return true }
 
         // there's no current recorder? then we should take on the job
         guard let currentRecorder = currentRecorder else { return true }
+
+        // TODO: Arc Recorder shouldn't concede to others
 
         // there's multiple recorders, and we're not in foreground? it's time to concede
         if haveMultipleRecorders { return false }
@@ -69,43 +80,52 @@ public class AppGroup {
         send(message: .tookOverRecording)
     }
 
-    // MARK: - 
+    // MARK: - AppState persistence
 
     public func load() {
+        let fileManager = FileManager.default
+        guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: suiteName) else {
+            return
+        }
+
+        let fileURLs = try? fileManager.contentsOfDirectory(at: containerURL, includingPropertiesForKeys: nil)
+        let stateFileURLs = fileURLs?.filter { $0.lastPathComponent.hasSuffix(".AppState.json") }
+
         var states: [AppName: AppState] = [:]
-        for appName in AppName.allCases {
-            if let data = groupDefaults?.value(forKey: appName.rawValue) as? Data {
-                if let state = try? AppGroup.decoder.decode(AppState.self, from: data) {
-                    states[appName] = state
-                }
+        for fileURL in stateFileURLs ?? [] {
+            if let state = try? AppState.loadFromFile(url: fileURL) {
+                states[state.appName] = state
+            } else {
+                print("FAILED TO DECODE")
             }
         }
+
         apps = states
     }
 
     public func save() {
-        load()
-        apps[thisApp] = currentAppState
-        guard let data = try? AppGroup.encoder.encode(apps[thisApp]) else { return }
-        groupDefaults?.set(data, forKey: thisApp.rawValue)
+        print("AppGroup.save()")
+        let fileManager = FileManager.default
+        guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: suiteName) else {
+            return
+        }
+
+        let fileURL = containerURL.appendingPathComponent("\(thisApp.rawValue).AppState.json")
+        try? currentAppState.saveToFile(url: fileURL)
+
         send(message: .updatedState)
     }
 
     var currentAppState: AppState {
-        if let currentItem = timelineRecorder?.currentItem {
-            if currentRecorder?.appName == thisApp {
-                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, currentItemTitle: currentItem.title, deepSleepingUntil: nil)
-            } else {
-                return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState,
-                                currentItemId: currentItem.itemId, deepSleepingUntil: nil)
-            }
-        }
-        return AppState(appName: thisApp, recordingState: LocomotionManager.highlander.recordingState, deepSleepingUntil: nil)
+        return AppState(
+            appName: thisApp,
+            recordingStateString: loco.recordingState.rawValue,
+            currentItemId: timeline?.currentItem?.id.uuidString
+        )
     }
 
     public func notifyObjectChanges(objectIds: Set<UUID>) {
-        let messageInfo = MessageInfo(date: Date(), message: .modifiedObjects, appName: thisApp, modifiedObjectIds: objectIds)
+        let messageInfo = MessageInfo(date: .now, message: .modifiedObjects, appName: thisApp, modifiedObjectIds: objectIds)
         send(message: .modifiedObjects, messageInfo: messageInfo)
     }
     
@@ -122,8 +142,8 @@ public class AppGroup {
     // MARK: - Private
 
     private func send(message: Message, messageInfo: MessageInfo? = nil) {
-        let lastMessage = messageInfo ?? MessageInfo(date: Date(), message: message, appName: thisApp, modifiedObjectIds: nil)
-        if let data = try? AppGroup.encoder.encode(lastMessage) {
+        let lastMessage = messageInfo ?? MessageInfo(date: .now, message: message, appName: thisApp, modifiedObjectIds: nil)
+        if let data = try? encoder.encode(lastMessage) {
             groupDefaults?.set(data, forKey: "lastMessage")
         }
         talker.send(message)
@@ -131,9 +151,12 @@ public class AppGroup {
 
     private func received(_ message: AppGroup.Message) {
         guard let data = groupDefaults?.value(forKey: "lastMessage") as? Data else { return }
-        guard let messageInfo = try? AppGroup.decoder.decode(MessageInfo.self, from: data) else { return }
+        guard let messageInfo = try? decoder.decode(MessageInfo.self, from: data) else { return }
         guard messageInfo.appName != thisApp else { return }
-        guard messageInfo.message == message else { logger.debug("LASTMESSAGE.MESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))"); return }
+        guard messageInfo.message == message else {
+            logger.debug("LASTMESSAGE MISMATCH (expected: \(message.rawValue), got: \(messageInfo.message.rawValue))")
+            return
+        }
 
         load()
 
@@ -141,41 +164,42 @@ public class AppGroup {
         case .updatedState:
             appStateUpdated(by: messageInfo.appName)
         case .modifiedObjects:
-            objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
+            break
         case .tookOverRecording:
             recordingWasTakenOver(by: messageInfo.appName, messageInfo: messageInfo)
         }
     }
-    
+
     private func appStateUpdated(by: AppName) {
         logger.debug("RECEIVED: .updatedState, from: \(by.rawValue)")
-        guard let currentRecorder = currentRecorder else { logger.error("No AppGroup.currentRecorder!"); return }
-        guard let currentItemId = currentRecorder.currentItemId else { logger.error("No AppGroup.currentItemId!"); return }
-        timelineRecorder?.store.connectToDatabase()
+
+        guard let currentRecorder else {
+            logger.error("No AppGroup.currentRecorder")
+            return
+        }
+        guard let currentItemId = currentRecorder.currentItemId else {
+            logger.error("No AppGroup.currentItemId")
+            return
+        }
+
         if !isAnActiveRecorder, currentAppState.currentItemId != currentItemId {
-            logger.debug("Need to update local currentItem (mine: \(self.self.currentAppState.currentItemId?.uuidString ?? "nil"), theirs: \(currentItemId))")
-            timelineRecorder?.updateCurrentItem()
+            logger.debug("Local currentItemId is stale (mine: \(self.currentAppState.currentItemId ?? "nil"), theirs: \(currentItemId))")
+            timeline?.updateCurrentItem()
         }
     }
 
     private func recordingWasTakenOver(by: AppName, messageInfo: MessageInfo) {
         if LocomotionManager.highlander.recordingState.isCurrentRecorder {
             LocomotionManager.highlander.startStandby()
-            NotificationCenter.default.post(Notification(name: .concededRecording, object: self, userInfo: nil))
-        }
-    }
 
-    private func objectsWereModified(by: AppName, messageInfo: MessageInfo) {
-        logger.debug("AppGroup received modifiedObjectIds: \(messageInfo.modifiedObjectIds?.count ?? 0) by: \(by.rawValue)")
-        if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
-            let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
-            NotificationCenter.default.post(note)
+            let appName = LocomotionManager.highlander.appGroup?.currentRecorder?.appName.rawValue ?? "UNKNOWN"
+            logger.info("concededRecording to \(appName)")
         }
     }
 
     // MARK: - Interfaces
 
-    public enum AppName: String, CaseIterable, Codable {
+    public enum AppName: String, CaseIterable, Codable, Sendable {
         case arcV3, arcMini, arcRecorder, arcEditor
         public var sortIndex: Int {
             switch self {
@@ -187,33 +211,44 @@ public class AppGroup {
         }
     }
 
-    public struct AppState: Codable {
+    public struct AppState: Codable, Sendable {
         public let appName: AppName
-        public let recordingState: RecordingState
-        public var currentItemId: UUID?
+        public let recordingStateString: String
+        public var currentItemId: String?
         public var currentItemTitle: String?
-        public var deepSleepingUntil: Date?
         public var updated = Date()
 
+        public var recordingState: RecordingState {
+            return RecordingState(rawValue: recordingStateString)!
+        }
+
         public var isAlive: Bool {
-            if isDeepSleeping { return true }
             return updated.age < LocomotionManager.highlander.standbyCycleDuration + 3
         }
-        public var isAliveAndRecording: Bool { return isAlive && recordingState != .off && recordingState != .standby }
-        public var isDeepSleeping: Bool {
-            guard let until = deepSleepingUntil else { return false }
-            return until.age < 0
+
+        public var isAliveAndRecording: Bool {
+            return isAlive && recordingState != .off && recordingState != .standby
+        }
+
+        public func saveToFile(url: URL) throws {
+            let data = try JSONEncoder().encode(self)
+            try data.write(to: url)
+        }
+
+        public static func loadFromFile(url: URL) throws -> AppState {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode(AppState.self, from: data)
         }
     }
 
-    public enum Message: String, CaseIterable, Codable {
+    public enum Message: String, CaseIterable, Codable, Sendable {
         case updatedState
         case modifiedObjects
         case tookOverRecording
         func withPrefix(_ prefix: String) -> String { return "\(prefix).\(rawValue)" }
     }
 
-    public struct MessageInfo: Codable {
+    public struct MessageInfo: Codable, Sendable {
         public var date: Date
         public var message: Message
         public var appName: AppName

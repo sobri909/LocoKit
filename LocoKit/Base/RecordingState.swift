@@ -9,7 +9,7 @@
 /**
  The recording state of the LocomotionManager.
  */
-public enum RecordingState: String, Codable {
+public enum RecordingState: String, Codable, Sendable {
 
     /**
      This state indicates that the LocomotionManager is turned on and recording location data. It may also be recording
