@@ -605,15 +605,14 @@ open class TimelineStore {
         }
     }
 
-    public func backfillSampleRTree(batchSize limit: Int = 50_000) {
+    public func backfillSampleRTree(batchSize limit: Int = 50_000) async {
+        connectToDatabase()
         let start = Date()
         let samples = samples(where: "confirmedType IS NOT NULL AND rtreeId IS NULL LIMIT ?", arguments: [limit])
         logger.info("SampleRTree backfill batch: \(samples.count) samples, fetchTime: \(start.age)")
         for sample in samples {
-            Task(priority: .background) {
-                if sample.rtreeId == nil {
-                    sample.updateRTree()
-                }
+            if sample.rtreeId == nil {
+                await sample.updateRTree()
             }
         }
     }

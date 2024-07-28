@@ -64,9 +64,9 @@ open class PersistentSample: LocomotionSample, TimelineObject {
 
         // backfill rtree indexes
         if lastSaved != nil, rtreeId == nil {
-            Task(priority: .background) {
+            Task.detached {
                 if self.rtreeId == nil {
-                    self.updateRTree()
+                    await self.updateRTree()
                 }
             }
         }
@@ -195,7 +195,7 @@ open class PersistentSample: LocomotionSample, TimelineObject {
 
     // MARK: - RTree index
 
-    internal func updateRTree() {
+    internal func updateRTree() async {
         guard let coordinate = location?.coordinate, coordinate.isUsable else { return }
         guard let pool = store?.pool else { return }
         do {
@@ -205,14 +205,14 @@ open class PersistentSample: LocomotionSample, TimelineObject {
                     latMin: coordinate.latitude, latMax: coordinate.latitude,
                     lonMin: coordinate.longitude, lonMax: coordinate.longitude
                 )
-                try pool.write { try rtree.update($0) }
-                
+                try await pool.write { try rtree.update($0) }
+
             } else {
                 var rtree = SampleRTree(
                     latMin: coordinate.latitude, latMax: coordinate.latitude,
                     lonMin: coordinate.longitude, lonMax: coordinate.longitude
                 )
-                try pool.write { try rtree.insert($0) }
+                try await pool.write { try rtree.insert($0) }
                 rtreeId = rtree.id
                 save()
             }
