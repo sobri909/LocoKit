@@ -933,7 +933,7 @@ public class TimelineProcessor {
                     WHERE timelineItemId = TimelineItem.itemId
                     AND LocomotionSample.disabled = TimelineItem.disabled
                 )
-            WHERE deleted = 0 AND disabled = 0 AND startDate IS NULL
+            WHERE deleted = 0 AND disabled = 0 AND startDate IS NULL LIMIT 100
         """
 
         do {
