@@ -60,9 +60,7 @@ public final class AppGroup: @unchecked Sendable {
         if applicationState == .active { return true }
 
         // there's no current recorder? then we should take on the job
-        guard let currentRecorder = currentRecorder else { return true }
-
-        // TODO: Arc Recorder shouldn't concede to others
+        guard let currentRecorder else { return true }
 
         // there's multiple recorders, and we're not in foreground? it's time to concede
         if haveMultipleRecorders { return false }
@@ -95,8 +93,6 @@ public final class AppGroup: @unchecked Sendable {
         for fileURL in stateFileURLs ?? [] {
             if let state = try? AppState.loadFromFile(url: fileURL) {
                 states[state.appName] = state
-            } else {
-                print("FAILED TO DECODE")
             }
         }
 
@@ -114,8 +110,6 @@ public final class AppGroup: @unchecked Sendable {
 
         send(message: .updatedState)
     }
-
-    // MARK: -
 
     var currentAppState: AppState {
         return AppState(
@@ -169,34 +163,29 @@ public final class AppGroup: @unchecked Sendable {
         case .modifiedObjects:
             objectsWereModified(by: messageInfo.appName, messageInfo: messageInfo)
         case .tookOverRecording:
-            recordingWasTakenOver(by: messageInfo.appName, messageInfo: messageInfo)
+            concedeRecording(to: messageInfo.appName)
         }
     }
 
     private func appStateUpdated(by: AppName) {
         logger.debug("RECEIVED: .updatedState, from: \(by.rawValue)")
 
-        guard let currentRecorder else {
-            logger.error("No AppGroup.currentRecorder")
-            return
-        }
-        guard let currentItemId = currentRecorder.currentItemId else {
+        if currentRecorder?.currentItemId == nil {
             logger.error("No AppGroup.currentItemId")
-            return
         }
 
-        if !isAnActiveRecorder, currentAppState.currentItemId != currentItemId {
+        if currentRecorder == nil {
+            logger.error("No AppGroup.currentRecorder")
+        }
+
+        if isAnActiveRecorder {
+            if !shouldBeTheRecorder {
+                concedeRecording()
+            }
+
+        } else if let currentItemId = currentRecorder?.currentItemId, currentAppState.currentItemId != currentItemId {
             logger.debug("Local currentItemId is stale (mine: \(self.currentAppState.currentItemId ?? "nil"), theirs: \(currentItemId))")
             timeline?.updateCurrentItem()
-        }
-    }
-
-    private func recordingWasTakenOver(by: AppName, messageInfo: MessageInfo) {
-        if LocomotionManager.highlander.recordingState.isCurrentRecorder {
-            LocomotionManager.highlander.startStandby()
-
-            let appName = LocomotionManager.highlander.appGroup?.currentRecorder?.appName.rawValue ?? "UNKNOWN"
-            logger.info("concededRecording to \(appName)")
         }
     }
 
@@ -205,6 +194,18 @@ public final class AppGroup: @unchecked Sendable {
         if let objectIds = messageInfo.modifiedObjectIds, !objectIds.isEmpty {
             let note = Notification(name: .timelineObjectsExternallyModified, object: self, userInfo: ["modifiedObjectIds": objectIds])
             NotificationCenter.default.post(note)
+        }
+    }
+    
+    private func concedeRecording(to activeRecorder: AppName? = nil) {
+        guard isAnActiveRecorder else { return }
+
+        LocomotionManager.highlander.startStandby()
+
+        if let activeRecorder {
+            logger.info("concededRecording to \(activeRecorder.rawValue)")
+        } else {
+            logger.info("concededRecording")
         }
     }
 
