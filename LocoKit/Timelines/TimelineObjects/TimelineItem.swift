@@ -272,6 +272,14 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         return _dateRange
     }
 
+    public var unlinkedDateRange: DateInterval? {
+        guard let startDate = samplesMatchingDisabled.first?.date,
+              let endDate = samplesMatchingDisabled.last?.date else {
+            return nil
+        }
+        return DateInterval(start: startDate, end: endDate)
+    }
+
     public var startDate: Date? { return dateRange?.start }
     public var endDate: Date? { return dateRange?.end }
     public var duration: TimeInterval { return dateRange?.duration ?? 0 }
@@ -498,16 +506,17 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
      - Note: A negative value indicates overlapping items, and thus the duration of their overlap.
      */
     public func timeInterval(from otherItem: TimelineItem) -> TimeInterval? {
-        guard let myRange = self.dateRange else { return nil }
-        guard let theirRange = otherItem.dateRange else { return nil }
+        guard let myRange = self.unlinkedDateRange else { return nil }
+        guard let theirRange = otherItem.unlinkedDateRange else { return nil }
 
         // items overlap?
         if let intersection = myRange.intersection(with: theirRange) { return -intersection.duration }
 
+        // self is earlier
         if myRange.end <= theirRange.start { return theirRange.start.timeIntervalSince(myRange.end) }
-        if myRange.start >= theirRange.end { return myRange.start.timeIntervalSince(theirRange.end) }
 
-        return nil
+        // other is earlier
+        return myRange.start.timeIntervalSince(theirRange.end)
     }
 
     internal func edgeSample(with otherItem: TimelineItem) -> PersistentSample? {
