@@ -814,7 +814,6 @@ public class TimelineProcessor {
     }
 
     private static func adoptOrphanedSamples(in store: TimelineStore, inRange dateRange: DateInterval? = nil) {
-        store.connectToDatabase()
 
         var query = "timelineItemId IS NULL AND deleted = 0"
         var arguments: [DatabaseValueConvertible] = []
@@ -823,6 +822,7 @@ public class TimelineProcessor {
             arguments = [dateRange.start, dateRange.end]
         }
 
+        store.connectToDatabase()
         let orphans = store.samples(where: query + " ORDER BY date DESC", arguments: StatementArguments(arguments))
 
         if orphans.isEmpty { return }
@@ -832,6 +832,7 @@ public class TimelineProcessor {
         var newParents: [TimelineItem] = []
 
         for orphan in orphans where orphan.timelineItem == nil && !orphan.deleted {
+            store.connectToDatabase()
             if let item = store.item(where: "startDate <= ? AND endDate >= ? AND deleted = 0 AND source = ?",
                                      arguments: [orphan.date, orphan.date, orphan.source]) {
                 if #available(iOS 15.0, *) {
