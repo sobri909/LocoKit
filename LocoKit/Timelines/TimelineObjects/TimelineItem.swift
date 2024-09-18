@@ -531,7 +531,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         if let gap = distance(from: otherItem), gap <= maximumMergeableDistance(from: otherItem) { return true }
 
         // if the items overlap in time, any physical distance is acceptable
-        guard let timeGap = self.timeInterval(from: otherItem), timeGap < 0 else { return true }
+        if let timeGap = self.timeInterval(from: otherItem), timeGap < 0 { return true }
 
         return false
     }
