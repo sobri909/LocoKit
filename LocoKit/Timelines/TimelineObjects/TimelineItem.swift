@@ -519,19 +519,34 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         return myRange.start.timeIntervalSince(theirRange.end)
     }
 
-    internal func edgeSample(with otherItem: TimelineItem) -> PersistentSample? {
+    internal func edgeSample(with otherItem: TimelineItem, requireEdgeLink: Bool = true, requireLocation: Bool = false) -> PersistentSample? {
+        // check for linked items first
         if otherItem == previousItem {
-            return samples.first
+            return requireLocation ? samplesMatchingDisabled.first(where: { $0.location != nil }) : samples.first
         }
         if otherItem == nextItem {
-            return samples.last
+            return requireLocation ? samplesMatchingDisabled.last(where: { $0.location != nil }) : samples.last
         }
-        return nil
+
+        // not allowed to fall back to non-linked?
+        if requireEdgeLink {
+            return nil
+        }
+
+        // need dates to know which item comes first
+        guard let myStart = startDate, let theirStart = otherItem.startDate else {
+            return nil
+        }
+
+        let edgeSamples = myStart < theirStart ? samplesMatchingDisabled.reversed() : samplesMatchingDisabled
+        return requireLocation
+            ? edgeSamples.first { $0.location != nil }
+            : edgeSamples.first
     }
 
     internal func secondToEdgeSample(with otherItem: TimelineItem) -> PersistentSample? {
-        if otherItem == previousItem { return samples.second }
-        if otherItem == nextItem { return samples.secondToLast }
+        if otherItem == previousItem { return samplesMatchingDisabled.second }
+        if otherItem == nextItem { return samplesMatchingDisabled.secondToLast }
         return nil
     }
 
