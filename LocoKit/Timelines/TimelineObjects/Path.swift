@@ -219,14 +219,8 @@ open class Path: TimelineItem, CustomStringConvertible {
         guard let timeSeparation = self.timeInterval(from: otherPath) else {
             return 0
         }
-        var speeds: [CLLocationSpeed] = []
-        if self.mps > 0 {
-            speeds.append(self.mps)
-        }
-        if otherPath.mps > 0 {
-            speeds.append(otherPath.mps)
-        }
-        return CLLocationDistance(speeds.mean * timeSeparation * 4)
+        let maxSpeed = max(self.speed, otherPath.speed)
+        return CLLocationDistance(maxSpeed * timeSeparation * 50)
     }
 
     internal override func cleanseEdge(with otherPath: Path, excluding: Set<LocomotionSample>) -> LocomotionSample? {
