@@ -112,6 +112,7 @@ public final class AppGroup: @unchecked Sendable {
     }
 
     var currentAppState: AppState {
+        timeline?.store.connectToDatabase()
         return AppState(
             appName: thisApp,
             recordingStateString: loco.recordingState.rawValue,
