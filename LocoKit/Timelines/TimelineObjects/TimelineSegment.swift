@@ -13,7 +13,7 @@ public extension NSNotification.Name {
     static let timelineSegmentUpdated = Notification.Name("timelineSegmentUpdated")
 }
 
-public class TimelineSegment: TransactionObserver, Encodable, Hashable, ObservableObject {
+public final class TimelineSegment: TransactionObserver, Encodable, Hashable, ObservableObject {
 
     // MARK: -
 
@@ -44,7 +44,7 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
 
     // MARK: -
 
-    private var updateTimer: Timer?
+    private var debouncer = Debouncer()
     private var lastSaveDate: Date?
     private var lastItemCount: Int?
     private var pendingChanges = false {
@@ -78,38 +78,33 @@ public class TimelineSegment: TransactionObserver, Encodable, Hashable, Observab
     // MARK: - Result updating
 
     private func needsUpdate() {
-        onMain {
-            guard self.updatingEnabled else { return }
-            self.updateTimer?.invalidate()
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { [weak self] _ in
-                self?.update()
-            }
+        guard self.updatingEnabled else { return }
+        self.debouncer.debounce(duration: 1) {
+            await self.update()
         }
     }
 
-    private func update() {
+    @TimelineActor
+    private func update() async {
         guard updatingEnabled else { return }
-        Jobs.addSecondaryJob("TimelineSegment.\(self.hashValue).update", dontDupe: true) {
-            guard self.updatingEnabled else { return }
-            guard self.store.pool != nil else { return }
-            guard self.hasChanged else { return }
+        guard store.pool != nil else { return }
+        guard hasChanged else { return }
 
-            if self.shouldReprocessOnUpdate {
-                self.timelineItems.forEach {
-                    TimelineProcessor.healEdges(of: $0)
-                }
+        if shouldReprocessOnUpdate {
+            timelineItems.forEach {
+                TimelineProcessor.healEdges(of: $0)
             }
-            
-            self.reclassifySamples()
-
-            if self.shouldReprocessOnUpdate {
-                self.process()
-            }
-
-            self.onUpdate?()
-
-            NotificationCenter.default.post(Notification(name: .timelineSegmentUpdated, object: self))
         }
+
+        reclassifySamples()
+
+        if shouldReprocessOnUpdate {
+            process()
+        }
+
+        onUpdate?()
+
+        NotificationCenter.default.post(Notification(name: .timelineSegmentUpdated, object: self))
     }
 
     private var hasChanged: Bool {
