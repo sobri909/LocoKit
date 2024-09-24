@@ -522,10 +522,10 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
     internal func edgeSample(with otherItem: TimelineItem, requireEdgeLink: Bool = true, requireLocation: Bool = false) -> PersistentSample? {
         // check for linked items first
         if otherItem == previousItem {
-            return requireLocation ? samplesMatchingDisabled.first(where: { $0.location != nil }) : samples.first
+            return requireLocation ? samplesMatchingDisabled.first { $0.hasUsableCoordinate } : samples.first
         }
         if otherItem == nextItem {
-            return requireLocation ? samplesMatchingDisabled.last(where: { $0.location != nil }) : samples.last
+            return requireLocation ? samplesMatchingDisabled.last { $0.hasUsableCoordinate } : samples.last
         }
 
         // not allowed to fall back to non-linked?
@@ -539,9 +539,7 @@ open class TimelineItem: TimelineObject, Hashable, Comparable, Codable, Identifi
         }
 
         let edgeSamples = myStart < theirStart ? samplesMatchingDisabled.reversed() : samplesMatchingDisabled
-        return requireLocation
-            ? edgeSamples.first { $0.location != nil }
-            : edgeSamples.first
+        return requireLocation ? edgeSamples.first { $0.hasUsableCoordinate } : edgeSamples.first
     }
 
     internal func secondToEdgeSample(with otherItem: TimelineItem) -> PersistentSample? {
