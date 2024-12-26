@@ -216,9 +216,15 @@ open class Path: TimelineItem, CustomStringConvertible {
     }
 
     private func maximumMergeableDistance(from otherPath: Path) -> CLLocationDistance {
-        guard let timeSeparation = self.timeInterval(from: otherPath) else {
+        // get the same edge samples we'll use for distance calculation
+        guard let myEdge = self.edgeSample(with: otherPath, requireEdgeLink: false, requireLocation: true),
+              let theirEdge = otherPath.edgeSample(with: self, requireEdgeLink: false, requireLocation: true) else {
             return 0
         }
+
+        // calculate separation using actual sample dates
+        let timeSeparation = abs(myEdge.date.timeIntervalSince(theirEdge.date))
+
         let maxSpeed = max(self.speed, otherPath.speed)
         return CLLocationDistance(maxSpeed * timeSeparation * 50)
     }
