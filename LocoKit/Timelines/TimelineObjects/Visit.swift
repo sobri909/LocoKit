@@ -58,7 +58,7 @@ open class Visit: TimelineItem {
     // MARK: - Comparisons and Helpers
 
     /// Whether the given location falls within this visit's radius.
-    public override func contains(_ location: CLLocation, sd: Double = 4) -> Bool {
+    public override func contains(_ location: CLLocation, sd: Double) -> Bool {
         guard let center = center else { return false }
         let testRadius = radius.withSD(sd).clamped(min: Visit.minimumRadius, max: Visit.maximumRadius)
         return location.distance(from: center) <= testRadius
